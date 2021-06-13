@@ -1,0 +1,72 @@
+
+// Constants/Literals
+
+%token  T_HEX_CONSTANT          0x([0-9a-fA-F]+)((?i)[ul]*)
+%token  T_BIN_CONSTANT          0b([0-1]+)((?i)[ul]*)
+%token  T_OCT_CONSTANT          0([0-7]+)((?i)[ul]*)
+%token  T_DEC_CONSTANT          ([1-9]\d*|[0-9])((?i)[ul]*)
+%token  T_FLOAT_CONSTANT        \bx\b // TODO
+%token  T_DEC_FLOAT_CONSTANT    \bx\b // TODO
+%token  T_HEX_FLOAT_CONSTANT    \bx\b // TODO
+%token  T_STRING_LITERAL        (L?)"([^"\\]*(?:\\.[^"\\]*)*)"
+%token  T_CHAR_CONSTANT         (L?)'([^'\\]*(?:\\.[^'\\]*)*)'
+%token  T_BOOL_CONSTANT         \b(?:true|false)\b
+%token  T_NULL_CONSTANT         \b(?i)(?:null)\b
+
+// Punctuators
+
+%token  T_BOOL_OR                   \|\|
+%token  T_BOOL_AND                  &&
+// %token  T_ASSIGN_MUL                \*=
+%token  T_MUL                       \*
+// %token  T_ASSIGN_DIV                /=
+%token  T_DIV                       /
+// %token  T_ASSIGN_MOD                %=
+%token  T_MOD                       %
+// %token  T_ASSIGN_PLUS               \+=
+%token  T_PLUS_PLUS                 \+\+
+%token  T_PLUS                      \+
+// %token  T_ASSIGN_MINUS              \-=
+%token  T_MINUS_MINUS               \-\-
+%token  T_MINUS                     \-
+// %token  T_ASSIGN_L_SHIFT            <<=
+%token  T_L_SHIFT                   <<
+// %token  T_ASSIGN_R_SHIFT            >>=
+%token  T_R_SHIFT                   >>
+// %token  T_ASSIGN_BIN_AND            &=
+%token  T_BIN_AND                   &
+// %token  T_ASSIGN_BIN_OR             \|=
+%token  T_BIN_OR                    \|
+// %token  T_ASSIGN_BIN_XOR            \^=
+%token  T_BIN_XOR                   \^
+// %token  T_ASSIGN_BIT_NOT            ~=
+%token  T_BIT_NOT                   ~
+// %token  T_ARROW                     \->
+%token  T_EQ                        ==
+%token  T_NEQ                       !=
+%token  T_GTE                       >=
+%token  T_LTE                       <=
+%token  T_GT                        >
+%token  T_LT                        <
+// %token  T_THREE_DOTS                \.\.\.
+// %token  T_DOT                       \.
+%token  T_NOT                       !
+// %token  T_TERNARY                   \?
+%token  T_ASSIGN                    =
+// %token  T_COLON                     :
+%token  T_SEMICOLON                 ;
+%token  T_COMMA                     ,
+// %token  T_SQ_BRACKET_OPEN           \[
+// %token  T_SQ_BRACKET_CLOSE          \]
+%token  T_RND_BRACKET_OPEN          \(
+%token  T_RND_BRACKET_CLOSE         \)
+// %token  T_BRACE_OPEN                \{
+// %token  T_BRACE_CLOSE               \}
+
+%token T_IDENTIFIER                 [a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*
+
+// Other
+
+%skip   T_WHITESPACE                \s+
+%skip   T_BLOCK_COMMENT             \h*/\*.*?\*/
+%skip   T_COMMENT                   \h*//[^\n]*\n*

@@ -1,0 +1,74 @@
+
+
+Identifier -> {
+    return new Ast\Literal\IdentifierLiteral($children->getValue());
+}
+    : <T_IDENTIFIER>
+    ;
+
+Literal
+    : IntegerLiteral()
+    | HexIntegerLiteral()
+    | OctIntegerLiteral()
+    | BinIntegerLiteral()
+    | BooleanLiteral()
+    | StringLiteral()
+    /*| FloatingLiteral()
+    | EnumerationLiteral()
+    | CharacterLiteral()*/
+    ;
+
+IntegerLiteral -> {
+    return new Ast\Literal\IntegerLiteral((int)$children[0]->getValue(), $children[1]->getValue());
+}
+    : <T_DEC_CONSTANT>
+    ;
+
+HexIntegerLiteral -> {
+    return new Ast\Literal\HexIntegerLiteral((string)$children[0]->getValue(), $children[1]->getValue());
+}
+    : <T_HEX_CONSTANT>
+    ;
+
+OctIntegerLiteral -> {
+    return new Ast\Literal\OctIntegerLiteral((string)$children[0]->getValue(), $children[1]->getValue());
+}
+    : <T_OCT_CONSTANT>
+    ;
+
+BinIntegerLiteral -> {
+    return new Ast\Literal\OctIntegerLiteral((string)$children[0]->getValue(), $children[1]->getValue());
+}
+    : <T_BIN_CONSTANT>
+    ;
+
+BooleanLiteral -> {
+    return new Ast\Literal\BooleanLiteral(
+        $children->getValue() === 'true'
+    );
+}
+    : <T_BOOL_CONSTANT>
+    ;
+
+FloatingLiteral
+    : <T_FLOAT_CONSTANT>
+    ;
+
+EnumerationLiteral
+    : <T_DEC_CONSTANT>
+    ;
+
+CharacterLiteral
+    : <T_CHAR_CONSTANT>
+    ;
+
+StringLiteral -> {
+    $value = Ast\Literal\StringLiteral::parse(
+        $children[1]->getValue()
+    );
+
+    return new Ast\Literal\StringLiteral($value, $children[0]->getValue() !== '');
+}
+    : <T_STRING_LITERAL>
+    ;
+

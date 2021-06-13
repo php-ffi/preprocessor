@@ -1,0 +1,251 @@
+
+/**
+ * -----------------------------------------------------------------------------
+ *  ISO/IEC 9899:TC2
+ * -----------------------------------------------------------------------------
+ *
+ * Language Syntax Summary
+ *
+ */
+
+%include lexemes.pp2
+%include literals.pp2
+%include type-name.pp2
+%include unary.pp2
+
+%pragma root RootExpression
+
+RootExpression -> { return $children[0]; }
+    : Expression()
+    ;
+
+/**
+ * -----------------------------------------------------------------------------
+ *  Constant Expressions
+ * -----------------------------------------------------------------------------
+ *
+ *  A constant expression can be evaluated during translation rather than
+ *  runtime, and accordingly may be used in any place that a constant may be.
+ *
+ *  constant-expression:
+ *      conditional-expression
+ *
+ */
+
+#Expression
+    : ConditionalExpression()
+    ;
+
+/**
+ * (6.5.15) conditional-expression:
+ *     logical-OR-expression
+ *     logical-OR-expression ? expression : conditional-expression
+ */
+#ConditionalExpression
+    : LogicalOrExpression()
+    ;
+
+/**
+ * (6.5.14) logical-OR-expression:
+ *     logical-AND-expression
+ *     logical-OR-expression || logical-AND-expression
+ */
+#LogicalOrExpression -> {
+    if (\count($children) === 2) {
+        return new Ast\Logical\OrExpression($children[0], $children[1]);
+    }
+
+    return $children;
+}
+    : LogicalAndExpression() (::T_BOOL_OR:: LogicalOrExpression())?
+    ;
+
+/**
+ * (6.5.13) logical-AND-expression:
+ *     inclusive-OR-expression
+ *     logical-AND-expression && inclusive-OR-expression
+*/
+#LogicalAndExpression -> {
+    if (\count($children) === 2) {
+        return new Ast\Logical\AndExpression($children[0], $children[1]);
+    }
+
+    return $children;
+}
+    : InclusiveOrExpression() (::T_BOOL_AND:: LogicalAndExpression())?
+    ;
+
+/**
+ * (6.5.12) inclusive-OR-expression:
+ *     exclusive-OR-expression
+ *     inclusive-OR-expression | exclusive-OR-expression
+ */
+#InclusiveOrExpression -> {
+    if (\count($children) === 2) {
+        return new Ast\Logical\BitwiseOrExpression($children[0], $children[1]);
+    }
+
+    return $children;
+}
+    : ExclusiveOrExpression() (::T_BIN_OR:: InclusiveOrExpression())?
+    ;
+
+/**
+ * (6.5.11) exclusive-OR-expression:
+ *     AND-expression
+ *     exclusive-OR-expression ^ AND-expression
+ */
+#ExclusiveOrExpression -> {
+    if (\count($children) === 2) {
+        return new Ast\Logical\BitwiseXorExpression($children[0], $children[1]);
+    }
+
+    return $children;
+}
+    : AndExpression() (::T_BIN_XOR:: ExclusiveOrExpression())?
+    ;
+
+/**
+ * (6.5.10) AND-expression:
+ *     equality-expression
+ *     AND-expression & equality-expression
+ */
+#AndExpression -> {
+    if (\count($children) === 2) {
+        return new Ast\Logical\BitwiseAndExpression($children[0], $children[1]);
+    }
+
+    return $children;
+}
+    : EqualityExpression() (::T_BIN_AND:: AndExpression())?
+    ;
+
+/**
+ * (6.5.9) equality-expression:
+ *     relational-expression
+ *     equality-expression == relational-expression
+ *     equality-expression != relational-expression
+
+ * (6.5.8) relational-expression:
+ *     shift-expression
+ *     relational-expression < shift-expression
+ *     relational-expression > shift-expression
+ *     relational-expression <= shift-expression
+ *     relational-expression >= shift-expression
+ */
+#EqualityExpression -> {
+    if (\count($children) === 3) {
+        switch ($children[1]->getName()) {
+            case 'T_EQ': return new Ast\Comparison\Equal($children[0], $children[2]);
+            case 'T_NEQ': return new Ast\Comparison\NotEqual($children[0], $children[2]);
+            case 'T_GT': return new Ast\Comparison\GreaterThan($children[0], $children[2]);
+            case 'T_GTE': return new Ast\Comparison\GreaterThanOrEqual($children[0], $children[2]);
+            case 'T_LT': return new Ast\Comparison\LessThan($children[0], $children[2]);
+            case 'T_LTE': return new Ast\Comparison\LessThanOrEqual($children[0], $children[2]);
+        }
+    }
+
+    return $children;
+}
+    : ShiftExpression() ((<T_EQ>|<T_NEQ>|<T_GT>|<T_LT>|<T_GTE>|<T_LTE>) EqualityExpression())?
+    ;
+
+/**
+ * (6.5.7) shift-expression:
+ *     additive-expression
+ *     shift-expression << additive-expression
+ *     shift-expression >> additive-expression
+ */
+#ShiftExpression -> {
+    if (\count($children) === 3) {
+        switch ($children[1]->getName()) {
+            case 'T_L_SHIFT': return new Ast\Math\BitwiseLeftShiftExpression($children[0], $children[2]);
+            case 'T_R_SHIFT': return new Ast\Math\BitwiseRightShiftExpression($children[0], $children[2]);
+        }
+    }
+
+    return $children;
+}
+    : AdditiveExpression() ((<T_L_SHIFT>|<T_R_SHIFT>) ShiftExpression())?
+    ;
+
+
+/**
+ * (6.5.6) additive-expression:
+ *     multiplicative-expression
+ *     additive-expression + multiplicative-expression
+ *     additive-expression - multiplicative-expression
+ */
+#AdditiveExpression -> {
+    if (\count($children) === 3) {
+        switch ($children[1]->getName()) {
+            case 'T_PLUS': return new Ast\Math\SumExpression($children[0], $children[2]);
+            case 'T_MINUS': return new Ast\Math\SubtractionExpression($children[0], $children[2]);
+        }
+    }
+
+    return $children;
+}
+    : MultiplicativeExpression() ((<T_PLUS>|<T_MINUS>) AdditiveExpression())?
+    ;
+
+/**
+ * (6.5.5) multiplicative-expression:
+ *     cast-expression
+ *     multiplicative-expression * cast-expression
+ *     multiplicative-expression / cast-expression
+ *     multiplicative-expression % cast-expression
+ */
+
+#MultiplicativeExpression -> {
+    while (\count($children) >= 3) {
+        [$a, $op, $b] = [
+            \array_shift($children),
+            \array_shift($children),
+            \array_shift($children),
+        ];
+
+        switch ($op->getName()) {
+            case 'T_MOD':
+                \array_unshift($children, new Ast\Math\ModExpression($a, $b));
+                break;
+
+            case 'T_DIV':
+                \array_unshift($children, new Ast\Math\DivExpression($a, $b));
+                break;
+
+            case 'T_MUL':
+                \array_unshift($children, new Ast\Math\MulExpression($a, $b));
+                break;
+        }
+    }
+
+    return $children;
+}
+    // Force Left Associativity.
+    // The algorithm is a little more complicated, but in this case it is necessary.
+    : (CastExpression() (<T_DIV>|<T_MUL>|<T_MOD>))* CastExpression()
+    ;
+
+
+/**
+ * (6.5.4) cast-expression:
+ *     unary-expression
+ *     ( type-name ) cast-expression
+ */
+#CastExpression -> {
+    if (\is_array($children) && \count($children) === 2) {
+        return new Ast\CastExpression($children[0]->getValue(), $children[1]);
+    }
+
+    return $children;
+}
+    : ::T_RND_BRACKET_OPEN:: TypeName() ::T_RND_BRACKET_CLOSE:: CastExpression()
+    | UnaryExpression()
+    ;
+
+#PrimaryExpression
+    : Identifier()
+    | Literal()
+    | ::T_RND_BRACKET_OPEN:: Expression() ::T_RND_BRACKET_CLOSE::
+    ;

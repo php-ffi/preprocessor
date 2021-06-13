@@ -1,0 +1,12 @@
+
+/**
+ * (6.7.6) type-name:
+ *     specifier-qualifier-list abstract-declarator[opt]
+ */
+#TypeName
+    : TypeSpecifier()
+    ;
+
+#TypeSpecifier
+    : <T_IDENTIFIER>
+    ;

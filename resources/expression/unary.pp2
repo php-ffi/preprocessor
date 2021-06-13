@@ -1,0 +1,43 @@
+
+/**
+ * (6.5.3) unary-expression:
+ *     postfix-expression
+ *     ++ unary-expression
+ *     -- unary-expression
+ *     unary-operator cast-expression
+ *     sizeof unary-expression
+ *     sizeof ( type-name )
+ */
+#UnaryExpression
+    : PrefixIncrement()
+    | PrefixDecrement()
+    | PrimaryExpression()
+    | UnaryPlus()
+    | UnaryMinus()
+    | UnaryNot()
+    | UnaryBitwiseNot()
+    ;
+
+#UnaryPlus -> { return $children[0]; }
+    : ::T_PLUS:: UnaryExpression()
+    ;
+
+#UnaryMinus -> { return new Ast\Math\UnaryMinus($children[0]); }
+    : ::T_MINUS:: UnaryExpression()
+    ;
+
+#UnaryNot -> { return new Ast\Math\NotExpression($children[0]); }
+    : ::T_NOT:: UnaryExpression()
+    ;
+
+#UnaryBitwiseNot -> { return new Ast\Math\BitwiseNotExpression($children[1]); }
+    : ::T_BIT_NOT:: UnaryExpression()
+    ;
+
+#PrefixIncrement -> { return new Ast\Math\PrefixIncrement($children[1]); }
+    : <T_PLUS_PLUS> UnaryExpression()
+    ;
+
+#PrefixDecrement -> { return new Ast\Math\PrefixDecrement($children[1]); }
+    : <T_MINUS_MINUS> UnaryExpression()
+    ;

@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * This file is part of FFI package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace FFI\Preprocessor\Internal\Expression\Ast;
+
+class CastExpression extends Expression
+{
+    /**
+     * @var string
+     */
+    private string $type;
+
+    /**
+     * @var ExpressionInterface
+     */
+    private ExpressionInterface $value;
+
+    /**
+     * @param string $type
+     * @param ExpressionInterface $value
+     */
+    public function __construct(string $type, ExpressionInterface $value)
+    {
+        $this->type = \strtolower($type);
+        $this->value = $value;
+    }
+
+    /**
+     * Approximate cast result.
+     *
+     * @return mixed
+     */
+    public function eval()
+    {
+        switch ($this->type) {
+            case 'char':
+            case 'short':
+            case 'int':
+            case 'long':
+                return (int)$this->value->eval();
+            case 'string':
+                return (string)$this->value->eval();
+            case 'float':
+            case 'double':
+                return (float)$this->value->eval();
+            case 'bool':
+                return (bool)$this->value->eval();
+            default:
+                $error = \sprintf('Can not cast %s to %s', \get_debug_type($this->value->eval()), $this->type);
+                throw new \LogicException($error);
+        }
+    }
+}
