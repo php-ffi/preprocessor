@@ -82,4 +82,18 @@ abstract class Directive implements DirectiveInterface
     {
         return $this->minArgumentsCount;
     }
+
+    /**
+     * @param mixed $result
+     * @return string
+     */
+    protected function toString(mixed $result): string
+    {
+        return match(true) {
+            $result === true => '1',
+            \is_null($result), $result === false => '0',
+            \is_string($result) => \var_export($result, true),
+            default => (string)$result,
+        };
+    }
 }

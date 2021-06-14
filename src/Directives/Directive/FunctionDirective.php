@@ -38,6 +38,6 @@ final class FunctionDirective extends Directive
      */
     public function __invoke(string ...$args): string
     {
-        return (string)($this->callback)(...$args);
+        return $this->toString(($this->callback)(...$args));
     }
 }

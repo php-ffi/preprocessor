@@ -64,6 +64,6 @@ final class FunctionLikeDirective extends Directive
             $this->compiled = Compiler::compile($this->body, $this->args);
         }
 
-        return (string)($this->compiled)(...$args);
+        return $this->toString(($this->compiled)(...$args));
     }
 }
