@@ -20,9 +20,9 @@ interface DirectivesProviderInterface
 
     /**
      * @param string $directive
-     * @param string|callable $value
+     * @param mixed $value
      */
-    public function define(string $directive, $value = self::DEFAULT_VALUE): void;
+    public function define(string $directive, mixed $value = self::DEFAULT_VALUE): void;
 
     /**
      * @param string $directive

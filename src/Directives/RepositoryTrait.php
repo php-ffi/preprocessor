@@ -31,7 +31,13 @@ trait RepositoryTrait
      */
     public function define(string $directive, $value = ''): void
     {
-        $this->defines[$directive] = $this->cast($value);
+        $expr = $this->cast($value);
+
+        if ($expr instanceof ObjectLikeDirective) {
+            $this->defines = \array_merge([$directive => $expr], $this->defines);
+        } else {
+            $this->defines[$directive] = $expr;
+        }
     }
 
     /**
