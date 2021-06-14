@@ -12,19 +12,98 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Internal;
 
 use FFI\Preprocessor\Internal\Lexer\Simplifier;
+use Phplrt\Contracts\Lexer\LexerInterface;
 use Phplrt\Contracts\Lexer\TokenInterface;
+use FFI\Preprocessor\Internal\ExpressionToken;
 use Phplrt\Lexer\Lexer as Runtime;
 use Phplrt\Lexer\Token\Token;
 use Phplrt\Source\File;
 
 /**
  * @internal Lexer is an internal library class, please do not use it in your code.
- * @psalm-internal Bic\Preprocessor\Internal
+ * @psalm-internal FFI\Preprocessor\Internal
+ *
+ * @psalm-type TokenType = Lexer::T_*
  */
 final class Lexer implements LexerInterface
 {
     /**
-     * @var string[]
+     * @var TokenType
+     */
+    public const T_QUOTED_INCLUDE = 'T_QUOTED_INCLUDE';
+
+    /**
+     * @var TokenType
+     */
+    public const T_ANGLE_BRACKET_INCLUDE = 'T_ANGLE_BRACKET_INCLUDE';
+
+    /**
+     * @var TokenType
+     */
+    public const T_FUNCTION_MACRO = 'T_FUNCTION_MACRO';
+
+    /**
+     * @var TokenType
+     */
+    public const T_OBJECT_MACRO = 'T_OBJECT_MACRO';
+
+    /**
+     * @var TokenType
+     */
+    public const T_UNDEF = 'T_UNDEF';
+
+    /**
+     * @var TokenType
+     */
+    public const T_IFDEF = 'T_IFDEF';
+
+    /**
+     * @var TokenType
+     */
+    public const T_IFNDEF = 'T_IFNDEF';
+
+    /**
+     * @var TokenType
+     */
+    public const T_ENDIF = 'T_ENDIF';
+
+    /**
+     * @var TokenType
+     */
+    public const T_IF = 'T_IF';
+
+    /**
+     * @var TokenType
+     */
+    public const T_ELSE_IF = 'T_ELSE_IF';
+
+    /**
+     * @var TokenType
+     */
+    public const T_ELSE = 'T_ELSE';
+
+    /**
+     * @var TokenType
+     */
+    public const T_ERROR = 'T_ERROR';
+
+    /**
+     * @var TokenType
+     */
+    public const T_WARNING = 'T_WARNING';
+
+    /**
+     * @var TokenType
+     */
+    public const T_SOURCE = 'T_SOURCE';
+
+    /**
+     * @var TokenType
+     */
+    public const T_EOI = TokenInterface::END_OF_INPUT;
+
+    /**
+     * @var array<TokenType, string>
      */
     private const LEXEMES = [
         self::T_QUOTED_INCLUDE        => '^\\h*#\\h*include\\h+"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"',
@@ -44,7 +123,7 @@ final class Lexer implements LexerInterface
     ];
 
     /**
-     * @var string[]
+     * @var array<TokenType>
      */
     private const MERGE = [
         self::T_SOURCE,
@@ -66,10 +145,7 @@ final class Lexer implements LexerInterface
     public function __construct()
     {
         $this->simplifier = new Simplifier();
-
-        $this->runtime = new Runtime(self::LEXEMES, [
-            Token::END_OF_INPUT,
-        ]);
+        $this->runtime = new Runtime(self::LEXEMES, [self::T_EOI]);
     }
 
     /**

@@ -9,13 +9,18 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Directives;
+namespace FFI\Preprocessor\Directive;
 
 /**
  * @mixin callable
  */
 interface DirectiveInterface
 {
+    /**
+     * @var string
+     */
+    public const DEFAULT_VALUE = '';
+
     /**
      * @param string ...$args
      * @return string

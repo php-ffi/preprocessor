@@ -11,17 +11,18 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Internal\Runtime;
 
-use FFI\Preprocessor\Directives\Directive\FunctionLikeDirective;
-use FFI\Preprocessor\Directives\Directive\ObjectLikeDirective;
-use FFI\Preprocessor\Directives\Executor as DirectivesExecutor;
-use FFI\Preprocessor\Directives\ExecutorInterface;
-use FFI\Preprocessor\Directives\RepositoryProviderInterface as Directives;
+use FFI\Preprocessor\Directive\DirectiveInterface;
+use FFI\Preprocessor\Directive\FunctionLikeDirective;
+use FFI\Preprocessor\Directive\ObjectLikeDirective;
+use FFI\Preprocessor\Directive\Repository as DirectivesRepository;
 use FFI\Preprocessor\Exception\NotReadableException;
 use FFI\Preprocessor\Exception\PreprocessException;
 use FFI\Preprocessor\Exception\PreprocessorException;
-use FFI\Preprocessor\Includes\RepositoryProviderInterface as IncludeDirectories;
 use FFI\Preprocessor\Internal\Expression\Parser;
 use FFI\Preprocessor\Internal\Lexer;
+use FFI\Preprocessor\Io\Directory\Repository as DirectoriesRepository;
+use FFI\Preprocessor\Io\Source\Repository as SourcesRepository;
+use FFI\Preprocessor\Preprocessor;
 use Phplrt\Contracts\Exception\RuntimeExceptionInterface;
 use Phplrt\Contracts\Lexer\TokenInterface;
 use Phplrt\Contracts\Source\FileInterface;
@@ -29,42 +30,18 @@ use Phplrt\Contracts\Source\ReadableInterface;
 use Phplrt\Lexer\Token\Composite;
 use Phplrt\Position\Position;
 use Phplrt\Source\File;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use Psr\Log\LoggerTrait;
-use Psr\Log\NullLogger;
 
 /**
- * @internal
+ * @internal SourceExecutor is an internal library class, please do not use it in your code.
+ * @psalm-internal FFI\Preprocessor\Internal
  */
-final class Executor implements LoggerAwareInterface, LoggerInterface
+final class SourceExecutor
 {
-    use LoggerAwareTrait;
-    use LoggerTrait;
-
     /**
      * @var string
      */
     private const GRAMMAR_PATHNAME = __DIR__ . '/../../../resources/expression.php';
-
-    /**
-     * @var string[]
-     */
-    private const RENDERABLE_DIRECTIVES = [
-        'FFI_SCOPE',
-        'FFI_LIB',
-    ];
-
-    /**
-     * @var Directives
-     */
-    public Directives $directives;
-
-    /**
-     * @var IncludeDirectories
-     */
-    public IncludeDirectories $includes;
 
     /**
      * @var OutputStack
@@ -72,9 +49,9 @@ final class Executor implements LoggerAwareInterface, LoggerInterface
     private OutputStack $stack;
 
     /**
-     * @var ExecutorInterface
+     * @var DirectiveExecutor
      */
-    private ExecutorInterface $executor;
+    private DirectiveExecutor $executor;
 
     /**
      * @var Lexer
@@ -87,40 +64,26 @@ final class Executor implements LoggerAwareInterface, LoggerInterface
     private Parser $expressions;
 
     /**
-     * @var int
+     * @param DirectivesRepository $directives
+     * @param DirectoriesRepository $directories
+     * @param SourcesRepository $sources
+     * @param LoggerInterface $logger
      */
-    private int $config;
-
-    /**
-     * @param int $config
-     * @param Directives $directives
-     * @param IncludeDirectories $includes
-     */
-    public function __construct(int $config, Directives $directives, IncludeDirectories $includes)
-    {
+    public function __construct(
+        private DirectivesRepository $directives,
+        private DirectoriesRepository $directories,
+        private SourcesRepository $sources,
+        private LoggerInterface $logger,
+    ) {
         $this->lexer = new Lexer();
-        $this->expressions = Parser::fromFile(self::GRAMMAR_PATHNAME);
-
-        $this->config = $config;
-        $this->includes = $includes;
-        $this->directives = $directives;
-
         $this->stack = new OutputStack();
-        $this->executor = new DirectivesExecutor($directives);
-        $this->logger = new NullLogger();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function log($level, $message, array $context = []): void
-    {
-        $this->logger->log($level, $message, $context);
+        $this->executor = new DirectiveExecutor($this->directives);
+        $this->expressions = Parser::fromFile(self::GRAMMAR_PATHNAME);
     }
 
     /**
      * @param ReadableInterface $source
-     * @return \Traversable|string[]
+     * @return \Traversable<string>
      * @throws PreprocessorException
      */
     public function execute(ReadableInterface $source): \Traversable
@@ -281,27 +244,27 @@ final class Executor implements LoggerAwareInterface, LoggerInterface
     }
 
     /**
-     * @param Composite $tok
+     * @param Composite $token
      * @param ReadableInterface $src
-     * @return iterable|string[]
+     * @return iterable<string>
      * @throws \Throwable
      */
-    private function doInclude(Composite $tok, ReadableInterface $src): iterable
+    private function doInclude(Composite $token, ReadableInterface $src): iterable
     {
         if (! $this->stack->isEnabled()) {
             return [];
         }
 
-        $isQuotedInclude = $tok->getName() === Lexer::T_QUOTED_INCLUDE;
+        $isQuotedInclude = $token->getName() === Lexer::T_QUOTED_INCLUDE;
 
         $filename = $isQuotedInclude
-            ? \str_replace('\"', '"', $tok[0]->getValue())
-            : $tok[0]->getValue();
+            ? \str_replace('\"', '"', $token[0]->getValue())
+            : $token[0]->getValue();
 
         try {
             $inclusion = $this->lookup($src, $filename, $isQuotedInclude);
         } catch (\Throwable $e) {
-            throw NotReadableException::fromSource($e->getMessage(), $src, $tok[0]);
+            throw NotReadableException::fromSource($e->getMessage(), $src, $token[0]);
         }
 
         yield from $this->execute($inclusion);
@@ -324,7 +287,7 @@ final class Executor implements LoggerAwareInterface, LoggerInterface
             }
         }
 
-        foreach ($this->includes->getIncludedDirectories() as $directory) {
+        foreach ($this->directories as $directory) {
             $pathname = $directory . '/' . $file;
 
             if (\is_file($pathname)) {
@@ -332,9 +295,9 @@ final class Executor implements LoggerAwareInterface, LoggerInterface
             }
         }
 
-        foreach ($this->includes->getIncludedFiles() as $name => $result) {
+        foreach ($this->sources as $name => $source) {
             if ($name === $file) {
-                return $result;
+                return $source;
             }
         }
 
@@ -415,7 +378,7 @@ final class Executor implements LoggerAwareInterface, LoggerInterface
     {
         $body = $this->escape($token[0]->getValue());
 
-        $processed = $this->replace($body, DirectivesExecutor::CTX_EXPRESSION);
+        $processed = $this->replace($body, DirectiveExecutor::CTX_EXPRESSION);
 
         $ast = $this->expressions->parse($processed);
 
@@ -441,6 +404,7 @@ final class Executor implements LoggerAwareInterface, LoggerInterface
     {
         if (! $this->stack->isCompleted() && $this->eval($token)) {
             $this->stack->complete();
+
             return;
         }
 
@@ -476,8 +440,8 @@ final class Executor implements LoggerAwareInterface, LoggerInterface
         $name = \trim($token[0]->getValue());
 
         // Value
-        $value = \count($token) === 1 ? ObjectLikeDirective::DEFAULT_VALUE : \trim($token[1]->getValue());
-        $value = $this->replace($value, ExecutorInterface::CTX_EXPRESSION);
+        $value = \count($token) === 1 ? DirectiveInterface::DEFAULT_VALUE : \trim($token[1]->getValue());
+        $value = $this->replace($value, DirectiveExecutor::CTX_EXPRESSION);
 
         $this->directives->define($name, new ObjectLikeDirective($value));
     }
@@ -498,8 +462,8 @@ final class Executor implements LoggerAwareInterface, LoggerInterface
         $args = \explode(',', $token[1]->getValue());
 
         // Value
-        $value = \count($token) === 2 ? FunctionLikeDirective::DEFAULT_VALUE : \trim($token[2]->getValue());
-        $value = $this->replace($value, ExecutorInterface::CTX_EXPRESSION);
+        $value = \count($token) === 2 ? DirectiveInterface::DEFAULT_VALUE : \trim($token[2]->getValue());
+        $value = $this->replace($value, DirectiveExecutor::CTX_EXPRESSION);
 
         $this->directives->define($name, new FunctionLikeDirective($args, $value));
     }
@@ -515,7 +479,7 @@ final class Executor implements LoggerAwareInterface, LoggerInterface
 
         $body = $this->escape($token[0]->getValue());
 
-        $name = $this->replace($body, ExecutorInterface::CTX_SOURCE);
+        $name = $this->replace($body, DirectiveExecutor::CTX_SOURCE);
 
         $this->directives->undef($name);
     }
@@ -532,6 +496,6 @@ final class Executor implements LoggerAwareInterface, LoggerInterface
 
         $body = $this->escape($token->getValue());
 
-        return $this->replace($body, ExecutorInterface::CTX_SOURCE);
+        return $this->replace($body, DirectiveExecutor::CTX_SOURCE);
     }
 }

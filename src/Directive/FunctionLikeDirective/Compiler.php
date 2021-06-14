@@ -9,9 +9,9 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Directives;
+namespace FFI\Preprocessor\Directive\FunctionLikeDirective;
 
-use FFI\Preprocessor\Directives\Directive\FunctionLikeDirective;
+use FFI\Preprocessor\Directive\FunctionLikeDirective;
 
 /**
  * @internal Refers to {@see FunctionLikeDirective}

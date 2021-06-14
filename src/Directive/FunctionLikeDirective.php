@@ -9,9 +9,9 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Directives\Directive;
+namespace FFI\Preprocessor\Directive;
 
-use FFI\Preprocessor\Directives\Compiler;
+use FFI\Preprocessor\Directive\FunctionLikeDirective\Compiler;
 
 final class FunctionLikeDirective extends Directive
 {
@@ -64,6 +64,6 @@ final class FunctionLikeDirective extends Directive
             $this->compiled = Compiler::compile($this->body, $this->args);
         }
 
-        return $this->toString(($this->compiled)(...$args));
+        return $this->render(($this->compiled)(...$args));
     }
 }

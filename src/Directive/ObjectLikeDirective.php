@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Directives\Directive;
+namespace FFI\Preprocessor\Directive;
 
 final class ObjectLikeDirective extends Directive
 {

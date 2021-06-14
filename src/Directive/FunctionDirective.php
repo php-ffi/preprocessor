@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Directives\Directive;
+namespace FFI\Preprocessor\Directive;
 
 final class FunctionDirective extends Directive
 {
@@ -38,6 +38,6 @@ final class FunctionDirective extends Directive
      */
     public function __invoke(string ...$args): string
     {
-        return $this->toString(($this->callback)(...$args));
+        return $this->render(($this->callback)(...$args));
     }
 }

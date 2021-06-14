@@ -9,18 +9,38 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Directives;
+namespace FFI\Preprocessor\Internal\Runtime;
 
+use FFI\Preprocessor\Directive\DirectiveInterface;
+use FFI\Preprocessor\Directive\RepositoryInterface;
+use FFI\Preprocessor\Exception\DirectiveEvaluationException;
 use FFI\Preprocessor\Exception\PreprocessException;
 use Phplrt\Contracts\Lexer\TokenInterface;
 use Phplrt\Lexer\Token\Token;
 use Phplrt\Source\File;
 
 /**
- * @internal
+ * @internal DirectiveExecutor is an internal library class, please do not use it in your code.
+ * @psalm-internal FFI\Preprocessor\Internal\Runtime
+ *
+ * @psalm-type DirectiveExecutorContext = DirectiveExecutor::CTX_*
  */
-final class Executor implements ExecutorInterface
+final class DirectiveExecutor
 {
+    /**
+     * Source body context.
+     *
+     * @var DirectiveExecutorContext
+     */
+    public const CTX_SOURCE = 0x00;
+
+    /**
+     * Directive expression body context.
+     *
+     * @var DirectiveExecutorContext
+     */
+    public const CTX_EXPRESSION = 0x01;
+
     /**
      * @var string
      */
@@ -32,20 +52,24 @@ final class Executor implements ExecutorInterface
     private const PCRE_DEFINED = '/\bdefined\h*(?:\(\h*(\w+)\h*\)|(\w+))/ium';
 
     /**
-     * @var RepositoryProviderInterface
+     * @param RepositoryInterface $directives
      */
-    private RepositoryProviderInterface $directives;
-
-    /**
-     * @param RepositoryProviderInterface $directives
-     */
-    public function __construct(RepositoryProviderInterface $directives)
+    public function __construct(private RepositoryInterface $directives)
     {
-        $this->directives = $directives;
     }
 
     /**
-     * {@inheritDoc}
+     * Executes all directives in passed body and returns the result
+     * of all replacements.
+     *
+     * The second argument is responsible for the execution context.
+     * Substitutions can be performed both in the body of the source code
+     * and in directive expressions.
+     *
+     * @param string $body
+     * @param DirectiveExecutorContext $ctx
+     * @return string
+     * @throws DirectiveEvaluationException
      */
     public function replace(string $body, int $ctx = self::CTX_SOURCE): string
     {
@@ -112,7 +136,7 @@ final class Executor implements ExecutorInterface
      * Applies substitution rules for every registered directive
      * in passed body argument.
      *
-     * @see Executor::findDirectiveAndReplace()
+     * @see DirectiveExecutor::findDirectiveAndReplace()
      *
      * @param string $body
      * @return \Generator
@@ -299,7 +323,7 @@ final class Executor implements ExecutorInterface
      */
     private function isAvailableInNames(string $char): bool
     {
-        return $char === 'global' || $char === '_' || \ctype_alnum($char);
+        return $char === '_' || \ctype_alnum($char);
     }
 
     /**
@@ -411,7 +435,13 @@ final class Executor implements ExecutorInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Accepts the name of a directive and its arguments, and returns the
+     * result of executing that directive.
+     *
+     * @param string $name
+     * @param array $arguments
+     * @return string
+     * @throws DirectiveEvaluationException
      */
     public function execute(string $name, array $arguments = []): string
     {
@@ -422,9 +452,15 @@ final class Executor implements ExecutorInterface
                 return $name;
             }
 
-            throw new \LogicException(\sprintf(self::ERROR_DIRECTIVE_NOT_FOUND, $name));
+            throw new DirectiveEvaluationException(\sprintf(self::ERROR_DIRECTIVE_NOT_FOUND, $name));
         }
 
-        return $directive(...$arguments);
+        try {
+            return $directive(...$arguments);
+        } catch (DirectiveEvaluationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            throw new DirectiveEvaluationException($e->getMessage(), (int)$e->getCode(), $e);
+        }
     }
 }

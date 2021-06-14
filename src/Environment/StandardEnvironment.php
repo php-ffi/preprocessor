@@ -90,29 +90,29 @@ final class StandardEnvironment implements EnvironmentInterface
     {
         $now = new \DateTime('now', $this->zone);
 
-        $pre->define('__DATE__', $now->format('M d Y'));
-        $pre->define('__TIME__', $now->format('h:i:s'));
+        $pre->directives->define('__DATE__', $now->format('M d Y'));
+        $pre->directives->define('__TIME__', $now->format('h:i:s'));
 
-        $pre->define('__STDC__');
-        $pre->define('__STDC_VERSION__', (string)$this->version);
-        $pre->define('__STDC_HOSTED__', $this->hosted ? '1' : '0');
+        $pre->directives->define('__STDC__');
+        $pre->directives->define('__STDC_VERSION__', (string)$this->version);
+        $pre->directives->define('__STDC_HOSTED__', $this->hosted ? '1' : '0');
 
         if (! $this->atomics) {
-            $pre->define('__STDC_NO_ATOMICS__', '1');
+            $pre->directives->define('__STDC_NO_ATOMICS__', '1');
         }
 
         if (! $this->hosted) {
-            $pre->define('__STDC_NO_COMPLEX__', '1');
+            $pre->directives->define('__STDC_NO_COMPLEX__', '1');
         }
 
         if (! $this->threads) {
-            $pre->define('__STDC_NO_THREADS__', '1');
+            $pre->directives->define('__STDC_NO_THREADS__', '1');
         }
 
         if (! $this->vla) {
-            $pre->define('__STDC_NO_VLA__', '1');
+            $pre->directives->define('__STDC_NO_VLA__', '1');
         }
 
-        $pre->define('__COUNTER__', fn() => $this->counter++);
+        $pre->directives->define('__COUNTER__', fn() => $this->counter++);
     }
 }

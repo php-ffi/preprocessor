@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Includes;
+namespace FFI\Preprocessor\Io\Source;
 
 use FFI\Preprocessor\PreprocessorInterface;
 
@@ -17,23 +17,19 @@ use FFI\Preprocessor\PreprocessorInterface;
  * @psalm-import-type SourceEntry from PreprocessorInterface
  * @link PreprocessorInterface
  */
-interface FilesProviderInterface
+interface RegistrarInterface
 {
     /**
-     * @psalm-param SourceEntry $source
-     * @param mixed $source
-     * @param string $name
+     * @param string $file
+     * @param SourceEntry $source
+     * @param bool $overwrite
+     * @return bool
      */
-    public function add(mixed $source, string $name): void;
+    public function add(string $file, mixed $source, bool $overwrite = false): bool;
 
     /**
      * @param string $file
+     * @return bool
      */
-    public function remove(string $file): void;
-
-    /**
-     * @psalm-return iterable<string, SourceEntry>
-     * @return iterable
-     */
-    public function getIncludedFiles(): iterable;
+    public function remove(string $file): bool;
 }

@@ -9,9 +9,9 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Includes;
+namespace FFI\Preprocessor\Io\Directory;
 
-interface DirectoriesProviderInterface
+interface RegistrarInterface
 {
     /**
      * @param string $directory
@@ -22,11 +22,4 @@ interface DirectoriesProviderInterface
      * @param string $directory
      */
     public function exclude(string $directory): void;
-
-    /**
-     * @psalm-return iterable<array-key, string>
-     *
-     * @return iterable
-     */
-    public function getIncludedDirectories(): iterable;
 }

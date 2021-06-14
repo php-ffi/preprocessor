@@ -9,18 +9,10 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Directives\Directive;
-
-use FFI\Preprocessor\Directives\DirectiveInterface;
-use FFI\Preprocessor\Directives\RepositoryProviderInterface;
+namespace FFI\Preprocessor\Directive;
 
 abstract class Directive implements DirectiveInterface
 {
-    /**
-     * @var string
-     */
-    public const DEFAULT_VALUE = RepositoryProviderInterface::DEFAULT_VALUE;
-
     /**
      * @var string
      */
@@ -87,12 +79,12 @@ abstract class Directive implements DirectiveInterface
      * @param mixed $result
      * @return string
      */
-    protected function toString(mixed $result): string
+    public static function render(mixed $result): string
     {
         return match(true) {
             $result === true => '1',
             \is_null($result), $result === false => '0',
-            \is_string($result) => \var_export($result, true),
+            \is_string($result) => '"' . \addcslashes($result, '"') . '"',
             default => (string)$result,
         };
     }

@@ -11,50 +11,50 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor;
 
-use FFI\Preprocessor\Directives\RepositoryProviderInterface as DirectivesRepositoryInterface;
-use FFI\Preprocessor\Includes\RepositoryProviderInterface as IncludeDirectoriesRepositoryInterface;
+use FFI\Preprocessor\Directive\Directive;
+use FFI\Preprocessor\Directive\DirectiveInterface;
+use FFI\Preprocessor\Directive\RepositoryInterface as DirectivesRepositoryInterface;
+use FFI\Preprocessor\Io\Directory\RepositoryInterface as DirectoriesRepositoryInterface;
+use FFI\Preprocessor\Io\Source\RepositoryInterface as SourcesRepositoryInterface;
+use JetBrains\PhpStorm\ExpectedValues;
 
 /**
- * @internal
+ * @psalm-import-type OptionEnum from Option
+ *
+ * @property-read DirectivesRepositoryInterface $directives
+ * @property-read DirectoriesRepositoryInterface $directories
+ * @property-read SourcesRepositoryInterface $sources
  */
 final class Result implements ResultInterface
 {
     /**
-     * @var \Traversable|string[]
+     * @var array<string>
      */
-    private \Traversable $stream;
+    private const BUILTIN_DIRECTIVES = [
+        'FFI_SCOPE',
+        'FFI_LIB',
+    ];
 
     /**
-     * @var DirectivesRepositoryInterface
+     * @var string|null
      */
-    private DirectivesRepositoryInterface $directives;
+    private ?string $result = null;
 
     /**
-     * @var IncludeDirectoriesRepositoryInterface
-     */
-    private IncludeDirectoriesRepositoryInterface $directories;
-
-    /**
-     * @var int
-     */
-    private int $config;
-
-    /**
-     * @param \Traversable $stream
-     * @param int $config
+     * @param iterable<string> $stream
      * @param DirectivesRepositoryInterface $directives
-     * @param IncludeDirectoriesRepositoryInterface $directories
+     * @param DirectoriesRepositoryInterface $directories
+     * @param SourcesRepositoryInterface $sources
+     * @param int-mask-of<OptionEnum> $options
      */
     public function __construct(
-        \Traversable $stream,
-        DirectivesRepositoryInterface $directives,
-        IncludeDirectoriesRepositoryInterface $directories,
-        int $config = 0
+        private iterable $stream,
+        private DirectivesRepositoryInterface $directives,
+        private DirectoriesRepositoryInterface $directories,
+        private SourcesRepositoryInterface $sources,
+        #[ExpectedValues(flagsFromClass: Option::class)]
+        private int $options = 0
     ) {
-        $this->config = $config;
-        $this->stream = $stream;
-        $this->directives = $directives;
-        $this->directories = $directories;
     }
 
     /**
@@ -62,23 +62,43 @@ final class Result implements ResultInterface
      */
     public function getDirectives(): DirectivesRepositoryInterface
     {
+        $this->compileIfNotCompiled();
+
         return $this->directives;
+    }
+
+    /**
+     * @return void
+     */
+    private function compileIfNotCompiled(): void
+    {
+        if ($this->result === null) {
+            $this->result = '';
+
+            foreach ($this->stream as $chunk) {
+                $this->result .= $chunk;
+            }
+        }
     }
 
     /**
      * {@inheritDoc}
      */
-    public function getIncludeDirectories(): IncludeDirectoriesRepositoryInterface
+    public function getDirectories(): DirectoriesRepositoryInterface
     {
+        $this->compileIfNotCompiled();
+
         return $this->directories;
     }
 
     /**
-     * @return \Traversable|string[]
+     * {@inheritDoc}
      */
-    public function getIterator(): \Traversable
+    public function getSources(): SourcesRepositoryInterface
     {
-        yield from $this->stream;
+        $this->compileIfNotCompiled();
+
+        return $this->sources;
     }
 
     /**
@@ -86,18 +106,60 @@ final class Result implements ResultInterface
      */
     public function __toString(): string
     {
-        $result = '';
+        $this->compileIfNotCompiled();
 
-        foreach ($this as $chunk) {
-            $result .= $chunk;
-        }
+        return $this->minify($this->injectBuiltinDirectives(
+            $this->result
+        ));
+    }
 
-        if (! ($this->config & Config::KEEP_EXTRA_LINE_FEEDS)) {
+    /**
+     * @param string $result
+     * @return string
+     */
+    private function minify(string $result): string
+    {
+        if (! Option::contains($this->options, Option::KEEP_EXTRA_LINE_FEEDS)) {
             $result = \preg_replace('/\n{2,}/ium', "\n", $result);
-
-            return \trim($result, "\n");
+            $result = \trim($result, "\n");
         }
 
         return $result;
+    }
+
+    /**
+     * @param string $result
+     * @return string
+     */
+    private function injectBuiltinDirectives(string $result): string
+    {
+        if (! Option::contains($this->options, Option::IGNORE_BUILTIN_DIRECTIVES)) {
+            foreach (self::BUILTIN_DIRECTIVES as $name) {
+                $directive = $this->directives->find($name);
+
+                if ($directive !== null) {
+                    $result = \sprintf('#define %s %s', $name, Directive::render($directive()))
+                        . "\n" . $result;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $property
+     * @return \Traversable
+     */
+    public function __get(string $property): \Traversable
+    {
+        return match ($property) {
+            'sources' => $this->getSources(),
+            'directives' => $this->getDirectives(),
+            'directories' => $this->getDirectories(),
+            default => throw new \LogicException(
+                \sprintf('Undefined property: %s::$%s', self::class, $property)
+            )
+        };
     }
 }

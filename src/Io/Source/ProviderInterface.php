@@ -9,12 +9,12 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Environment;
+namespace FFI\Preprocessor\Io\Source;
 
-interface EnvironmentProviderInterface
+interface ProviderInterface
 {
     /**
-     * @param EnvironmentInterface $env
+     * @return RepositoryInterface
      */
-    public function load(EnvironmentInterface $env): void;
+    public function getSources(): RepositoryInterface;
 }

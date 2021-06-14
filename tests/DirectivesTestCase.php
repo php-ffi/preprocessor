@@ -11,12 +11,12 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Tests;
 
-use FFI\Preprocessor\Directives\Directive\FunctionDirective;
-use FFI\Preprocessor\Directives\Directive\FunctionLikeDirective;
-use FFI\Preprocessor\Directives\Directive\ObjectLikeDirective;
-use FFI\Preprocessor\Directives\Executor;
-use FFI\Preprocessor\Directives\Repository;
-use FFI\Preprocessor\Directives\RepositoryProviderInterface;
+use FFI\Preprocessor\Directive\FunctionDirective;
+use FFI\Preprocessor\Directive\FunctionLikeDirective;
+use FFI\Preprocessor\Directive\ObjectLikeDirective;
+use FFI\Preprocessor\Directive\Repository;
+use FFI\Preprocessor\Directive\RepositoryProviderInterface;
+use FFI\Preprocessor\Internal\Runtime\DirectiveExecutor;
 
 class DirectivesTestCase extends TestCase
 {
@@ -83,7 +83,7 @@ class DirectivesTestCase extends TestCase
      */
     private function execute(RepositoryProviderInterface $repository, string $name = 'test', array $args = []): string
     {
-        $executor = new Executor($repository);
+        $executor = new DirectiveExecutor($repository);
 
         return $executor->execute($name, $args);
     }

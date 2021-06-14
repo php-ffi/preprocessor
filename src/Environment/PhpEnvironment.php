@@ -58,7 +58,7 @@ final class PhpEnvironment implements EnvironmentInterface
      */
     private function define(PreprocessorInterface $pre, string $name, $value): void
     {
-        $pre->define('__' . $name . '__', $this->toCLiteral($value));
+        $pre->directives->define('__' . $name . '__', $this->toCLiteral($value));
     }
 
     /**

@@ -11,6 +11,14 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor;
 
-interface ResultInterface extends ContextInterface, \IteratorAggregate, \Stringable
+use FFI\Preprocessor\Directive\ProviderInterface as DirectivesProviderInterface;
+use FFI\Preprocessor\Io\Directory\ProviderInterface as DirectoriesProviderInterface;
+use FFI\Preprocessor\Io\Source\ProviderInterface as SourcesProviderInterface;
+
+interface ResultInterface extends
+    DirectivesProviderInterface,
+    DirectoriesProviderInterface,
+    SourcesProviderInterface,
+    \Stringable
 {
 }

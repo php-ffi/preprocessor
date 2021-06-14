@@ -11,31 +11,44 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor;
 
-use FFI\Preprocessor\Directives\DirectivesProviderInterface;
-use FFI\Preprocessor\Environment\EnvironmentProviderInterface;
+use FFI\Preprocessor\Directive\ProviderInterface as DirectivesProviderInterface;
+use FFI\Preprocessor\Directive\RegistrarInterface as DirectiveRegistrarInterface;
+use FFI\Preprocessor\Environment\EnvironmentInterface;
 use FFI\Preprocessor\Exception\PreprocessorException;
-use FFI\Preprocessor\Includes\DirectoriesProviderInterface;
-use FFI\Preprocessor\Includes\FilesProviderInterface;
+use FFI\Preprocessor\Io\Directory\ProviderInterface as DirectoriesProviderInterface;
+use FFI\Preprocessor\Io\Directory\RegistrarInterface as DirectoryRegistrarInterface;
+use FFI\Preprocessor\Io\Source\ProviderInterface as SourcesProviderInterface;
+use FFI\Preprocessor\Io\Source\RegistrarInterface as SourceRegistrarInterface;
+use JetBrains\PhpStorm\ExpectedValues;
 use Phplrt\Contracts\Source\ReadableInterface;
 
 /**
+ * @psalm-import-type OptionEnum from Option
  * @psalm-type SourceEntry = string|resource|ReadableInterface|\SplFileInfo
- *
- * @link ReadableInterface
- * @link StreamInterface
+ * @see ReadableInterface
  */
 interface PreprocessorInterface extends
-    FilesProviderInterface,
+    DirectiveRegistrarInterface,
     DirectivesProviderInterface,
-    DirectoriesProviderInterface,
-    EnvironmentProviderInterface
+    SourceRegistrarInterface,
+    SourcesProviderInterface,
+    DirectoryRegistrarInterface,
+    DirectoriesProviderInterface
 {
     /**
-     * @psalm-param SourceEntry $source
-     *
-     * @param mixed $source
+     * @param SourceEntry $source
+     * @param int-mask-of<OptionEnum> $options
      * @return ResultInterface
      * @throws PreprocessorException
      */
-    public function process(mixed $source): ResultInterface;
+    public function process(
+        mixed $source,
+        #[ExpectedValues(flagsFromClass: Option::class)]
+        int $options = Option::NOTHING
+    ): ResultInterface;
+
+    /**
+     * @param EnvironmentInterface $env
+     */
+    public function load(EnvironmentInterface $env): void;
 }

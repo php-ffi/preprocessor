@@ -9,12 +9,12 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor;
+namespace FFI\Preprocessor\Directive;
 
-final class Config
+interface ProviderInterface
 {
     /**
-     * @var int
+     * @return RepositoryInterface
      */
-    public const KEEP_EXTRA_LINE_FEEDS = 0x02;
+    public function getDirectives(): RepositoryInterface;
 }
