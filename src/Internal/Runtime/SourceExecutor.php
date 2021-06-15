@@ -29,6 +29,7 @@ use Phplrt\Contracts\Exception\RuntimeExceptionInterface;
 use Phplrt\Contracts\Lexer\TokenInterface;
 use Phplrt\Contracts\Source\FileInterface;
 use Phplrt\Contracts\Source\ReadableInterface;
+use Phplrt\Exception\RuntimeException;
 use Phplrt\Lexer\Token\Composite;
 use Phplrt\Position\Position;
 use Phplrt\Source\File;
@@ -160,10 +161,16 @@ final class SourceExecutor
                     default:
                         throw new \LogicException(\sprintf('Non implemented token "%s"', $token->getName()));
                 }
-            } catch (PreprocessException $e) {
-                throw $e;
             } catch (RuntimeExceptionInterface $e) {
-                throw new PreprocessException($e->getMessage(), $e->getCode(), $e);
+                $message = $e instanceof RuntimeException
+                    ? $e->getOriginalMessage()
+                    : $e->getMessage();
+
+                $exception = new PreprocessException($message, (int)$e->getCode(), $e);
+                $exception->setSource($source);
+                $exception->setToken($token);
+
+                throw $exception;
             } catch (\Throwable $e) {
                 throw PreprocessException::fromSource($e->getMessage(), $source, $token, $e);
             }
