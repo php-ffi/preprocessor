@@ -97,7 +97,7 @@ class Preprocessor implements PreprocessorInterface, LoggerAwareInterface
             clone $this->sources,
         ];
 
-        $context = new SourceExecutor($directives, $directories, $sources, $this->logger);
+        $context = new SourceExecutor($directives, $directories, $sources, $this->logger, $options);
         $stream = $context->execute(File::new($source));
 
         return new Result($stream, $directives, $directories, $sources, $options);

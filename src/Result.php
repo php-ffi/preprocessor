@@ -133,7 +133,7 @@ final class Result implements ResultInterface
      */
     private function injectBuiltinDirectives(string $result): string
     {
-        if (! Option::contains($this->options, Option::IGNORE_BUILTIN_DIRECTIVES)) {
+        if (! Option::contains($this->options, Option::SKIP_BUILTIN_DIRECTIVES)) {
             foreach (self::BUILTIN_DIRECTIVES as $name) {
                 $directive = $this->directives->find($name);
 

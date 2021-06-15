@@ -29,7 +29,12 @@ final class Option
     /**
      * @var OptionEnum
      */
-    public const IGNORE_BUILTIN_DIRECTIVES = 0b0000_0010;
+    public const SKIP_BUILTIN_DIRECTIVES = 0b0000_0010;
+
+    /**
+     * @var OptionEnum
+     */
+    public const KEEP_DEBUG_COMMENTS = 0b0000_0100;
 
     /**
      * @param int-mask-of<OptionEnum> $mask

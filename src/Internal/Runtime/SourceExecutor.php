@@ -22,7 +22,9 @@ use FFI\Preprocessor\Internal\Expression\Parser;
 use FFI\Preprocessor\Internal\Lexer;
 use FFI\Preprocessor\Io\Directory\Repository as DirectoriesRepository;
 use FFI\Preprocessor\Io\Source\Repository as SourcesRepository;
+use FFI\Preprocessor\Option;
 use FFI\Preprocessor\Preprocessor;
+use JetBrains\PhpStorm\ExpectedValues;
 use Phplrt\Contracts\Exception\RuntimeExceptionInterface;
 use Phplrt\Contracts\Lexer\TokenInterface;
 use Phplrt\Contracts\Source\FileInterface;
@@ -35,6 +37,8 @@ use Psr\Log\LoggerInterface;
 /**
  * @internal SourceExecutor is an internal library class, please do not use it in your code.
  * @psalm-internal FFI\Preprocessor\Internal
+ *
+ * @psalm-import-type OptionEnum from Option
  */
 final class SourceExecutor
 {
@@ -68,12 +72,15 @@ final class SourceExecutor
      * @param DirectoriesRepository $directories
      * @param SourcesRepository $sources
      * @param LoggerInterface $logger
+     * @param int-mask-of<OptionEnum> $options
      */
     public function __construct(
         private DirectivesRepository $directives,
         private DirectoriesRepository $directories,
         private SourcesRepository $sources,
         private LoggerInterface $logger,
+        #[ExpectedValues(flagsFromClass: Option::class)]
+        private int $options,
     ) {
         $this->lexer = new Lexer();
         $this->stack = new OutputStack();
@@ -98,11 +105,11 @@ final class SourceExecutor
             try {
                 switch ($token->getName()) {
                     case Lexer::T_ERROR:
-                        $this->doError($token, $source);
+                        yield from $this->doError($token, $source);
                         break;
 
                     case Lexer::T_WARNING:
-                        $this->doWarning($token, $source);
+                        yield from $this->doWarning($token, $source);
                         break;
 
                     case Lexer::T_QUOTED_INCLUDE:
@@ -111,39 +118,39 @@ final class SourceExecutor
                         break;
 
                     case Lexer::T_IFDEF:
-                        $this->doIfDefined($token);
+                        yield from $this->doIfDefined($token, $source);
                         break;
 
                     case Lexer::T_IFNDEF:
-                        $this->doIfNotDefined($token);
+                        yield from $this->doIfNotDefined($token, $source);
                         break;
 
                     case Lexer::T_ENDIF:
-                        $this->doEndIf();
+                        yield from $this->doEndIf($token, $source);
                         break;
 
                     case Lexer::T_IF:
-                        $this->doIf($token);
+                        yield from $this->doIf($token, $source);
                         break;
 
                     case Lexer::T_ELSE_IF:
-                        $this->doElseIf($token, $source);
+                        yield from $this->doElseIf($token, $source);
                         break;
 
                     case Lexer::T_ELSE:
-                        $this->doElse();
+                        yield from $this->doElse($token, $source);
                         break;
 
                     case Lexer::T_OBJECT_MACRO:
-                        $this->doObjectLikeDirective($token);
+                        yield from $this->doObjectLikeDirective($token, $source);
                         break;
 
                     case Lexer::T_FUNCTION_MACRO:
-                        $this->doFunctionLikeDirective($token);
+                        yield from $this->doFunctionLikeDirective($token, $source);
                         break;
 
                     case Lexer::T_UNDEF:
-                        $this->doRemoveDefine($token);
+                        yield from $this->doRemoveDefine($token, $source);
                         break;
 
                     case Lexer::T_SOURCE:
@@ -165,6 +172,39 @@ final class SourceExecutor
 
     /**
      * @param ReadableInterface $source
+     * @param TokenInterface $token
+     * @param array<string> $comments
+     * @return iterable<string>
+     */
+    private function debug(ReadableInterface $source, TokenInterface $token, array $comments = []): iterable
+    {
+        if (Option::contains($this->options, Option::KEEP_DEBUG_COMMENTS)) {
+            $map = static fn(string $line): string => "//   $line\n";
+            $line = Position::fromOffset($source, $token->getOffset())
+                ->getLine();
+            return [
+                '// ' . $this->sourceToString($source) . ':' . $line . "\n",
+                ...\array_map($map, $comments)
+            ];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param ReadableInterface $source
+     * @return string
+     */
+    private function sourceToString(ReadableInterface $source): string
+    {
+        return $source instanceof FileInterface
+            ? $source->getPathname()
+            : '{' . $source->getHash() . '}'
+        ;
+    }
+
+    /**
+     * @param ReadableInterface $source
      * @return string
      */
     private function read(ReadableInterface $source): string
@@ -177,11 +217,12 @@ final class SourceExecutor
     /**
      * @param Composite $tok
      * @param ReadableInterface $src
+     * @return iterable<string>
      */
-    private function doError(Composite $tok, ReadableInterface $src): void
+    private function doError(Composite $tok, ReadableInterface $src): iterable
     {
         if (! $this->stack->isEnabled()) {
-            return;
+            return [];
         }
 
         $message = $this->escape(\trim($tok[0]->getValue()));
@@ -190,6 +231,8 @@ final class SourceExecutor
             'position' => Position::fromOffset($tok->getOffset()),
             'source'   => $src,
         ]);
+
+        return $this->debug($src, $tok, ['error ' . $message]);
     }
 
     /**
@@ -228,11 +271,12 @@ final class SourceExecutor
     /**
      * @param Composite $tok
      * @param ReadableInterface $src
+     * @return iterable<string>
      */
-    private function doWarning(Composite $tok, ReadableInterface $src): void
+    private function doWarning(Composite $tok, ReadableInterface $src): iterable
     {
         if (! $this->stack->isEnabled()) {
-            return;
+            return [];
         }
 
         $message = $this->escape(\trim($tok[0]->getValue()));
@@ -241,6 +285,8 @@ final class SourceExecutor
             'position' => Position::fromOffset($tok->getOffset()),
             'source'   => $src,
         ]);
+
+        return $this->debug($src, $tok, ['warning ' . $message]);
     }
 
     /**
@@ -267,6 +313,7 @@ final class SourceExecutor
             throw NotReadableException::fromSource($e->getMessage(), $src, $token[0]);
         }
 
+        yield from $this->debug($src, $token, ['include ' . $this->sourceToString($inclusion)]);
         yield from $this->execute($inclusion);
     }
 
@@ -306,13 +353,15 @@ final class SourceExecutor
 
     /**
      * @param Composite $token
+     * @param ReadableInterface $source
+     * @return iterable<string>
      */
-    private function doIfDefined(Composite $token): void
+    private function doIfDefined(Composite $token, ReadableInterface $source): iterable
     {
         if (! $this->stack->isEnabled()) {
             $this->stack->push(false);
 
-            return;
+            return [];
         }
 
         $body = $this->escape($token[0]->getValue());
@@ -320,17 +369,21 @@ final class SourceExecutor
         $defined = $this->directives->defined($body);
 
         $this->stack->push($defined);
+
+        return $this->debug($source, $token, ['if defined ' . $body]);
     }
 
     /**
      * @param Composite $token
+     * @param ReadableInterface $source
+     * @return iterable<string>
      */
-    private function doIfNotDefined(Composite $token): void
+    private function doIfNotDefined(Composite $token, ReadableInterface $source): iterable
     {
         if (! $this->stack->isEnabled()) {
             $this->stack->push(false);
 
-            return;
+            return [];
         }
 
         $body = $this->escape($token[0]->getValue());
@@ -338,34 +391,44 @@ final class SourceExecutor
         $defined = $this->directives->defined($body);
 
         $this->stack->push(! $defined);
+
+        return $this->debug($source, $token, ['if not defined ' . $body]);
     }
 
     /**
-     * @return void
+     * @param TokenInterface $token
+     * @param ReadableInterface $source
+     * @return iterable<string>
      */
-    private function doEndIf(): void
+    private function doEndIf(TokenInterface $token, ReadableInterface $source): iterable
     {
         try {
             $this->stack->pop();
         } catch (\LogicException $e) {
             throw new \LogicException('#endif directive without #if');
         }
+
+        return $this->debug($source, $token, ['endif']);
     }
 
     /**
      * @param Composite $token
+     * @param ReadableInterface $source
+     * @return iterable<string>
      * @throws RuntimeExceptionInterface
      * @throws \Throwable
      */
-    private function doIf(Composite $token): void
+    private function doIf(Composite $token, ReadableInterface $source): iterable
     {
         if (! $this->stack->isEnabled()) {
             $this->stack->push(false);
 
-            return;
+            return [];
         }
 
         $this->stack->push($this->eval($token));
+
+        return $this->debug($source, $token, ['if ' . $token[0]->getValue()]);
     }
 
     /**
@@ -398,23 +461,29 @@ final class SourceExecutor
     /**
      * @param Composite $token
      * @param ReadableInterface $source
+     * @return iterable<string>
+     * @throws RuntimeExceptionInterface
      * @throws \Throwable
      */
-    private function doElseIf(Composite $token, ReadableInterface $source): void
+    private function doElseIf(Composite $token, ReadableInterface $source): iterable
     {
         if (! $this->stack->isCompleted() && $this->eval($token)) {
             $this->stack->complete();
 
-            return;
+            return [];
         }
 
         $this->stack->update(false, $this->stack->isCompleted());
+
+        return $this->debug($source, $token, ['else if ' . $token->getValue()]);
     }
 
     /**
-     * @return void
+     * @param TokenInterface $token
+     * @param ReadableInterface $source
+     * @return iterable<string>
      */
-    private function doElse(): void
+    private function doElse(TokenInterface $token, ReadableInterface $source): iterable
     {
         try {
             if (! $this->stack->isCompleted()) {
@@ -425,15 +494,19 @@ final class SourceExecutor
         } catch (\LogicException $e) {
             throw new \LogicException('#else directive without #if');
         }
+
+        return $this->debug($source, $token, ['else']);
     }
 
     /**
      * @param Composite $token
+     * @param ReadableInterface $source
+     * @return iterable<string>
      */
-    private function doObjectLikeDirective(Composite $token): void
+    private function doObjectLikeDirective(Composite $token, ReadableInterface $source): iterable
     {
         if (! $this->stack->isEnabled()) {
-            return;
+            return [];
         }
 
         // Name
@@ -444,15 +517,19 @@ final class SourceExecutor
         $value = $this->replace($value, DirectiveExecutor::CTX_EXPRESSION);
 
         $this->directives->define($name, new ObjectLikeDirective($value));
+
+        return $this->debug($source, $token, ['define ' . $name . ' = ' . ($value ?: '""')]);
     }
 
     /**
      * @param Composite $token
+     * @param ReadableInterface $source
+     * @return iterable<string>
      */
-    private function doFunctionLikeDirective(Composite $token): void
+    private function doFunctionLikeDirective(Composite $token, ReadableInterface $source): iterable
     {
         if (! $this->stack->isEnabled()) {
-            return;
+            return [];
         }
 
         // Name
@@ -466,15 +543,21 @@ final class SourceExecutor
         $value = $this->replace($value, DirectiveExecutor::CTX_EXPRESSION);
 
         $this->directives->define($name, new FunctionLikeDirective($args, $value));
+
+        return $this->debug($source, $token, [
+            'define ' . $name . '(' . $token[1]->getValue() . ') = ' . ($value ?: '""')
+        ]);
     }
 
     /**
      * @param Composite $token
+     * @param ReadableInterface $source
+     * @return iterable<string>
      */
-    private function doRemoveDefine(Composite $token): void
+    private function doRemoveDefine(Composite $token, ReadableInterface $source): iterable
     {
         if (! $this->stack->isEnabled()) {
-            return;
+            return [];
         }
 
         $body = $this->escape($token[0]->getValue());
@@ -482,6 +565,8 @@ final class SourceExecutor
         $name = $this->replace($body, DirectiveExecutor::CTX_SOURCE);
 
         $this->directives->undef($name);
+
+        return $this->debug($source, $token, ['undef ' . $name]);
     }
 
     /**
