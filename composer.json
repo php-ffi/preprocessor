@@ -6,7 +6,8 @@
     "require": {
         "php": ">=8.0",
         "psr/log": "^1.0",
-        "phplrt/runtime": "^3.1"
+        "phplrt/runtime": "^3.1",
+        "symfony/polyfill-ctype": "^1.23"
     },
     "autoload": {
         "psr-4": {
