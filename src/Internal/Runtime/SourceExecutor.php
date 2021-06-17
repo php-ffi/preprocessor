@@ -333,8 +333,10 @@ final class SourceExecutor
      */
     private function lookup(ReadableInterface $source, string $file, bool $withLocal): ReadableInterface
     {
+        $file = $this->normalizeRelativePathname($file);
+
         if ($source instanceof FileInterface && $withLocal) {
-            $pathname = \dirname($source->getPathname()) . '/' . $file;
+            $pathname = \dirname($source->getPathname()) . \DIRECTORY_SEPARATOR . $file;
 
             if (\is_file($pathname)) {
                 return File::fromPathname($pathname);
@@ -342,7 +344,7 @@ final class SourceExecutor
         }
 
         foreach ($this->directories as $directory) {
-            $pathname = $directory . '/' . $file;
+            $pathname = $directory . \DIRECTORY_SEPARATOR . $file;
 
             if (\is_file($pathname)) {
                 return File::fromPathname($pathname);
@@ -350,12 +352,23 @@ final class SourceExecutor
         }
 
         foreach ($this->sources as $name => $source) {
-            if ($name === $file) {
+            if ($this->normalizeRelativePathname($name) === $file) {
                 return $source;
             }
         }
 
         throw new \LogicException(\sprintf('"%s": No such file or directory', $file));
+    }
+
+    /**
+     * @param string $file
+     * @return string
+     */
+    private function normalizeRelativePathname(string $file): string
+    {
+        $file = \trim($file, " \t\n\r\0\x0B/\\");
+
+        return \str_replace(['\\', '/'], \DIRECTORY_SEPARATOR, $file);
     }
 
     /**
