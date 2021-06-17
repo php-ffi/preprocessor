@@ -71,7 +71,7 @@ final class Repository implements RepositoryInterface, RegistrarInterface
     {
         $exists = $this->defined($directive);
 
-        \unset($this->directives[$directive]);
+        unset($this->directives[$directive]);
 
         return $exists;
     }
