@@ -84,7 +84,6 @@ abstract class Directive implements DirectiveInterface
         return match(true) {
             $result === true => '1',
             \is_null($result), $result === false => '0',
-            \is_string($result) => '"' . \addcslashes($result, '"') . '"',
             default => (string)$result,
         };
     }
