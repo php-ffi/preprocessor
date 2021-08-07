@@ -14,7 +14,6 @@ namespace FFI\Preprocessor\Internal;
 use FFI\Preprocessor\Internal\Lexer\Simplifier;
 use Phplrt\Contracts\Lexer\LexerInterface;
 use Phplrt\Contracts\Lexer\TokenInterface;
-use FFI\Preprocessor\Internal\ExpressionToken;
 use Phplrt\Lexer\Lexer as Runtime;
 use Phplrt\Lexer\Token\Token;
 use Phplrt\Source\File;

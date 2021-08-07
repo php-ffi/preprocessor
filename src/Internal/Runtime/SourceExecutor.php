@@ -23,7 +23,6 @@ use FFI\Preprocessor\Internal\Lexer;
 use FFI\Preprocessor\Io\Directory\Repository as DirectoriesRepository;
 use FFI\Preprocessor\Io\Source\Repository as SourcesRepository;
 use FFI\Preprocessor\Option;
-use FFI\Preprocessor\Preprocessor;
 use JetBrains\PhpStorm\ExpectedValues;
 use Phplrt\Contracts\Exception\RuntimeExceptionInterface;
 use Phplrt\Contracts\Lexer\TokenInterface;
@@ -69,6 +68,31 @@ final class SourceExecutor
     private Parser $expressions;
 
     /**
+     * @var DirectivesRepository
+     */
+    private DirectivesRepository $directives;
+
+    /**
+     * @var DirectoriesRepository
+     */
+    private DirectoriesRepository $directories;
+
+    /**
+     * @var SourcesRepository
+     */
+    private SourcesRepository $sources;
+
+    /**
+     * @var LoggerInterface
+     */
+    private LoggerInterface $logger;
+
+    /**
+     * @var int-mask-of<OptionEnum>
+     */
+    private int $options;
+
+    /**
      * @param DirectivesRepository $directives
      * @param DirectoriesRepository $directories
      * @param SourcesRepository $sources
@@ -76,13 +100,19 @@ final class SourceExecutor
      * @param int-mask-of<OptionEnum> $options
      */
     public function __construct(
-        private DirectivesRepository $directives,
-        private DirectoriesRepository $directories,
-        private SourcesRepository $sources,
-        private LoggerInterface $logger,
+        DirectivesRepository $directives,
+        DirectoriesRepository $directories,
+        SourcesRepository $sources,
+        LoggerInterface $logger,
         #[ExpectedValues(flagsFromClass: Option::class)]
-        private int $options,
+        int $options
     ) {
+        $this->directives = $directives;
+        $this->directories = $directories;
+        $this->sources = $sources;
+        $this->logger = $logger;
+        $this->options = $options;
+
         $this->lexer = new Lexer();
         $this->stack = new OutputStack();
         $this->executor = new DirectiveExecutor($this->directives);

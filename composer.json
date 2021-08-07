@@ -4,9 +4,10 @@
     "license": "MIT",
     "keywords": ["ffi", "parser", "compiler", "c", "headers", "preprocessor"],
     "require": {
-        "php": ">=8.0",
+        "php": ">=7.4",
         "psr/log": "^1.0",
         "phplrt/runtime": "^3.1",
+        "symfony/polyfill-php80": "^1.23",
         "symfony/polyfill-ctype": "^1.23"
     },
     "autoload": {
@@ -15,6 +16,7 @@
         }
     },
     "require-dev": {
+        "jetbrains/phpstorm-attributes": "^1.0",
         "phpunit/phpunit": "^9.0",
         "monolog/monolog": "^2.1",
         "phplrt/phplrt": "^3.1"

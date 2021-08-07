@@ -22,7 +22,6 @@ final class Repository implements RepositoryInterface, RegistrarInterface
 
     /**
      * @param iterable<string, DirectiveInterface> $directives
-     * @throws \ReflectionException
      */
     public function __construct(iterable $directives = [])
     {
@@ -36,20 +35,26 @@ final class Repository implements RepositoryInterface, RegistrarInterface
      * @return DirectiveInterface
      * @throws \ReflectionException
      */
-    private function cast(mixed $directive): DirectiveInterface
+    private function cast($directive): DirectiveInterface
     {
-        return match (true) {
-            $directive instanceof DirectiveInterface => $directive,
-            \is_callable($directive) => new FunctionDirective($directive),
-            \is_scalar($directive), $directive instanceof \Stringable => new ObjectLikeDirective((string)$directive),
-            default => $directive,
-        };
+        switch (true) {
+            case $directive instanceof DirectiveInterface:
+                return $directive;
+            case \is_callable($directive):
+                return new FunctionDirective($directive);
+            case \is_scalar($directive):
+            case $directive instanceof \Stringable:
+            case \is_object($directive) && \method_exists($directive, '__toString'):
+                return new ObjectLikeDirective((string)$directive);
+            default:
+                return $directive;
+        }
     }
 
     /**
      * {@inheritDoc}
      */
-    public function define(string $directive, mixed $value = DirectiveInterface::DEFAULT_VALUE): void
+    public function define(string $directive, $value = DirectiveInterface::DEFAULT_VALUE): void
     {
         try {
             $expr = $this->cast($value);

@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Tests;
 
-use FFI\Preprocessor\Includes\Repository;
+use FFI\Preprocessor\Io\Directory\Repository;
 
 class IncludeDirectoriesTestCase extends TestCase
 {
@@ -23,7 +23,7 @@ class IncludeDirectoriesTestCase extends TestCase
         $includes = new Repository();
 
         $this->assertCount(0, $includes);
-        $this->assertSame([], $includes->toArray());
+        $this->assertSame([], \iterator_to_array($includes));
     }
 
     /**
@@ -35,7 +35,7 @@ class IncludeDirectoriesTestCase extends TestCase
 
         $includes->include(__DIR__);
         $this->assertCount(1, $includes);
-        $this->assertSame($this->normalize([__DIR__]), $includes->toArray());
+        $this->assertSame($this->normalize([__DIR__]), \iterator_to_array($includes));
     }
 
     /**
@@ -47,7 +47,7 @@ class IncludeDirectoriesTestCase extends TestCase
         $result = [];
 
         foreach ($directories as $directory) {
-            $result[] = \str_replace('\\', '/', $directory);
+            $result[] = \str_replace(['\\', '/'], \DIRECTORY_SEPARATOR, $directory);
         }
 
         return $result;
@@ -92,17 +92,6 @@ class IncludeDirectoriesTestCase extends TestCase
         $includes = new Repository([__DIR__]);
 
         $this->assertCount(1, $includes);
-        $this->assertSame($this->normalize([__DIR__]), $includes->toArray());
-    }
-
-    /**
-     * @return void
-     */
-    public function testIteration(): void
-    {
-        $includes = new Repository([__DIR__, __DIR__ . '/../src']);
-
-        $this->assertCount(2, $includes);
-        $this->assertSame($includes->toArray(), \iterator_to_array($includes));
+        $this->assertSame($this->normalize([__DIR__]), \iterator_to_array($includes));
     }
 }

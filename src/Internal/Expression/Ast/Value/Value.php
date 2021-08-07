@@ -36,7 +36,7 @@ abstract class Value extends Expression
      * @param string $value
      * @return string
      */
-    protected static function parse(string $value)
+    protected static function parse(string $value): string
     {
         return $value;
     }

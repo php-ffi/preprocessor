@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace FFI\Preprocessor;
 
 use FFI\Preprocessor\Directive\Directive;
-use FFI\Preprocessor\Directive\DirectiveInterface;
 use FFI\Preprocessor\Directive\RepositoryInterface as DirectivesRepositoryInterface;
 use FFI\Preprocessor\Io\Directory\RepositoryInterface as DirectoriesRepositoryInterface;
 use FFI\Preprocessor\Io\Source\RepositoryInterface as SourcesRepositoryInterface;
@@ -41,6 +40,31 @@ final class Result implements ResultInterface
     private ?string $result = null;
 
     /**
+     * @var iterable<string>
+     */
+    private iterable $stream;
+
+    /**
+     * @var DirectivesRepositoryInterface
+     */
+    private DirectivesRepositoryInterface $directives;
+
+    /**
+     * @var DirectoriesRepositoryInterface
+     */
+    private DirectoriesRepositoryInterface $directories;
+
+    /**
+     * @var SourcesRepositoryInterface
+     */
+    private SourcesRepositoryInterface $sources;
+
+    /**
+     * @var int-mask-of<OptionEnum>
+     */
+    private int $options;
+
+    /**
      * @param iterable<string> $stream
      * @param DirectivesRepositoryInterface $directives
      * @param DirectoriesRepositoryInterface $directories
@@ -48,13 +72,18 @@ final class Result implements ResultInterface
      * @param int-mask-of<OptionEnum> $options
      */
     public function __construct(
-        private iterable $stream,
-        private DirectivesRepositoryInterface $directives,
-        private DirectoriesRepositoryInterface $directories,
-        private SourcesRepositoryInterface $sources,
+        iterable $stream,
+        DirectivesRepositoryInterface $directives,
+        DirectoriesRepositoryInterface $directories,
+        SourcesRepositoryInterface $sources,
         #[ExpectedValues(flagsFromClass: Option::class)]
-        private int $options = 0
+        int $options = 0
     ) {
+        $this->stream = $stream;
+        $this->directives = $directives;
+        $this->directories = $directories;
+        $this->sources = $sources;
+        $this->options = $options;
     }
 
     /**
@@ -153,13 +182,17 @@ final class Result implements ResultInterface
      */
     public function __get(string $property): \Traversable
     {
-        return match ($property) {
-            'sources' => $this->getSources(),
-            'directives' => $this->getDirectives(),
-            'directories' => $this->getDirectories(),
-            default => throw new \LogicException(
-                \sprintf('Undefined property: %s::$%s', self::class, $property)
-            )
-        };
+        switch ($property) {
+            case 'sources':
+                return $this->getSources();
+            case 'directives':
+                return $this->getDirectives();
+            case 'directories':
+                return $this->getDirectories();
+            default:
+                throw new \LogicException(
+                    \sprintf('Undefined property: %s::$%s', self::class, $property)
+                );
+        }
     }
 }

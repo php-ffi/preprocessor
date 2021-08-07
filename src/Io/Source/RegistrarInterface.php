@@ -25,7 +25,7 @@ interface RegistrarInterface
      * @param bool $overwrite
      * @return bool
      */
-    public function add(string $file, mixed $source, bool $overwrite = false): bool;
+    public function add(string $file, $source, bool $overwrite = false): bool;
 
     /**
      * @param string $file

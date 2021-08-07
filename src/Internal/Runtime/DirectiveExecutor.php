@@ -52,10 +52,16 @@ final class DirectiveExecutor
     private const PCRE_DEFINED = '/\bdefined\h*(?:\(\h*(\w+)\h*\)|(\w+))/ium';
 
     /**
+     * @var RepositoryInterface
+     */
+    private RepositoryInterface $directives;
+
+    /**
      * @param RepositoryInterface $directives
      */
-    public function __construct(private RepositoryInterface $directives)
+    public function __construct(RepositoryInterface $directives)
     {
+        $this->directives = $directives;
     }
 
     /**

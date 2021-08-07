@@ -87,7 +87,7 @@ class Preprocessor implements PreprocessorInterface, LoggerAwareInterface
      * {@inheritDoc}
      */
     public function process(
-        mixed $source,
+        $source,
         #[ExpectedValues(flagsFromClass: Option::class)]
         int $options = Option::NOTHING
     ): Result {
@@ -130,7 +130,7 @@ class Preprocessor implements PreprocessorInterface, LoggerAwareInterface
     /**
      * {@inheritDoc}
      */
-    public function define(string $directive, mixed $value = DirectiveInterface::DEFAULT_VALUE): void
+    public function define(string $directive, $value = DirectiveInterface::DEFAULT_VALUE): void
     {
         $this->directives->define($directive, $value);
     }
@@ -146,7 +146,7 @@ class Preprocessor implements PreprocessorInterface, LoggerAwareInterface
     /**
      * {@inheritDoc}
      */
-    public function add(string $file, mixed $source, bool $overwrite = false): bool
+    public function add(string $file, $source, bool $overwrite = false): bool
     {
         return $this->sources->add($file, $source, $overwrite);
     }

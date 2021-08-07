@@ -20,7 +20,7 @@ interface RegistrarInterface
      * @param mixed $value
      * @throws DirectiveDefinitionException
      */
-    public function define(string $directive, mixed $value = DirectiveInterface::DEFAULT_VALUE): void;
+    public function define(string $directive, $value = DirectiveInterface::DEFAULT_VALUE): void;
 
     /**
      * @param string $directive

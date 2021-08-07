@@ -15,7 +15,9 @@ use FFI\Preprocessor\Directive\FunctionDirective;
 use FFI\Preprocessor\Directive\FunctionLikeDirective;
 use FFI\Preprocessor\Directive\ObjectLikeDirective;
 use FFI\Preprocessor\Directive\Repository;
+use FFI\Preprocessor\Directive\RepositoryInterface;
 use FFI\Preprocessor\Directive\RepositoryProviderInterface;
+use FFI\Preprocessor\Exception\DirectiveEvaluationException;
 use FFI\Preprocessor\Internal\Runtime\DirectiveExecutor;
 
 class DirectivesTestCase extends TestCase
@@ -76,12 +78,12 @@ class DirectivesTestCase extends TestCase
     }
 
     /**
-     * @param RepositoryProviderInterface $repository
+     * @param RepositoryInterface $repository
      * @param string $name
      * @param array $args
      * @return string
      */
-    private function execute(RepositoryProviderInterface $repository, string $name = 'test', array $args = []): string
+    private function execute(RepositoryInterface $repository, string $name = 'test', array $args = []): string
     {
         $executor = new DirectiveExecutor($repository);
 
@@ -150,7 +152,7 @@ class DirectivesTestCase extends TestCase
      */
     public function testLazyDirectiveWithMissingArguments(): void
     {
-        $this->expectException(\ArgumentCountError::class);
+        $this->expectException(DirectiveEvaluationException::class);
 
         $repository = $this->repositoryWith(new FunctionDirective(function (string $arg) {
             return 'result';
@@ -186,7 +188,7 @@ class DirectivesTestCase extends TestCase
      */
     public function testObjectLikeDirectiveWithExtraArguments(): void
     {
-        $this->expectException(\ArgumentCountError::class);
+        $this->expectException(DirectiveEvaluationException::class);
 
         $repository = $this->repositoryWith(new ObjectLikeDirective('result'));
 
@@ -208,7 +210,7 @@ class DirectivesTestCase extends TestCase
      */
     public function testFunctionLikeDirectiveWithMissingArguments(): void
     {
-        $this->expectException(\ArgumentCountError::class);
+        $this->expectException(DirectiveEvaluationException::class);
 
         $repository = $this->repositoryWith(new FunctionLikeDirective(['argument'], 'result'));
 
@@ -220,7 +222,7 @@ class DirectivesTestCase extends TestCase
      */
     public function testFunctionLikeDirectiveWithExtraArguments(): void
     {
-        $this->expectException(\ArgumentCountError::class);
+        $this->expectException(DirectiveEvaluationException::class);
 
         $repository = $this->repositoryWith(new FunctionLikeDirective([], 'result'));
 

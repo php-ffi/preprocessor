@@ -40,7 +40,7 @@ final class Repository implements RepositoryInterface, RegistrarInterface
     /**
      * {@inheritDoc}
      */
-    public function add(string $file, mixed $source, bool $overwrite = false): bool
+    public function add(string $file, $source, bool $overwrite = false): bool
     {
         $file = Normalizer::normalize($file);
 

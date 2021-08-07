@@ -79,12 +79,16 @@ abstract class Directive implements DirectiveInterface
      * @param mixed $result
      * @return string
      */
-    public static function render(mixed $result): string
+    public static function render($result): string
     {
-        return match(true) {
-            $result === true => '1',
-            \is_null($result), $result === false => '0',
-            default => (string)$result,
-        };
+        switch (true) {
+            case $result === true:
+                return '1';
+            case $result === null:
+            case $result === false:
+                return '0';
+            default:
+                return (string)$result;
+        }
     }
 }

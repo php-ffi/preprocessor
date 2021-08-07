@@ -42,7 +42,7 @@ interface PreprocessorInterface extends
      * @throws PreprocessorException
      */
     public function process(
-        mixed $source,
+        $source,
         #[ExpectedValues(flagsFromClass: Option::class)]
         int $options = Option::NOTHING
     ): ResultInterface;
