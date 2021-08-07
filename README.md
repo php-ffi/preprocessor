@@ -5,7 +5,7 @@ This implementation of a preprocessor based in part on
 
 ## Requirements
 
-- PHP >= 8.0
+- PHP >= 7.4
 
 ## Installation
 
