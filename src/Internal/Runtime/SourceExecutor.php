@@ -365,6 +365,13 @@ final class SourceExecutor
     {
         $file = $this->normalizeRelativePathname($file);
 
+        // Local overridden sources should be a priority
+        foreach ($this->sources as $name => $out) {
+            if ($this->normalizeRelativePathname($name) === $file) {
+                return $out;
+            }
+        }
+
         if ($source instanceof FileInterface && $withLocal) {
             $pathname = \dirname($source->getPathname()) . \DIRECTORY_SEPARATOR . $file;
 
@@ -378,12 +385,6 @@ final class SourceExecutor
 
             if (\is_file($pathname)) {
                 return File::fromPathname($pathname);
-            }
-        }
-
-        foreach ($this->sources as $name => $source) {
-            if ($this->normalizeRelativePathname($name) === $file) {
-                return $source;
             }
         }
 
