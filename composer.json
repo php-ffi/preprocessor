@@ -1,12 +1,27 @@
 {
     "name": "ffi/preprocessor",
+    "type": "library",
     "description": "Simple C Preprocessor",
     "license": "MIT",
     "keywords": ["ffi", "parser", "compiler", "c", "headers", "preprocessor"],
+    "support": {
+        "source": "https://github.com/php-ffi/preprocessor",
+        "issues": "https://github.com/php-ffi/preprocessor/issues",
+        "docs": "https://github.com/php-ffi/preprocessor/blob/master/README.md"
+    },
+    "authors": [
+        {
+            "name": "Nesmeyanov Kirill",
+            "email": "nesk@xakep.ru",
+            "homepage": "https://serafimarts.ru",
+            "role": "maintainer"
+        }
+    ],
     "require": {
         "php": ">=7.4",
-        "psr/log": "^1.0",
-        "phplrt/runtime": "^3.1",
+        "psr/log": "^1.0|^2.0|^3.0",
+        "phplrt/parser": "^3.1",
+        "phplrt/lexer": "^3.1",
         "symfony/polyfill-php80": "^1.23",
         "symfony/polyfill-ctype": "^1.23"
     },
@@ -18,7 +33,7 @@
     "require-dev": {
         "jetbrains/phpstorm-attributes": "^1.0",
         "phpunit/phpunit": "^9.0",
-        "monolog/monolog": "^2.1",
+        "monolog/monolog": "^2.3",
         "phplrt/phplrt": "^3.1"
     },
     "autoload-dev": {
