@@ -31,7 +31,7 @@ final class Compiler
     /**
      * @var string
      */
-    private const T_CONCAT_RIGHT= 'concat_right';
+    private const T_CONCAT_RIGHT = 'concat_right';
 
     /**
      * @var string
