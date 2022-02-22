@@ -18,20 +18,20 @@ abstract class Directive implements FunctionLikeDirectiveInterface
     /**
      * @var string
      */
-    protected const ERROR_TOO_MANY_ARGUMENTS = 'Too many arguments when macro directive is called, %s required';
+    private const ERROR_TOO_MANY_ARGUMENTS = 'Too many arguments when macro directive is called, %s required';
 
     /**
      * @var string
      */
-    protected const ERROR_TOO_FEW_ARGUMENTS = 'Too few arguments when macro directive is called, %s required';
+    private const ERROR_TOO_FEW_ARGUMENTS = 'Too few arguments when macro directive is called, %s required';
 
     /**
-     * @var int
+     * @var positive-int|0
      */
     protected int $minArgumentsCount = 0;
 
     /**
-     * @var int
+     * @var positive-int|0
      */
     protected int $maxArgumentsCount = 0;
 
@@ -53,11 +53,11 @@ abstract class Directive implements FunctionLikeDirectiveInterface
         $haystack = \count($arguments);
 
         if ($haystack > $this->getMaxArgumentsCount()) {
-            throw new \ArgumentCountError(\sprintf(static::ERROR_TOO_MANY_ARGUMENTS, $this->getMaxArgumentsCount()));
+            throw new \ArgumentCountError(\sprintf(self::ERROR_TOO_MANY_ARGUMENTS, $this->getMaxArgumentsCount()));
         }
 
         if ($haystack < $this->getMinArgumentsCount()) {
-            throw new \ArgumentCountError(\sprintf(static::ERROR_TOO_FEW_ARGUMENTS, $this->getMinArgumentsCount()));
+            throw new \ArgumentCountError(\sprintf(self::ERROR_TOO_FEW_ARGUMENTS, $this->getMinArgumentsCount()));
         }
     }
 

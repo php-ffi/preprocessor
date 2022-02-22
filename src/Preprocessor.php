@@ -22,7 +22,6 @@ use FFI\Preprocessor\Environment\EnvironmentInterface;
 use FFI\Preprocessor\Internal\Runtime\SourceExecutor;
 use FFI\Preprocessor\Io\DirectoriesRepository as DirectoriesRepository;
 use FFI\Preprocessor\Io\SourceRepository as SourcesRepository;
-use JetBrains\PhpStorm\ExpectedValues;
 use Phplrt\Source\File;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -68,7 +67,7 @@ class Preprocessor implements PreprocessorInterface, LoggerAwareInterface
         $this->directories = new DirectoriesRepository();
         $this->sources = new SourcesRepository();
 
-        $this->setLogger($logger ?? new NullLogger());
+        $this->logger = $logger ?? new NullLogger();
 
         foreach ($this->environments as $environment) {
             $this->load(new $environment($this));
@@ -86,19 +85,22 @@ class Preprocessor implements PreprocessorInterface, LoggerAwareInterface
 
     /**
      * {@inheritDoc}
+     *
+     * @psalm-type OptionEnumCase = Option::*
+     * @param int-mask-of<OptionEnumCase> $options
+     *
+     * @psalm-suppress MissingParamType PHP 7.4 does not allow mixed type hint.
      */
-    public function process(
-        $source,
-        #[ExpectedValues(flagsFromClass: Option::class)]
-        int $options = Option::NOTHING
-    ): Result {
+    public function process($source, int $options = Option::NOTHING): Result
+    {
         [$directives, $directories, $sources] = [
             clone $this->directives,
             clone $this->directories,
             clone $this->sources,
         ];
 
-        $context = new SourceExecutor($directives, $directories, $sources, $this->logger, $options);
+        $logger = $this->logger ?? new NullLogger();
+        $context = new SourceExecutor($directives, $directories, $sources, $logger, $options);
         $stream = $context->execute(File::new($source));
 
         return new Result($stream, $directives, $directories, $sources, $options);

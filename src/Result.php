@@ -18,8 +18,6 @@ use FFI\Contracts\Preprocessor\ResultInterface;
 use FFI\Preprocessor\Directive\Directive;
 
 /**
- * @psalm-import-type OptionEnum from Option
- *
  * @property-read DirectivesRepositoryInterface $directives
  * @property-read DirectoriesRepositoryInterface $directories
  * @property-read SourcesRepositoryInterface $sources
@@ -60,16 +58,18 @@ final class Result implements ResultInterface
     private SourcesRepositoryInterface $sources;
 
     /**
-     * @var int-mask<OptionEnum>
+     * @var positive-int|0
      */
     private int $options;
 
     /**
+     * @psalm-type OptionEnumCase = Option::*
+     *
      * @param iterable<string> $stream
      * @param DirectivesRepositoryInterface $directives
      * @param DirectoriesRepositoryInterface $directories
      * @param SourcesRepositoryInterface $sources
-     * @param int-mask<OptionEnum> $options
+     * @param int-mask-of<OptionEnumCase> $options
      */
     public function __construct(
         iterable $stream,
@@ -136,6 +136,7 @@ final class Result implements ResultInterface
     {
         $this->compileIfNotCompiled();
 
+        /** @psalm-suppress PossiblyNullArgument An execution of "compileIfNotCompiled" fills the result */
         return $this->minify($this->injectBuiltinDirectives($this->result));
     }
 

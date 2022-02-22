@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Internal\Runtime;
 
 use FFI\Contracts\Preprocessor\Directive\DirectiveInterface;
+use FFI\Contracts\Preprocessor\Directive\FunctionLikeDirectiveInterface;
 use FFI\Contracts\Preprocessor\Directive\RepositoryInterface;
 use FFI\Preprocessor\Exception\DirectiveEvaluationException;
 use FFI\Preprocessor\Exception\PreprocessException;
@@ -84,9 +85,7 @@ final class DirectiveExecutor
             $body = $this->replaceDefinedExpression($body);
         }
 
-        $body = $this->replaceDefinedDirectives($body);
-
-        return $body;
+        return $this->replaceDefinedDirectives($body);
     }
 
     /**
@@ -110,7 +109,10 @@ final class DirectiveExecutor
      */
     private function replaceDefinedExpression(string $body): string
     {
-        $lookup = fn(array $matches) => $this->directives->defined($matches[1]) ? 'true' : 'false';
+        $lookup = fn (array $matches): string =>
+            /** @psalm-suppress MixedArgument */
+            $this->directives->defined($matches[1]) ? 'true' : 'false'
+        ;
 
         return \preg_replace_callback(self::PCRE_DEFINED, $lookup, $body);
     }
@@ -120,21 +122,22 @@ final class DirectiveExecutor
      *
      * @param string $body
      * @return string
+     * @psalm-suppress MixedInferredReturnType
      */
     private function replaceDefinedDirectives(string $body): string
     {
         $stream = $this->findAndReplace($body);
 
         while ($stream->valid()) {
-            [$name, $arguments] = [$stream->key(), $stream->current()];
-
             try {
-                $stream->send($this->execute($name, $arguments));
+                /** @psalm-suppress MixedArgument */
+                $stream->send($this->execute($stream->key(), $stream->current()));
             } catch (\Throwable $e) {
                 $stream->throw($e);
             }
         }
 
+        /** @psalm-suppress MixedReturnStatement */
         return $stream->getReturn();
     }
 
@@ -201,7 +204,8 @@ final class DirectiveExecutor
         // and means that do not need to do a lookahead to read
         // additional directive arguments.
         //
-        $isSimpleDirective = $directive->getMaxArgumentsCount() === 0;
+        $isSimpleDirective = !$directive instanceof FunctionLikeDirectiveInterface
+            || $directive->getMaxArgumentsCount() === 0;
 
         $coroutine = $this->findDirectiveAndUpdateBody($name, $body);
 
@@ -263,11 +267,11 @@ final class DirectiveExecutor
      *  }
      * </code>
      *
-     * @psalm-return \Generator<int, int, string, string>
-     *
      * @param string $name
      * @param string $body
      * @return \Generator
+     * @psalm-return \Generator<int, int, string, string>
+     * @psalm-suppress MixedReturnTypeCoercion
      */
     private function findDirectiveAndUpdateBody(string $name, string $body): \Generator
     {
@@ -285,6 +289,7 @@ final class DirectiveExecutor
                 continue;
             }
 
+            /** @psalm-suppress RedundantConditionGivenDocblockType */
             if (\is_string($replacement = yield $offset => $offset + $length)) {
                 $body = $replacement;
             }
@@ -444,7 +449,7 @@ final class DirectiveExecutor
      * Accepts the name of a directive and its arguments, and returns the
      * result of executing that directive.
      *
-     * @param string $name
+     * @param non-empty-string $name
      * @param array $arguments
      * @return string
      * @throws DirectiveEvaluationException

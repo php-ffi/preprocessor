@@ -79,7 +79,7 @@ final class Parser implements ParserInterface, BuilderInterface
      * @return ExpressionInterface
      * @throws \Throwable
      */
-    public function parse($source, array $options = []): iterable
+    public function parse($source, array $options = []): ExpressionInterface
     {
         return $this->runtime->parse($source, $options);
     }
