@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Tests;
 
-use FFI\Preprocessor\Io\Directory\Repository;
+use FFI\Preprocessor\Io\DirectoriesRepository;
 
 class IncludeDirectoriesTestCase extends TestCase
 {
@@ -20,7 +20,7 @@ class IncludeDirectoriesTestCase extends TestCase
      */
     public function testDefaultState(): void
     {
-        $includes = new Repository();
+        $includes = new DirectoriesRepository();
 
         $this->assertCount(0, $includes);
         $this->assertSame([], \iterator_to_array($includes));
@@ -31,7 +31,7 @@ class IncludeDirectoriesTestCase extends TestCase
      */
     public function testAddition(): void
     {
-        $includes = new Repository();
+        $includes = new DirectoriesRepository();
 
         $includes->include(__DIR__);
         $this->assertCount(1, $includes);
@@ -58,7 +58,7 @@ class IncludeDirectoriesTestCase extends TestCase
      */
     public function testRemoving(): void
     {
-        $includes = new Repository();
+        $includes = new DirectoriesRepository();
 
         $includes->include(__DIR__);
         $this->assertCount(1, $includes);
@@ -72,7 +72,7 @@ class IncludeDirectoriesTestCase extends TestCase
      */
     public function testParentRemoving(): void
     {
-        $includes = new Repository();
+        $includes = new DirectoriesRepository();
 
         // Add 2 directories
         $includes->include(__DIR__);
@@ -89,7 +89,7 @@ class IncludeDirectoriesTestCase extends TestCase
      */
     public function testInitialization(): void
     {
-        $includes = new Repository([__DIR__]);
+        $includes = new DirectoriesRepository([__DIR__]);
 
         $this->assertCount(1, $includes);
         $this->assertSame($this->normalize([__DIR__]), \iterator_to_array($includes));

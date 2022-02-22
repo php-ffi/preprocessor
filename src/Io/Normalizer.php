@@ -14,16 +14,12 @@ namespace FFI\Preprocessor\Io;
 final class Normalizer
 {
     /**
-     * @var string
-     */
-    private const DIRECTORY_SEPARATOR = \DIRECTORY_SEPARATOR;
-
-    /**
-     * @param string $pathname
-     * @param string $separator
+     * @psalm-taint-sink file $pathname
+     * @param non-empty-string $pathname
+     * @param non-empty-string $separator
      * @return string
      */
-    public static function normalize(string $pathname, string $separator = self::DIRECTORY_SEPARATOR): string
+    public static function normalize(string $pathname, string $separator = \DIRECTORY_SEPARATOR): string
     {
         return \rtrim(\str_replace(['\\', '/'], $separator, $pathname), $separator);
     }

@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Internal\Runtime;
 
-use FFI\Preprocessor\Directive\DirectiveInterface;
-use FFI\Preprocessor\Directive\RepositoryInterface;
+use FFI\Contracts\Preprocessor\Directive\DirectiveInterface;
+use FFI\Contracts\Preprocessor\Directive\RepositoryInterface;
 use FFI\Preprocessor\Exception\DirectiveEvaluationException;
 use FFI\Preprocessor\Exception\PreprocessException;
 use Phplrt\Contracts\Lexer\TokenInterface;

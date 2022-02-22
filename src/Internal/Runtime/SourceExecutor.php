@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Internal\Runtime;
 
-use FFI\Preprocessor\Directive\DirectiveInterface;
+use FFI\Contracts\Preprocessor\Directive\DirectiveInterface;
 use FFI\Preprocessor\Directive\FunctionLikeDirective;
 use FFI\Preprocessor\Directive\ObjectLikeDirective;
 use FFI\Preprocessor\Directive\Repository as DirectivesRepository;
@@ -20,8 +20,8 @@ use FFI\Preprocessor\Exception\PreprocessException;
 use FFI\Preprocessor\Exception\PreprocessorException;
 use FFI\Preprocessor\Internal\Expression\Parser;
 use FFI\Preprocessor\Internal\Lexer;
-use FFI\Preprocessor\Io\Directory\Repository as DirectoriesRepository;
-use FFI\Preprocessor\Io\Source\Repository as SourcesRepository;
+use FFI\Preprocessor\Io\DirectoriesRepository as DirectoriesRepository;
+use FFI\Preprocessor\Io\SourceRepository as SourcesRepository;
 use FFI\Preprocessor\Option;
 use JetBrains\PhpStorm\ExpectedValues;
 use Phplrt\Contracts\Exception\RuntimeExceptionInterface;

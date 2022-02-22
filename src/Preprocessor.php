@@ -11,16 +11,17 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor;
 
-use FFI\Preprocessor\Directive\DirectiveInterface;
+use FFI\Contracts\Preprocessor\Directive\DirectiveInterface;
+use FFI\Contracts\Preprocessor\Directive\RepositoryInterface as DirectivesRepositoryInterface;
+use FFI\Contracts\Preprocessor\Io\Directory\RepositoryInterface as DirectoriesRepositoryInterface;
+use FFI\Contracts\Preprocessor\Io\Source\RepositoryInterface as SourcesRepositoryInterface;
+use FFI\Contracts\Preprocessor\PreprocessorInterface;
 use FFI\Preprocessor\Directive\Repository as DirectivesRepository;
-use FFI\Preprocessor\Directive\RepositoryInterface as DirectivesRepositoryInterface;
 use FFI\Preprocessor\Environment;
 use FFI\Preprocessor\Environment\EnvironmentInterface;
 use FFI\Preprocessor\Internal\Runtime\SourceExecutor;
-use FFI\Preprocessor\Io\Directory\Repository as DirectoriesRepository;
-use FFI\Preprocessor\Io\Directory\RepositoryInterface as DirectoriesRepositoryInterface;
-use FFI\Preprocessor\Io\Source\Repository as SourcesRepository;
-use FFI\Preprocessor\Io\Source\RepositoryInterface as SourcesRepositoryInterface;
+use FFI\Preprocessor\Io\DirectoriesRepository as DirectoriesRepository;
+use FFI\Preprocessor\Io\SourceRepository as SourcesRepository;
 use JetBrains\PhpStorm\ExpectedValues;
 use Phplrt\Source\File;
 use Psr\Log\LoggerAwareInterface;

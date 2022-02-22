@@ -11,9 +11,12 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Directive;
 
+use FFI\Contracts\Preprocessor\Directive\DirectiveInterface;
+use FFI\Contracts\Preprocessor\Directive\RegistrarInterface;
+use FFI\Contracts\Preprocessor\Directive\RepositoryInterface;
 use FFI\Preprocessor\Exception\DirectiveDefinitionException;
 
-final class Repository implements RepositoryInterface, RegistrarInterface
+final class Repository implements RepositoryInterface, RegistrarInterface, \IteratorAggregate
 {
     /**
      * @var array<string, DirectiveInterface>

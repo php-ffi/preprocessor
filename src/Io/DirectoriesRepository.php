@@ -9,14 +9,18 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Io\Directory;
+namespace FFI\Preprocessor\Io;
 
-use FFI\Preprocessor\Io\Normalizer;
+use FFI\Contracts\Preprocessor\Io\Directory\RegistrarInterface;
+use FFI\Contracts\Preprocessor\Io\Directory\RepositoryInterface;
 
-final class Repository implements RepositoryInterface, RegistrarInterface
+/**
+ * @template-implements \IteratorAggregate<array-key, non-empty-string>
+ */
+final class DirectoriesRepository implements RepositoryInterface, RegistrarInterface, \IteratorAggregate
 {
     /**
-     * @var array<string>
+     * @var list<non-empty-string>
      */
     private array $directories = [];
 
@@ -26,7 +30,7 @@ final class Repository implements RepositoryInterface, RegistrarInterface
     private bool $optimizationRequired = false;
 
     /**
-     * @param array<string> $directories
+     * @param iterable<non-empty-string> $directories
      */
     public function __construct(iterable $directories = [])
     {
@@ -41,7 +45,14 @@ final class Repository implements RepositoryInterface, RegistrarInterface
     public function include(string $directory): void
     {
         $this->optimizationRequired = true;
-        $this->directories[] = Normalizer::normalize($directory);
+
+        $directory = Normalizer::normalize($directory);
+
+        if ($directory === '') {
+            throw new \InvalidArgumentException('Directory must not be empty');
+        }
+
+        $this->directories[] = $directory;
     }
 
     /**
@@ -49,20 +60,12 @@ final class Repository implements RepositoryInterface, RegistrarInterface
      */
     public function exclude(string $directory): void
     {
-        $this->directories = \array_filter($this->directories, $this->filter(
-            Normalizer::normalize($directory)
-        ));
-    }
-
-    /**
-     * @param string $directory
-     * @return callable(string): bool
-     */
-    private function filter(string $directory): callable
-    {
-        return static fn(string $haystack): bool =>
-            ! \str_starts_with($haystack, $directory)
+        $filter = static fn(string $haystack): bool =>
+            ! \str_starts_with($haystack, Normalizer::normalize($directory))
         ;
+
+        /** @psalm-suppress PropertyTypeCoercion */
+        $this->directories = \array_filter($this->directories, $filter);
     }
 
     /**
@@ -83,6 +86,8 @@ final class Repository implements RepositoryInterface, RegistrarInterface
     private function optimize(): void
     {
         $this->optimizationRequired = false;
+
+        /** @psalm-suppress PropertyTypeCoercion */
         $this->directories = \array_unique($this->directories);
     }
 

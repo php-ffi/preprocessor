@@ -11,7 +11,9 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Directive;
 
-abstract class Directive implements DirectiveInterface
+use FFI\Contracts\Preprocessor\Directive\FunctionLikeDirectiveInterface;
+
+abstract class Directive implements FunctionLikeDirectiveInterface
 {
     /**
      * @var string

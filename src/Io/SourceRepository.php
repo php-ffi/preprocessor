@@ -9,10 +9,11 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Io\Source;
+namespace FFI\Preprocessor\Io;
 
-use FFI\Preprocessor\Io\Normalizer;
-use FFI\Preprocessor\PreprocessorInterface;
+use FFI\Contracts\Preprocessor\Io\Source\RegistrarInterface;
+use FFI\Contracts\Preprocessor\Io\Source\RepositoryInterface;
+use FFI\Contracts\Preprocessor\PreprocessorInterface;
 use Phplrt\Contracts\Source\ReadableInterface;
 use Phplrt\Source\File;
 
@@ -20,7 +21,7 @@ use Phplrt\Source\File;
  * @psalm-import-type SourceEntry from PreprocessorInterface
  * @link PreprocessorInterface
  */
-final class Repository implements RepositoryInterface, RegistrarInterface
+final class SourceRepository implements RepositoryInterface, RegistrarInterface, \IteratorAggregate
 {
     /**
      * @var array<string, ReadableInterface>
@@ -28,7 +29,7 @@ final class Repository implements RepositoryInterface, RegistrarInterface
     private array $files = [];
 
     /**
-     * @param iterable<string, SourceEntry> $files
+     * @param iterable<non-empty-string, SourceEntry> $files
      */
     public function __construct(iterable $files = [])
     {

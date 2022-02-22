@@ -11,11 +11,11 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor;
 
+use FFI\Contracts\Preprocessor\Directive\RepositoryInterface as DirectivesRepositoryInterface;
+use FFI\Contracts\Preprocessor\Io\Directory\RepositoryInterface as DirectoriesRepositoryInterface;
+use FFI\Contracts\Preprocessor\Io\Source\RepositoryInterface as SourcesRepositoryInterface;
+use FFI\Contracts\Preprocessor\ResultInterface;
 use FFI\Preprocessor\Directive\Directive;
-use FFI\Preprocessor\Directive\RepositoryInterface as DirectivesRepositoryInterface;
-use FFI\Preprocessor\Io\Directory\RepositoryInterface as DirectoriesRepositoryInterface;
-use FFI\Preprocessor\Io\Source\RepositoryInterface as SourcesRepositoryInterface;
-use JetBrains\PhpStorm\ExpectedValues;
 
 /**
  * @psalm-import-type OptionEnum from Option
@@ -60,7 +60,7 @@ final class Result implements ResultInterface
     private SourcesRepositoryInterface $sources;
 
     /**
-     * @var int-mask-of<OptionEnum>
+     * @var int-mask<OptionEnum>
      */
     private int $options;
 
@@ -69,14 +69,13 @@ final class Result implements ResultInterface
      * @param DirectivesRepositoryInterface $directives
      * @param DirectoriesRepositoryInterface $directories
      * @param SourcesRepositoryInterface $sources
-     * @param int-mask-of<OptionEnum> $options
+     * @param int-mask<OptionEnum> $options
      */
     public function __construct(
         iterable $stream,
         DirectivesRepositoryInterface $directives,
         DirectoriesRepositoryInterface $directories,
         SourcesRepositoryInterface $sources,
-        #[ExpectedValues(flagsFromClass: Option::class)]
         int $options = 0
     ) {
         $this->stream = $stream;
@@ -137,9 +136,7 @@ final class Result implements ResultInterface
     {
         $this->compileIfNotCompiled();
 
-        return $this->minify($this->injectBuiltinDirectives(
-            $this->result
-        ));
+        return $this->minify($this->injectBuiltinDirectives($this->result));
     }
 
     /**
@@ -149,7 +146,7 @@ final class Result implements ResultInterface
     private function minify(string $result): string
     {
         if (! Option::contains($this->options, Option::KEEP_EXTRA_LINE_FEEDS)) {
-            $result = \preg_replace('/\n{2,}/ium', "\n", $result);
+            $result = \preg_replace('/\n{2,}/ium', "\n", $result) ?? $result;
             $result = \trim($result, "\n");
         }
 

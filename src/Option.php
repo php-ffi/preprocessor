@@ -37,7 +37,7 @@ final class Option
     public const KEEP_DEBUG_COMMENTS = 0b0000_0100;
 
     /**
-     * @param int-mask-of<OptionEnum> $mask
+     * @param int-mask<OptionEnum> $mask
      * @param OptionEnum $expected
      * @return bool
      */

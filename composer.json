@@ -19,11 +19,12 @@
     ],
     "require": {
         "php": ">=7.4",
+        "ffi/preprocessor-contracts": "^1.0",
         "psr/log": "^1.0|^2.0|^3.0",
         "phplrt/parser": "^3.1",
         "phplrt/lexer": "^3.1",
-        "symfony/polyfill-php80": "^1.23",
-        "symfony/polyfill-ctype": "^1.23"
+        "symfony/polyfill-php80": "^1.24",
+        "symfony/polyfill-ctype": "^1.24"
     },
     "autoload": {
         "psr-4": {
@@ -32,9 +33,11 @@
     },
     "require-dev": {
         "jetbrains/phpstorm-attributes": "^1.0",
-        "phpunit/phpunit": "^9.0",
+        "phpunit/phpunit": "^9.5",
         "monolog/monolog": "^2.3",
-        "phplrt/phplrt": "^3.1"
+        "phplrt/phplrt": "^3.1",
+        "vimeo/psalm": "^4.21",
+        "squizlabs/php_codesniffer": "^3.6"
     },
     "autoload-dev": {
         "psr-4": {
@@ -42,7 +45,20 @@
         }
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true
+        }
+    },
+    "provide": {
+        "ffi/preprocessor-contracts-implementation": "^1.0"
+    },
+    "scripts": {
+        "test": [
+            "psalm --no-cache",
+            "phpcs --standard=phpcs.xml",
+            "phpunit --testdox"
+        ]
     },
     "extra": {
         "branch-alias": {

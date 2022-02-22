@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Environment;
 
-use FFI\Preprocessor\PreprocessorInterface;
+use FFI\Contracts\Preprocessor\PreprocessorInterface;
 
 /**
  * The compiler supports these predefined macros specified by the

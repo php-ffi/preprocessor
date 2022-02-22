@@ -47,7 +47,6 @@ final class Parser implements ParserInterface, BuilderInterface
             Runtime::CONFIG_AST_BUILDER  => $this,
             Runtime::CONFIG_INITIAL_RULE => $config['initial'],
             Runtime::CONFIG_BUFFER       => ArrayBuffer::class,
-            //Runtime::CONFIG_STEP_REDUCER => new Tracer(),
         ]);
     }
 

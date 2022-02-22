@@ -11,11 +11,11 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Tests;
 
+use FFI\Contracts\Preprocessor\Directive\RepositoryInterface;
 use FFI\Preprocessor\Directive\FunctionDirective;
 use FFI\Preprocessor\Directive\FunctionLikeDirective;
 use FFI\Preprocessor\Directive\ObjectLikeDirective;
 use FFI\Preprocessor\Directive\Repository;
-use FFI\Preprocessor\Directive\RepositoryInterface;
 use FFI\Preprocessor\Directive\RepositoryProviderInterface;
 use FFI\Preprocessor\Exception\DirectiveEvaluationException;
 use FFI\Preprocessor\Internal\Runtime\DirectiveExecutor;
