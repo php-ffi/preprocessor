@@ -638,10 +638,7 @@ final class SourceExecutor
             return [];
         }
 
-
-        $body = $this->escape($token[0]->getValue());
-
-        $name = $this->replace($body, DirectiveExecutor::CTX_SOURCE);
+        $name = $this->escape($token[0]->getValue());
 
         assert($name !== '', 'Directive name cannot be empty');
         $this->directives->undef($name);
