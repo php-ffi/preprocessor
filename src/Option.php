@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of FFI package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace FFI\Preprocessor;
@@ -21,7 +14,7 @@ final class Option
     /**
      * @psalm-type OptionEnumCase = Option::*
      *
-     * @param positive-int|0 $mask
+     * @param int<0, max> $mask
      * @param OptionEnumCase $expected
      * @return bool
      */

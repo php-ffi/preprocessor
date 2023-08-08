@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of FFI package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace FFI\Preprocessor\Io;
@@ -39,9 +32,6 @@ final class DirectoriesRepository implements RepositoryInterface, RegistrarInter
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function include(string $directory): void
     {
         $this->optimizationRequired = true;
@@ -55,9 +45,6 @@ final class DirectoriesRepository implements RepositoryInterface, RegistrarInter
         $this->directories[] = $directory;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function exclude(string $directory): void
     {
         $filter = static fn(string $haystack): bool =>
@@ -68,9 +55,6 @@ final class DirectoriesRepository implements RepositoryInterface, RegistrarInter
         $this->directories = \array_filter($this->directories, $filter);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getIterator(): \Traversable
     {
         if ($this->optimizationRequired) {
@@ -91,9 +75,6 @@ final class DirectoriesRepository implements RepositoryInterface, RegistrarInter
         $this->directories = \array_unique($this->directories);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function count(): int
     {
         return \count($this->directories);

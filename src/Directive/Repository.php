@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of FFI package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace FFI\Preprocessor\Directive;
@@ -54,9 +47,6 @@ final class Repository implements RepositoryInterface, RegistrarInterface, \Iter
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function define(string $directive, $value = DirectiveInterface::DEFAULT_VALUE): void
     {
         try {
@@ -72,9 +62,6 @@ final class Repository implements RepositoryInterface, RegistrarInterface, \Iter
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function undef(string $directive): bool
     {
         $exists = $this->defined($directive);
@@ -84,33 +71,21 @@ final class Repository implements RepositoryInterface, RegistrarInterface, \Iter
         return $exists;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function defined(string $directive): bool
     {
         return isset($this->directives[$directive]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function find(string $directive): ?DirectiveInterface
     {
         return $this->directives[$directive] ?? null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getIterator(): \Traversable
     {
         return new \ArrayIterator($this->directives);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function count(): int
     {
         return \count($this->directives);

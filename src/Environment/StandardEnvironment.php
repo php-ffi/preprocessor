@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of FFI package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace FFI\Preprocessor\Environment;
@@ -19,15 +12,12 @@ use FFI\Contracts\Preprocessor\PreprocessorInterface;
  */
 final class StandardEnvironment implements EnvironmentInterface
 {
-    /**
-     * @var \DateTimeZone
-     */
     private \DateTimeZone $zone;
 
     /**
      * Defined when compiled as C.
      *
-     * @var int
+     * @var int<0, max>
      */
     public int $version = CVersion::VERSION_ISO_C18;
 
@@ -35,32 +25,24 @@ final class StandardEnvironment implements EnvironmentInterface
      * Defined as {@see true} if the implementation is a hosted implementation,
      * one that supports the entire required standard library. Otherwise,
      * defined as {@see false}.
-     *
-     * @var bool
      */
     public bool $hosted = false;
 
     /**
      * Defined as {@see false} if the implementation doesn't support optional
      * standard atomics.
-     *
-     * @var bool
      */
     public bool $atomics = false;
 
     /**
      * Defined as {@see false} if the implementation doesn't support optional
      * standard threads.
-     *
-     * @var bool
      */
     public bool $threads = false;
 
     /**
      * Defined as {@see false} if the implementation doesn't support standard
      * variable length arrays.
-     *
-     * @var bool
      */
     public bool $vla = false;
 
@@ -70,7 +52,7 @@ final class StandardEnvironment implements EnvironmentInterface
      * the source file. __COUNTER__ remembers its state when you use precompiled
      * headers. This macro is always defined.
      *
-     * @var int
+     * @var int<0, max>
      */
     public int $counter = 0;
 
@@ -84,7 +66,8 @@ final class StandardEnvironment implements EnvironmentInterface
 
     /**
      * {@inheritDoc}
-     * @throws \Exception
+     *
+     * @throws \Throwable
      */
     public function applyTo(PreprocessorInterface $pre): void
     {

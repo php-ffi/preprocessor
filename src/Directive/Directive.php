@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of FFI package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace FFI\Preprocessor\Directive;
@@ -16,37 +9,32 @@ use FFI\Contracts\Preprocessor\Directive\FunctionLikeDirectiveInterface;
 abstract class Directive implements FunctionLikeDirectiveInterface
 {
     /**
-     * @var string
+     * @var non-empty-string
      */
     private const ERROR_TOO_MANY_ARGUMENTS = 'Too many arguments when macro directive is called, %s required';
 
     /**
-     * @var string
+     * @var non-empty-string
      */
     private const ERROR_TOO_FEW_ARGUMENTS = 'Too few arguments when macro directive is called, %s required';
 
     /**
-     * @var positive-int|0
+     * @var int<0, max>
      */
     protected int $minArgumentsCount = 0;
 
     /**
-     * @var positive-int|0
+     * @var int<0, max>
      */
     protected int $maxArgumentsCount = 0;
 
-    /**
-     * @param string $body
-     * @return string
-     */
     protected function normalizeBody(string $body): string
     {
         return \str_replace("\\\n", "\n", $body);
     }
 
     /**
-     * @param array|string[] $arguments
-     * @return void
+     * @param list<string> $arguments
      */
     protected function assertArgumentsCount(array $arguments): void
     {
@@ -61,26 +49,16 @@ abstract class Directive implements FunctionLikeDirectiveInterface
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getMaxArgumentsCount(): int
     {
         return $this->maxArgumentsCount;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getMinArgumentsCount(): int
     {
         return $this->minArgumentsCount;
     }
 
-    /**
-     * @param mixed $result
-     * @return string
-     */
     public static function render($result): string
     {
         switch (true) {

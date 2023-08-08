@@ -18,13 +18,13 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
+        "php": "^7.4|^8.0",
         "ffi/preprocessor-contracts": "^1.0",
         "psr/log": "^1.0|^2.0|^3.0",
-        "phplrt/parser": "^3.1",
-        "phplrt/lexer": "^3.1",
-        "symfony/polyfill-php80": "^1.24",
-        "symfony/polyfill-ctype": "^1.24"
+        "phplrt/parser": "^3.2",
+        "phplrt/lexer": "^3.2",
+        "symfony/polyfill-php80": "^1.27",
+        "symfony/polyfill-ctype": "^1.27"
     },
     "autoload": {
         "psr-4": {
@@ -33,11 +33,11 @@
     },
     "require-dev": {
         "jetbrains/phpstorm-attributes": "^1.0",
-        "phpunit/phpunit": "^9.5",
-        "monolog/monolog": "^2.3",
-        "phplrt/phplrt": "^3.1",
-        "vimeo/psalm": "^4.21",
-        "squizlabs/php_codesniffer": "^3.6"
+        "phpunit/phpunit": "^9.6",
+        "monolog/monolog": "^2.9|^3.0",
+        "phplrt/phplrt": "^3.2",
+        "vimeo/psalm": "^5.14",
+        "squizlabs/php_codesniffer": "^3.7"
     },
     "autoload-dev": {
         "psr-4": {

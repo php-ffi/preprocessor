@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of FFI package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace FFI\Preprocessor;
@@ -25,7 +18,7 @@ use FFI\Preprocessor\Directive\Directive;
 final class Result implements ResultInterface
 {
     /**
-     * @var array<string>
+     * @var list<non-empty-string>
      */
     private const BUILTIN_DIRECTIVES = [
         'FFI_SCOPE',
@@ -42,23 +35,12 @@ final class Result implements ResultInterface
      */
     private iterable $stream;
 
-    /**
-     * @var DirectivesRepositoryInterface
-     */
     private DirectivesRepositoryInterface $directives;
-
-    /**
-     * @var DirectoriesRepositoryInterface
-     */
     private DirectoriesRepositoryInterface $directories;
-
-    /**
-     * @var SourcesRepositoryInterface
-     */
     private SourcesRepositoryInterface $sources;
 
     /**
-     * @var positive-int|0
+     * @var int<0, max>
      */
     private int $options;
 
@@ -66,9 +48,6 @@ final class Result implements ResultInterface
      * @psalm-type OptionEnumCase = Option::*
      *
      * @param iterable<string> $stream
-     * @param DirectivesRepositoryInterface $directives
-     * @param DirectoriesRepositoryInterface $directories
-     * @param SourcesRepositoryInterface $sources
      * @param int-mask-of<OptionEnumCase> $options
      */
     public function __construct(
@@ -85,9 +64,6 @@ final class Result implements ResultInterface
         $this->options = $options;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getDirectives(): DirectivesRepositoryInterface
     {
         $this->compileIfNotCompiled();
@@ -95,23 +71,51 @@ final class Result implements ResultInterface
         return $this->directives;
     }
 
-    /**
-     * @return void
-     */
     private function compileIfNotCompiled(): void
     {
         if ($this->result === null) {
-            $this->result = '';
+            $this->result = $this->withoutRecursionDepth(function (): string {
+                $result = '';
 
-            foreach ($this->stream as $chunk) {
-                $this->result .= $chunk;
-            }
+                foreach ($this->stream as $chunk) {
+                    $result .= $chunk;
+                }
+
+                return $result;
+            });
         }
     }
 
     /**
-     * {@inheritDoc}
+     * @template TResult of mixed
+     *
+     * @param callable():TResult $context
+     *
+     * @return TResult
      */
+    private function withoutRecursionDepth(callable $context)
+    {
+        if (($beforeRecursionDepth = \ini_get('xdebug.max_nesting_level')) !== false) {
+            \ini_set('xdebug.max_nesting_level', '-1');
+        }
+
+        if (($beforeMode = \ini_get('xdebug.mode')) !== false) {
+            \ini_set('xdebug.mode', 'off');
+        }
+
+        try {
+            return $context();
+        } finally {
+            if ($beforeRecursionDepth !== false) {
+                \ini_set('xdebug.max_nesting_level', $beforeRecursionDepth);
+            }
+
+            if ($beforeMode !== false) {
+                \ini_set('xdebug.mode', $beforeMode);
+            }
+        }
+    }
+
     public function getDirectories(): DirectoriesRepositoryInterface
     {
         $this->compileIfNotCompiled();
@@ -119,9 +123,6 @@ final class Result implements ResultInterface
         return $this->directories;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getSources(): SourcesRepositoryInterface
     {
         $this->compileIfNotCompiled();
@@ -129,9 +130,6 @@ final class Result implements ResultInterface
         return $this->sources;
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         $this->compileIfNotCompiled();
@@ -140,10 +138,6 @@ final class Result implements ResultInterface
         return $this->minify($this->injectBuiltinDirectives($this->result));
     }
 
-    /**
-     * @param string $result
-     * @return string
-     */
     private function minify(string $result): string
     {
         if (! Option::contains($this->options, Option::KEEP_EXTRA_LINE_FEEDS)) {
@@ -154,10 +148,6 @@ final class Result implements ResultInterface
         return $result;
     }
 
-    /**
-     * @param string $result
-     * @return string
-     */
     private function injectBuiltinDirectives(string $result): string
     {
         if (! Option::contains($this->options, Option::SKIP_BUILTIN_DIRECTIVES)) {
@@ -175,8 +165,7 @@ final class Result implements ResultInterface
     }
 
     /**
-     * @param string $property
-     * @return \Traversable
+     * @param non-empty-string $property
      */
     public function __get(string $property): \Traversable
     {

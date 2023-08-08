@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of FFI package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace FFI\Preprocessor\Internal\Runtime;
@@ -21,8 +14,8 @@ use FFI\Preprocessor\Exception\PreprocessException;
 use FFI\Preprocessor\Exception\PreprocessorException;
 use FFI\Preprocessor\Internal\Expression\Parser;
 use FFI\Preprocessor\Internal\Lexer;
-use FFI\Preprocessor\Io\DirectoriesRepository as DirectoriesRepository;
-use FFI\Preprocessor\Io\SourceRepository as SourcesRepository;
+use FFI\Preprocessor\Io\DirectoriesRepository;
+use FFI\Preprocessor\Io\SourceRepository;
 use FFI\Preprocessor\Option;
 use Phplrt\Contracts\Exception\RuntimeExceptionInterface;
 use Phplrt\Contracts\Lexer\TokenInterface;
@@ -43,68 +36,38 @@ use Psr\Log\LoggerInterface;
 final class SourceExecutor
 {
     /**
-     * @var string
+     * @var non-empty-string
      */
     private const GRAMMAR_PATHNAME = __DIR__ . '/../../../resources/expression.php';
 
-    /**
-     * @var OutputStack
-     */
     private OutputStack $stack;
 
-    /**
-     * @var DirectiveExecutor
-     */
     private DirectiveExecutor $executor;
 
-    /**
-     * @var Lexer
-     */
     private Lexer $lexer;
 
-    /**
-     * @var Parser
-     */
     private Parser $expressions;
 
-    /**
-     * @var DirectivesRepository
-     */
     private DirectivesRepository $directives;
 
-    /**
-     * @var DirectoriesRepository
-     */
     private DirectoriesRepository $directories;
 
-    /**
-     * @var SourcesRepository
-     */
-    private SourcesRepository $sources;
+    private SourceRepository $sources;
 
-    /**
-     * @var LoggerInterface
-     */
     private LoggerInterface $logger;
 
     /**
-     * @var positive-int|0
+     * @var int<0, max>
      */
     private int $options;
 
     /**
-     * @psalm-type OptionEnumCase = Option::*
-     *
-     * @param DirectivesRepository $directives
-     * @param DirectoriesRepository $directories
-     * @param SourcesRepository $sources
-     * @param LoggerInterface $logger
-     * @param int-mask-of<OptionEnumCase> $options
+     * @param int-mask-of<Option::*> $options
      */
     public function __construct(
         DirectivesRepository $directives,
         DirectoriesRepository $directories,
-        SourcesRepository $sources,
+        SourceRepository $sources,
         LoggerInterface $logger,
         int $options
     ) {
@@ -121,7 +84,6 @@ final class SourceExecutor
     }
 
     /**
-     * @param ReadableInterface $source
      * @return \Traversable<string>
      * @throws PreprocessorException
      *

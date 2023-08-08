@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of FFI package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace FFI\Preprocessor\Environment;
@@ -16,16 +9,13 @@ use FFI\Contracts\Preprocessor\PreprocessorInterface;
 final class PhpEnvironment implements EnvironmentInterface
 {
     /**
-     * @var string[]
+     * @var list<non-empty-string>
      */
     private const EXPORT_DIRECTIVE_NAMES = [
         'PHP_',
         'ZEND_',
     ];
 
-    /**
-     * @param PreprocessorInterface $pre
-     */
     public function applyTo(PreprocessorInterface $pre): void
     {
         foreach (self::EXPORT_DIRECTIVE_NAMES as $prefix) {
@@ -41,9 +31,6 @@ final class PhpEnvironment implements EnvironmentInterface
         }
     }
 
-    /**
-     * @return array
-     */
     private function getCoreConstants(): array
     {
         $constants = \get_defined_constants(true);
@@ -52,8 +39,6 @@ final class PhpEnvironment implements EnvironmentInterface
     }
 
     /**
-     * @param PreprocessorInterface $pre
-     * @param string $name
      * @param mixed $value
      */
     private function define(PreprocessorInterface $pre, string $name, $value): void
@@ -63,7 +48,6 @@ final class PhpEnvironment implements EnvironmentInterface
 
     /**
      * @param mixed $value
-     * @return string
      */
     private function toCLiteral($value): string
     {

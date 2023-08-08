@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of FFI package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace FFI\Preprocessor\Internal;
@@ -147,9 +140,6 @@ final class Lexer implements LexerInterface
         $this->runtime = new Runtime(self::LEXEMES, [self::T_EOI]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function lex($source, int $offset = 0): iterable
     {
         $source = $this->simplifier->simplify(File::new($source));
