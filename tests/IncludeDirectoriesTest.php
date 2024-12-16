@@ -13,7 +13,7 @@ namespace FFI\Preprocessor\Tests;
 
 use FFI\Preprocessor\Io\DirectoriesRepository;
 
-class IncludeDirectoriesTestCase extends TestCase
+class IncludeDirectoriesTest extends TestCase
 {
     /**
      * @return void

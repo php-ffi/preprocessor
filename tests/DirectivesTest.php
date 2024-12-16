@@ -20,7 +20,7 @@ use FFI\Preprocessor\Directive\RepositoryProviderInterface;
 use FFI\Preprocessor\Exception\DirectiveEvaluationException;
 use FFI\Preprocessor\Internal\Runtime\DirectiveExecutor;
 
-class DirectivesTestCase extends TestCase
+class DirectivesTest extends TestCase
 {
     /**
      * @return void
