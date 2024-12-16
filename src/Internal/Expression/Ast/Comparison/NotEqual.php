@@ -6,9 +6,6 @@ namespace FFI\Preprocessor\Internal\Expression\Ast\Comparison;
 
 final class NotEqual extends Comparison
 {
-    /**
-     * @return bool
-     */
     public function eval(): bool
     {
         return $this->a->eval() !== $this->b->eval();

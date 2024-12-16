@@ -41,9 +41,6 @@ namespace FFI\Preprocessor\Internal\Runtime;
  */
 final class OutputStack implements \Countable
 {
-    /**
-     * @var bool
-     */
     private bool $state = true;
 
     /**
@@ -56,31 +53,21 @@ final class OutputStack implements \Countable
      */
     private array $completed = [];
 
-    /**
-     * @return bool
-     */
     public function isEnabled(): bool
     {
         return $this->state;
     }
 
-    /**
-     * @param bool $state
-     * @return void
-     */
     public function push(bool $state): void
     {
         $this->stack[] = $state;
         $this->completed[] = $state;
 
-        if ($this->state && ! $state) {
+        if ($this->state && !$state) {
             $this->state = false;
         }
     }
 
-    /**
-     * @return void
-     */
     public function complete(): void
     {
         $this->assertSize();
@@ -89,10 +76,6 @@ final class OutputStack implements \Countable
         $this->push(true);
     }
 
-    /**
-     * @param bool $status
-     * @param bool $completed
-     */
     public function update(bool $status, bool $completed = false): void
     {
         \array_pop($this->stack);
@@ -104,17 +87,11 @@ final class OutputStack implements \Countable
         $this->refresh();
     }
 
-    /**
-     * @return bool
-     */
     public function isCompleted(): bool
     {
         return \end($this->completed);
     }
 
-    /**
-     * @return void
-     */
     private function assertSize(): void
     {
         if (\count($this->stack) <= 0) {
@@ -122,42 +99,34 @@ final class OutputStack implements \Countable
         }
     }
 
-    /**
-     * @return void
-     */
     public function inverse(): void
     {
         $this->assertSize();
 
         try {
-            $this->stack[] = ! \array_pop($this->stack);
+            $this->stack[] = !\array_pop($this->stack);
         } finally {
             $this->refresh();
         }
     }
 
-    /**
-     * @return bool
-     */
     public function pop(): bool
     {
         $this->assertSize();
 
         try {
             \array_pop($this->completed);
+
             return \array_pop($this->stack);
         } finally {
             $this->refresh();
         }
     }
 
-    /**
-     * @return bool
-     */
     private function refresh(): bool
     {
         foreach ($this->stack as $state) {
-            if (! $state) {
+            if (!$state) {
                 return $this->state = false;
             }
         }
@@ -165,9 +134,6 @@ final class OutputStack implements \Countable
         return $this->state = true;
     }
 
-    /**
-     * @return int
-     */
     public function count(): int
     {
         return \count($this->stack);

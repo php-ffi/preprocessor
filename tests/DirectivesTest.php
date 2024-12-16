@@ -16,15 +16,11 @@ use FFI\Preprocessor\Directive\FunctionDirective;
 use FFI\Preprocessor\Directive\FunctionLikeDirective;
 use FFI\Preprocessor\Directive\ObjectLikeDirective;
 use FFI\Preprocessor\Directive\Repository;
-use FFI\Preprocessor\Directive\RepositoryProviderInterface;
 use FFI\Preprocessor\Exception\DirectiveEvaluationException;
 use FFI\Preprocessor\Internal\Runtime\DirectiveExecutor;
 
 class DirectivesTest extends TestCase
 {
-    /**
-     * @return void
-     */
     public function testInitialState(): void
     {
         $repository = $this->repository();
@@ -33,17 +29,11 @@ class DirectivesTest extends TestCase
         $this->assertSame([], \iterator_to_array($repository));
     }
 
-    /**
-     * @return Repository
-     */
     private function repository(): Repository
     {
         return new Repository();
     }
 
-    /**
-     * @return void
-     */
     public function testAddition(): void
     {
         $repository = $this->repository();
@@ -52,9 +42,6 @@ class DirectivesTest extends TestCase
         $this->assertCount(1, $repository);
     }
 
-    /**
-     * @return void
-     */
     public function testRemoving(): void
     {
         $repository = $this->repository();
@@ -66,9 +53,6 @@ class DirectivesTest extends TestCase
         $this->assertCount(0, $repository);
     }
 
-    /**
-     * @return void
-     */
     public function testDirectiveDefault(): void
     {
         $repository = $this->repository();
@@ -77,12 +61,6 @@ class DirectivesTest extends TestCase
         $this->assertSame('', $this->execute($repository, 'example'));
     }
 
-    /**
-     * @param RepositoryInterface $repository
-     * @param string $name
-     * @param array $args
-     * @return string
-     */
     private function execute(RepositoryInterface $repository, string $name = 'test', array $args = []): string
     {
         $executor = new DirectiveExecutor($repository);
@@ -90,9 +68,6 @@ class DirectivesTest extends TestCase
         return $executor->execute($name, $args);
     }
 
-    /**
-     * @return void
-     */
     public function testDirectiveNonRegistered(): void
     {
         $repository = $this->repository();
@@ -100,9 +75,6 @@ class DirectivesTest extends TestCase
         $this->assertSame('example', $this->execute($repository, 'example'));
     }
 
-    /**
-     * @return void
-     */
     public function testDirectiveFromString(): void
     {
         $repository = $this->repositoryWith('result');
@@ -110,10 +82,6 @@ class DirectivesTest extends TestCase
         $this->assertSame('result', $this->execute($repository));
     }
 
-    /**
-     * @param mixed $value
-     * @return Repository
-     */
     private function repositoryWith($value): Repository
     {
         $repository = $this->repository();
@@ -122,9 +90,6 @@ class DirectivesTest extends TestCase
         return $repository;
     }
 
-    /**
-     * @return void
-     */
     public function testDirectiveFromCallable(): void
     {
         $repository = $this->repositoryWith(function () {
@@ -134,9 +99,6 @@ class DirectivesTest extends TestCase
         $this->assertSame('result', $this->execute($repository));
     }
 
-    /**
-     * @return void
-     */
     public function testLazyDirective(): void
     {
         $repository = $this->repositoryWith(new FunctionDirective(function () {
@@ -147,7 +109,6 @@ class DirectivesTest extends TestCase
     }
 
     /**
-     * @return void
      * @throws \ReflectionException
      */
     public function testLazyDirectiveWithMissingArguments(): void
@@ -161,9 +122,6 @@ class DirectivesTest extends TestCase
         $this->execute($repository);
     }
 
-    /**
-     * @return void
-     */
     public function testLazyDirectiveWithExtraArguments(): void
     {
         $repository = $this->repositoryWith(new FunctionDirective(function () {
@@ -173,9 +131,6 @@ class DirectivesTest extends TestCase
         $this->assertSame('result', $this->execute($repository, 'test', ['example']));
     }
 
-    /**
-     * @return void
-     */
     public function testObjectLikeDirective(): void
     {
         $repository = $this->repositoryWith(new ObjectLikeDirective('result'));
@@ -183,9 +138,6 @@ class DirectivesTest extends TestCase
         $this->assertSame('result', $this->execute($repository));
     }
 
-    /**
-     * @return void
-     */
     public function testObjectLikeDirectiveWithExtraArguments(): void
     {
         $this->expectException(DirectiveEvaluationException::class);
@@ -195,9 +147,6 @@ class DirectivesTest extends TestCase
         $this->assertSame('result', $this->execute($repository, 'test', ['example']));
     }
 
-    /**
-     * @return void
-     */
     public function testFunctionLikeDirective(): void
     {
         $repository = $this->repositoryWith(new FunctionLikeDirective([], 'result'));
@@ -205,9 +154,6 @@ class DirectivesTest extends TestCase
         $this->assertSame('result', $this->execute($repository));
     }
 
-    /**
-     * @return void
-     */
     public function testFunctionLikeDirectiveWithMissingArguments(): void
     {
         $this->expectException(DirectiveEvaluationException::class);
@@ -217,9 +163,6 @@ class DirectivesTest extends TestCase
         $this->execute($repository);
     }
 
-    /**
-     * @return void
-     */
     public function testFunctionLikeDirectiveWithExtraArguments(): void
     {
         $this->expectException(DirectiveEvaluationException::class);
@@ -229,9 +172,6 @@ class DirectivesTest extends TestCase
         $this->execute($repository, 'test', ['example']);
     }
 
-    /**
-     * @return array
-     */
     public function functionLikeDirectiveDataProvider(): array
     {
         return [
@@ -283,7 +223,6 @@ class DirectivesTest extends TestCase
              */
             [['arg'], 'return _##arg;', ['test'], 'return _test;'],
 
-
             /**
              * <code>
              *  #define test(arg)      return arg_;
@@ -304,12 +243,6 @@ class DirectivesTest extends TestCase
 
     /**
      * @dataProvider functionLikeDirectiveDataProvider
-     *
-     * @param array $args
-     * @param string $body
-     * @param array $pass
-     * @param string $result
-     * @return void
      */
     public function testFunctionLikeDirectiveReplacements(array $args, string $body, array $pass, string $result): void
     {

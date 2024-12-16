@@ -14,7 +14,7 @@ use Phplrt\Lexer\Token\Token;
 use Phplrt\Source\File;
 
 /**
- * @internal DirectiveExecutor is an internal library class, please do not use it in your code.
+ * @internal directiveExecutor is an internal library class, please do not use it in your code
  * @psalm-internal FFI\Preprocessor\Internal\Runtime
  *
  * @psalm-type DirectiveExecutorContext = DirectiveExecutor::CTX_*
@@ -45,14 +45,8 @@ final class DirectiveExecutor
      */
     private const PCRE_DEFINED = '/\bdefined\h*(?:\(\h*(\w+)\h*\)|(\w+))/ium';
 
-    /**
-     * @var RepositoryInterface
-     */
     private RepositoryInterface $directives;
 
-    /**
-     * @param RepositoryInterface $directives
-     */
     public function __construct(RepositoryInterface $directives)
     {
         $this->directives = $directives;
@@ -66,9 +60,8 @@ final class DirectiveExecutor
      * Substitutions can be performed both in the body of the source code
      * and in directive expressions.
      *
-     * @param string $body
      * @param DirectiveExecutorContext $ctx
-     * @return string
+     *
      * @throws DirectiveEvaluationException
      */
     public function replace(string $body, int $ctx = self::CTX_SOURCE): string
@@ -96,13 +89,10 @@ final class DirectiveExecutor
      *  #if false
      *  #if true
      * </code>
-     *
-     * @param string $body
-     * @return string
      */
     private function replaceDefinedExpression(string $body): string
     {
-        $lookup = fn (array $matches): string =>
+        $lookup = fn(array $matches): string =>
             /** @psalm-suppress MixedArgument */
             $this->directives->defined($matches[1]) ? 'true' : 'false'
         ;
@@ -113,8 +103,6 @@ final class DirectiveExecutor
     /**
      * Replaces all declared directives with the result of their execution.
      *
-     * @param string $body
-     * @return string
      * @psalm-suppress MixedInferredReturnType
      */
     private function replaceDefinedDirectives(string $body): string
@@ -139,9 +127,6 @@ final class DirectiveExecutor
      * in passed body argument.
      *
      * @see DirectiveExecutor::findDirectiveAndReplace()
-     *
-     * @param string $body
-     * @return \Generator
      */
     private function findAndReplace(string $body): \Generator
     {
@@ -155,7 +140,7 @@ final class DirectiveExecutor
             try {
                 yield from $stream;
 
-                $body = (string)$stream->getReturn();
+                $body = (string) $stream->getReturn();
             } catch (\Throwable $e) {
                 $stream->throw($e);
             }
@@ -184,15 +169,10 @@ final class DirectiveExecutor
      * </code>
      *
      * @psalm-return \Generator<string, array, string|null, string>
-     *
-     * @param string $name
-     * @param DirectiveInterface $directive
-     * @param string $body
-     * @return \Generator
      */
     private function findDirectiveAndReplace(string $name, DirectiveInterface $directive, string $body): \Generator
     {
-        ///
+        // /
         // This boolean variable includes preprocessor optimizations
         // and means that do not need to do a lookahead to read
         // additional directive arguments.
@@ -211,7 +191,7 @@ final class DirectiveExecutor
                 // Back it MAY accept a string to replace the found entry.
                 $arguments = $isSimpleDirective ? [] : $this->extractArguments($body, $to);
 
-                if (! $isSimpleDirective && $arguments === []) {
+                if (!$isSimpleDirective && $arguments === []) {
                     // Workaround for a case when macro functions are not used
                     // as functions. In such cases, all substitutions should be
                     // ignored.
@@ -228,7 +208,7 @@ final class DirectiveExecutor
 
             // In the case that replacement is not required, then we move
             // on to the next detected directive.
-            if (! \is_string($replacement)) {
+            if (!\is_string($replacement)) {
                 $coroutine->next();
                 continue;
             }
@@ -260,10 +240,8 @@ final class DirectiveExecutor
      *  }
      * </code>
      *
-     * @param string $name
-     * @param string $body
-     * @return \Generator
      * @psalm-return \Generator<int, int, string, string>
+     *
      * @psalm-suppress MixedReturnTypeCoercion
      */
     private function findDirectiveAndUpdateBody(string $name, string $body): \Generator
@@ -273,12 +251,12 @@ final class DirectiveExecutor
         while (isset($body[$offset])) {
             $offset = @\strpos($body, $name, $offset);
 
-            if (! \is_int($offset)) {
+            if (!\is_int($offset)) {
                 break;
             }
 
             if ($this->isPartOfName($offset, $length, $body)) {
-                $offset++;
+                ++$offset;
                 continue;
             }
 
@@ -287,7 +265,7 @@ final class DirectiveExecutor
                 $body = $replacement;
             }
 
-            $offset++;
+            ++$offset;
         }
 
         return $body;
@@ -301,11 +279,6 @@ final class DirectiveExecutor
      * $this->isPartOfName(0, 3, 'abcd');  // true ("abc" is part of "abcd")
      * $this->isPartOfName(0, 3, 'abc()'); // false ("abc" is a full name)
      * </code>
-     *
-     * @param int $offset
-     * @param int $length
-     * @param string $body
-     * @return bool
      */
     private function isPartOfName(int $offset, int $length, string $body): bool
     {
@@ -313,17 +286,14 @@ final class DirectiveExecutor
 
         return
             // When starts with [_a-z0-9]
-            $startsWithNameChar ||
+            $startsWithNameChar
             // Or ends with [_a-z0-9]
-            $this->isAvailableInNames($body[$offset + $length] ?? '');
+            || $this->isAvailableInNames($body[$offset + $length] ?? '');
     }
 
     /**
      * Returns {@see true} if the char is valid when used in function
      * and variable names or {@see false} otherwise.
-     *
-     * @param string $char
-     * @return bool
      */
     private function isAvailableInNames(string $char): bool
     {
@@ -335,10 +305,6 @@ final class DirectiveExecutor
      * specified offset.
      *
      * Note that the method returns a new offset by reference.
-     *
-     * @param string $body
-     * @param int $offset
-     * @return array
      */
     private function extractArguments(string $body, int &$offset): array
     {
@@ -346,7 +312,7 @@ final class DirectiveExecutor
 
         // Skip all whitespaces
         while (\ctype_space($body[$offset] ?? '')) {
-            $offset++;
+            ++$offset;
         }
 
         // If there is no "(" parenthesis after the whitespace characters,
@@ -376,21 +342,21 @@ final class DirectiveExecutor
 
                     return [];
 
-                // To count the same number of open and close parentheses.
-                //
-                // In the case that the opening parenthesis "(" is part of the
-                // argument (depth > 0), then add it in the buffer.
+                    // To count the same number of open and close parentheses.
+                    //
+                    // In the case that the opening parenthesis "(" is part of the
+                    // argument (depth > 0), then add it in the buffer.
                 case '(':
                     if ($depth !== 0) {
                         $buffer .= $current;
                     }
-                    $depth++;
+                    ++$depth;
                     break;
 
-                // To count the same number of open and close parentheses.
-                //
-                // In the case that this is the last close parenthesis, then
-                // return all arguments or add ")" in the buffer otherwise.
+                    // To count the same number of open and close parentheses.
+                    //
+                    // In the case that this is the last close parenthesis, then
+                    // return all arguments or add ")" in the buffer otherwise.
                 case ')':
                     $depth--;
 
@@ -401,10 +367,10 @@ final class DirectiveExecutor
                     $buffer .= $current;
                     break;
 
-                // Directive arguments separator.
-                //
-                // If the current nesting level does not exceed one, it
-                // creates a new argument from the current buffer.
+                    // Directive arguments separator.
+                    //
+                    // If the current nesting level does not exceed one, it
+                    // creates a new argument from the current buffer.
                 case ',':
                     if ($depth === 1) {
                         $arguments[] = \trim($buffer);
@@ -414,8 +380,8 @@ final class DirectiveExecutor
                     }
                     break;
 
-                // All other characters are simply added to the
-                // current buffer.
+                    // All other characters are simply added to the
+                    // current buffer.
                 default:
                     $buffer .= $current;
             }
@@ -424,13 +390,6 @@ final class DirectiveExecutor
         return $arguments;
     }
 
-    /**
-     * @param string $name
-     * @param string $body
-     * @param int $from
-     * @param int $to
-     * @return TokenInterface
-     */
     private function createTokenForSource(string $name, string $body, int $from, int $to): TokenInterface
     {
         $slice = \substr($body, $from, $to - $from);
@@ -443,8 +402,7 @@ final class DirectiveExecutor
      * result of executing that directive.
      *
      * @param non-empty-string $name
-     * @param array $arguments
-     * @return string
+     *
      * @throws DirectiveEvaluationException
      */
     public function execute(string $name, array $arguments = []): string
@@ -464,7 +422,7 @@ final class DirectiveExecutor
         } catch (DirectiveEvaluationException $e) {
             throw $e;
         } catch (\Throwable $e) {
-            throw new DirectiveEvaluationException($e->getMessage(), (int)$e->getCode(), $e);
+            throw new DirectiveEvaluationException($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
 }

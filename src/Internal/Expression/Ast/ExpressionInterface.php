@@ -8,8 +8,5 @@ use Phplrt\Contracts\Ast\NodeInterface;
 
 interface ExpressionInterface extends NodeInterface
 {
-    /**
-     * @return mixed
-     */
     public function eval();
 }

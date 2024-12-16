@@ -7,6 +7,4 @@ namespace FFI\Preprocessor\Internal\Expression\Ast;
 /**
  * @internal
  */
-abstract class Expression extends Node implements ExpressionInterface
-{
-}
+abstract class Expression extends Node implements ExpressionInterface {}

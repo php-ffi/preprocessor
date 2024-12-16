@@ -8,9 +8,6 @@ use FFI\Preprocessor\Internal\Expression\Ast\UnaryExpression;
 
 class BitwiseNotExpression extends UnaryExpression
 {
-    /**
-     * @return int
-     */
     public function eval(): int
     {
         return ~$this->value->eval();

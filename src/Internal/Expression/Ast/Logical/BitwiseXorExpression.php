@@ -8,9 +8,6 @@ use FFI\Preprocessor\Internal\Expression\Ast\BinaryExpression;
 
 final class BitwiseXorExpression extends BinaryExpression
 {
-    /**
-     * @return int
-     */
     public function eval(): int
     {
         return $this->a->eval() ^ $this->b->eval();

@@ -44,28 +44,20 @@ final class Compiler
 
     /**
      * @psalm-param array<array-key, string> $arguments
-     * @psalm-return \Closure(mixed ...$args): string
      *
-     * @param string $body
-     * @param array $arguments
-     * @return \Closure
+     * @psalm-return \Closure(mixed ...$args): string
      */
     public static function compile(string $body, array $arguments): \Closure
     {
         $template = self::build($body, $arguments);
 
         return static function (...$args) use ($template): string {
-            $from = \array_map(static fn (int $i): string => "\0$i\0", \array_keys($args));
+            $from = \array_map(static fn(int $i): string => "\0$i\0", \array_keys($args));
 
             return \str_replace($from, $args, $template);
         };
     }
 
-    /**
-     * @param string $body
-     * @param array $arguments
-     * @return string
-     */
     private static function build(string $body, array $arguments): string
     {
         foreach ($arguments as $i => $name) {
@@ -75,23 +67,13 @@ final class Compiler
         return $body;
     }
 
-    /**
-     * @param string $body
-     * @param int $i
-     * @param string $name
-     * @return string
-     */
     private static function replace(string $body, int $i, string $name): string
     {
         $pattern = \sprintf(self::TPL_PATTERN, \preg_quote($name, '/'));
 
-        return (string)\preg_replace_callback($pattern, self::callback($i), $body);
+        return (string) \preg_replace_callback($pattern, self::callback($i), $body);
     }
 
-    /**
-     * @param int $i
-     * @return \Closure
-     */
     private static function callback(int $i): \Closure
     {
         return static function ($match) use ($i): string {

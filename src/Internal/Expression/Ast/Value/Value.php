@@ -12,30 +12,19 @@ use Phplrt\Contracts\Lexer\TokenInterface;
  */
 abstract class Value extends Expression
 {
-    /**
-     * @var mixed
-     */
     protected $value;
 
-    /**
-     * @param mixed $value
-     */
     public function __construct($value)
     {
         $this->value = $value;
     }
 
-    /**
-     * @param string $value
-     * @return string
-     */
     protected static function parse(string $value): string
     {
         return $value;
     }
 
     /**
-     * @param TokenInterface $token
      * @return static
      */
     public static function fromToken(TokenInterface $token): self
@@ -43,9 +32,6 @@ abstract class Value extends Expression
         return new static(static::parse($token->getValue()));
     }
 
-    /**
-     * @return mixed
-     */
     public function eval()
     {
         return $this->value;

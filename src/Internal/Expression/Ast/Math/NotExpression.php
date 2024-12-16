@@ -8,11 +8,8 @@ use FFI\Preprocessor\Internal\Expression\Ast\UnaryExpression;
 
 class NotExpression extends UnaryExpression
 {
-    /**
-     * @return bool
-     */
     public function eval(): bool
     {
-        return ! $this->value->eval();
+        return !$this->value->eval();
     }
 }

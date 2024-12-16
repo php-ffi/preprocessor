@@ -17,10 +17,5 @@ final class NullValue extends Value
         parent::__construct(null);
     }
 
-    /**
-     * @return void
-     */
-    public function eval(): void
-    {
-    }
+    public function eval(): void {}
 }

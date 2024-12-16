@@ -12,7 +12,7 @@ use Phplrt\Lexer\Token\Token;
 use Phplrt\Source\File;
 
 /**
- * @internal Lexer is an internal library class, please do not use it in your code.
+ * @internal lexer is an internal library class, please do not use it in your code
  * @psalm-internal FFI\Preprocessor\Internal
  *
  * @psalm-type TokenType = Lexer::T_*
@@ -98,20 +98,20 @@ final class Lexer implements LexerInterface
      * @var array<TokenType, string>
      */
     private const LEXEMES = [
-        self::T_QUOTED_INCLUDE        => '^\\h*#\\h*include\\h+"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"',
+        self::T_QUOTED_INCLUDE => '^\\h*#\\h*include\\h+"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"',
         self::T_ANGLE_BRACKET_INCLUDE => '^\\h*#\\h*include\\h+<\\h*([^\\n]+)\\h*>',
-        self::T_FUNCTION_MACRO        => '^\\h*#\\h*define\\h+(\\w+)\\(([^\\n]+?)\\)\\h*((?:\\\\s|\\\\\\n|[^\\n])+)?$',
-        self::T_OBJECT_MACRO          => '^\\h*#\\h*define\\h+(\\w+)\\h*((?:\\\\s|\\\\\\n|[^\\n])+)?$',
-        self::T_UNDEF                 => '^\\h*#\\h*undef\\h+(\\w+)$',
-        self::T_IFDEF                 => '^\\h*#\\h*ifdef\\b\\h*((?:\\\\s|\\\\\\n|[^\\n])+)',
-        self::T_IFNDEF                => '^\\h*#\\h*ifndef\\b\\h*((?:\\\\s|\\\\\\n|[^\\n])+)',
-        self::T_ENDIF                 => '^\\h*#\\h*endif\\b\\h*',
-        self::T_IF                    => '^\\h*#\\h*if\\b\\h*((?:\\\\s|\\\\\\n|[^\\n])+)',
-        self::T_ELSE_IF               => '^\\h*#\\h*elif\\b\\h*((?:\\\\s|\\\\\\n|[^\\n])+)',
-        self::T_ELSE                  => '^\\h*#\\h*else',
-        self::T_ERROR                 => '^\\h*#\\h*error\\h+((?:\\\\s|\\\\\\n|[^\\n])+)',
-        self::T_WARNING               => '^\\h*#\\h*warning\\h+((?:\\\\s|\\\\\\n|[^\\n])+)',
-        self::T_SOURCE                => '[^\\n]+|\\n+',
+        self::T_FUNCTION_MACRO => '^\\h*#\\h*define\\h+(\\w+)\\(([^\\n]+?)\\)\\h*((?:\\\\s|\\\\\\n|[^\\n])+)?$',
+        self::T_OBJECT_MACRO => '^\\h*#\\h*define\\h+(\\w+)\\h*((?:\\\\s|\\\\\\n|[^\\n])+)?$',
+        self::T_UNDEF => '^\\h*#\\h*undef\\h+(\\w+)$',
+        self::T_IFDEF => '^\\h*#\\h*ifdef\\b\\h*((?:\\\\s|\\\\\\n|[^\\n])+)',
+        self::T_IFNDEF => '^\\h*#\\h*ifndef\\b\\h*((?:\\\\s|\\\\\\n|[^\\n])+)',
+        self::T_ENDIF => '^\\h*#\\h*endif\\b\\h*',
+        self::T_IF => '^\\h*#\\h*if\\b\\h*((?:\\\\s|\\\\\\n|[^\\n])+)',
+        self::T_ELSE_IF => '^\\h*#\\h*elif\\b\\h*((?:\\\\s|\\\\\\n|[^\\n])+)',
+        self::T_ELSE => '^\\h*#\\h*else',
+        self::T_ERROR => '^\\h*#\\h*error\\h+((?:\\\\s|\\\\\\n|[^\\n])+)',
+        self::T_WARNING => '^\\h*#\\h*warning\\h+((?:\\\\s|\\\\\\n|[^\\n])+)',
+        self::T_SOURCE => '[^\\n]+|\\n+',
     ];
 
     /**
@@ -121,14 +121,8 @@ final class Lexer implements LexerInterface
         self::T_SOURCE,
     ];
 
-    /**
-     * @var Runtime
-     */
     private Runtime $runtime;
 
-    /**
-     * @var Simplifier
-     */
     private Simplifier $simplifier;
 
     /**
@@ -168,12 +162,6 @@ final class Lexer implements LexerInterface
         }
     }
 
-    /**
-     * @param string $name
-     * @param TokenInterface|null $prev
-     * @param TokenInterface $current
-     * @return TokenInterface|null
-     */
     private function merge(string $name, ?TokenInterface $prev, TokenInterface $current): ?TokenInterface
     {
         if ($prev && $prev->getName() === $name && $current->getName() === $name) {

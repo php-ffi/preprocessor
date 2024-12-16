@@ -65,8 +65,6 @@ final class StandardEnvironment implements EnvironmentInterface
     }
 
     /**
-     * {@inheritDoc}
-     *
      * @throws \Throwable
      */
     public function applyTo(PreprocessorInterface $pre): void
@@ -77,22 +75,22 @@ final class StandardEnvironment implements EnvironmentInterface
         $pre->directives->define('__TIME__', $now->format('h:i:s'));
 
         $pre->directives->define('__STDC__');
-        $pre->directives->define('__STDC_VERSION__', (string)$this->version);
+        $pre->directives->define('__STDC_VERSION__', (string) $this->version);
         $pre->directives->define('__STDC_HOSTED__', $this->hosted ? '1' : '0');
 
-        if (! $this->atomics) {
+        if (!$this->atomics) {
             $pre->directives->define('__STDC_NO_ATOMICS__', '1');
         }
 
-        if (! $this->hosted) {
+        if (!$this->hosted) {
             $pre->directives->define('__STDC_NO_COMPLEX__', '1');
         }
 
-        if (! $this->threads) {
+        if (!$this->threads) {
             $pre->directives->define('__STDC_NO_THREADS__', '1');
         }
 
-        if (! $this->vla) {
+        if (!$this->vla) {
             $pre->directives->define('__STDC_NO_VLA__', '1');
         }
 

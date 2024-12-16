@@ -16,7 +16,6 @@ final class Option
      *
      * @param int<0, max> $mask
      * @param OptionEnumCase $expected
-     * @return bool
      */
     public static function contains(int $mask, int $expected): bool
     {

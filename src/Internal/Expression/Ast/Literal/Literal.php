@@ -6,6 +6,4 @@ namespace FFI\Preprocessor\Internal\Expression\Ast\Literal;
 
 use FFI\Preprocessor\Internal\Expression\Ast\Expression;
 
-abstract class Literal extends Expression
-{
-}
+abstract class Literal extends Expression {}

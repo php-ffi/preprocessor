@@ -8,9 +8,6 @@ use FFI\Preprocessor\Internal\Expression\Ast\BinaryExpression;
 
 class ModExpression extends BinaryExpression
 {
-    /**
-     * @return mixed
-     */
     public function eval()
     {
         return $this->a->eval() % $this->b->eval();

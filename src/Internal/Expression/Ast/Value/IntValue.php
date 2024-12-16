@@ -9,26 +9,16 @@ namespace FFI\Preprocessor\Internal\Expression\Ast\Value;
  */
 final class IntValue extends Value
 {
-    /**
-     * @param int $value
-     */
     public function __construct(int $value)
     {
         parent::__construct($value);
     }
 
-    /**
-     * @param string $value
-     * @return int
-     */
     protected static function parse(string $value): int
     {
-        return (int)$value;
+        return (int) $value;
     }
 
-    /**
-     * @return int
-     */
     public function eval(): int
     {
         return parent::eval();

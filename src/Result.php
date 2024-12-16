@@ -25,9 +25,6 @@ final class Result implements ResultInterface
         'FFI_LIB',
     ];
 
-    /**
-     * @var string|null
-     */
     private ?string $result = null;
 
     /**
@@ -140,7 +137,7 @@ final class Result implements ResultInterface
 
     private function minify(string $result): string
     {
-        if (! Option::contains($this->options, Option::KEEP_EXTRA_LINE_FEEDS)) {
+        if (!Option::contains($this->options, Option::KEEP_EXTRA_LINE_FEEDS)) {
             $result = \preg_replace('/\n{2,}/ium', "\n", $result) ?? $result;
             $result = \trim($result, "\n");
         }
@@ -150,7 +147,7 @@ final class Result implements ResultInterface
 
     private function injectBuiltinDirectives(string $result): string
     {
-        if (! Option::contains($this->options, Option::SKIP_BUILTIN_DIRECTIVES)) {
+        if (!Option::contains($this->options, Option::SKIP_BUILTIN_DIRECTIVES)) {
             foreach (self::BUILTIN_DIRECTIVES as $name) {
                 $directive = $this->directives->find($name);
 

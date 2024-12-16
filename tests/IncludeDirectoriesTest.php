@@ -15,9 +15,6 @@ use FFI\Preprocessor\Io\DirectoriesRepository;
 
 class IncludeDirectoriesTest extends TestCase
 {
-    /**
-     * @return void
-     */
     public function testDefaultState(): void
     {
         $includes = new DirectoriesRepository();
@@ -26,9 +23,6 @@ class IncludeDirectoriesTest extends TestCase
         $this->assertSame([], \iterator_to_array($includes));
     }
 
-    /**
-     * @return void
-     */
     public function testAddition(): void
     {
         $includes = new DirectoriesRepository();
@@ -40,6 +34,7 @@ class IncludeDirectoriesTest extends TestCase
 
     /**
      * @param string[] $directories
+     *
      * @return string[]
      */
     private function normalize(iterable $directories): array
@@ -53,9 +48,6 @@ class IncludeDirectoriesTest extends TestCase
         return $result;
     }
 
-    /**
-     * @return void
-     */
     public function testRemoving(): void
     {
         $includes = new DirectoriesRepository();
@@ -67,9 +59,6 @@ class IncludeDirectoriesTest extends TestCase
         $this->assertCount(0, $includes);
     }
 
-    /**
-     * @return void
-     */
     public function testParentRemoving(): void
     {
         $includes = new DirectoriesRepository();
@@ -84,9 +73,6 @@ class IncludeDirectoriesTest extends TestCase
         $this->assertCount(0, $includes);
     }
 
-    /**
-     * @return void
-     */
     public function testInitialization(): void
     {
         $includes = new DirectoriesRepository([__DIR__]);

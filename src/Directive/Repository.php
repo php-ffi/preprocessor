@@ -28,7 +28,7 @@ final class Repository implements RepositoryInterface, RegistrarInterface, \Iter
 
     /**
      * @param string|callable|DirectiveInterface $directive
-     * @return DirectiveInterface
+     *
      * @throws \ReflectionException
      */
     private function cast($directive): DirectiveInterface
@@ -41,7 +41,7 @@ final class Repository implements RepositoryInterface, RegistrarInterface, \Iter
             case \is_scalar($directive):
             case $directive instanceof \Stringable:
             case \is_object($directive) && \method_exists($directive, '__toString'):
-                return new ObjectLikeDirective((string)$directive);
+                return new ObjectLikeDirective((string) $directive);
             default:
                 return $directive;
         }
@@ -52,7 +52,7 @@ final class Repository implements RepositoryInterface, RegistrarInterface, \Iter
         try {
             $expr = $this->cast($value);
         } catch (\Throwable $e) {
-            throw new DirectiveDefinitionException($e->getMessage(), (int)$e->getCode(), $e);
+            throw new DirectiveDefinitionException($e->getMessage(), (int) $e->getCode(), $e);
         }
 
         if ($expr instanceof ObjectLikeDirective) {

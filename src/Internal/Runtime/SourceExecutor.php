@@ -28,7 +28,7 @@ use Phplrt\Source\File;
 use Psr\Log\LoggerInterface;
 
 /**
- * @internal SourceExecutor is an internal library class, please do not use it in your code.
+ * @internal sourceExecutor is an internal library class, please do not use it in your code
  * @psalm-internal FFI\Preprocessor
  *
  * @psalm-import-type DirectiveExecutorContext from DirectiveExecutor
@@ -162,7 +162,7 @@ final class SourceExecutor
                     ? $e->getOriginalMessage()
                     : $e->getMessage();
 
-                $exception = new PreprocessException($message, (int)$e->getCode(), $e);
+                $exception = new PreprocessException($message, (int) $e->getCode(), $e);
                 $exception->setSource($source);
                 $exception->setToken($token);
 
@@ -174,9 +174,8 @@ final class SourceExecutor
     }
 
     /**
-     * @param ReadableInterface $source
-     * @param TokenInterface $token
      * @param list<string> $comments
+     *
      * @return list<string>
      */
     private function debug(ReadableInterface $source, TokenInterface $token, array $comments = []): iterable
@@ -188,17 +187,13 @@ final class SourceExecutor
             return [
                 '#// ' . $this->sourceToString($source) . ':' . $line . "\n",
                 /** @psalm-suppress DuplicateArrayKey */
-                ...\array_map(static fn(string $line): string => "#//   $line\n", $comments)
+                ...\array_map(static fn(string $line): string => "#//   $line\n", $comments),
             ];
         }
 
         return [];
     }
 
-    /**
-     * @param ReadableInterface $source
-     * @return string
-     */
     private function sourceToString(ReadableInterface $source): string
     {
         return $source instanceof FileInterface
@@ -207,10 +202,6 @@ final class SourceExecutor
         ;
     }
 
-    /**
-     * @param ReadableInterface $source
-     * @return string
-     */
     private function read(ReadableInterface $source): string
     {
         $content = $source->getContents();
@@ -219,14 +210,13 @@ final class SourceExecutor
     }
 
     /**
-     * @param Composite $tok
-     * @param ReadableInterface $src
      * @return list<string>
+     *
      * @psalm-suppress PossiblyNullReference first value of Composite Token cannot be null
      */
     private function doError(Composite $tok, ReadableInterface $src): iterable
     {
-        if (! $this->stack->isEnabled()) {
+        if (!$this->stack->isEnabled()) {
             return [];
         }
 
@@ -234,7 +224,7 @@ final class SourceExecutor
 
         $this->logger->error($message, [
             'position' => Position::fromOffset($tok->getOffset()),
-            'source'   => $src,
+            'source' => $src,
         ]);
 
         return $this->debug($src, $tok, ['error ' . $message]);
@@ -264,9 +254,6 @@ final class SourceExecutor
      *  "some
      *      any"
      * </code>
-     *
-     * @param string $body
-     * @return string
      */
     private function escape(string $body): string
     {
@@ -274,14 +261,13 @@ final class SourceExecutor
     }
 
     /**
-     * @param Composite $tok
-     * @param ReadableInterface $src
      * @return iterable<string>
+     *
      * @psalm-suppress PossiblyNullReference first value of Composite Token cannot be null
      */
     private function doWarning(Composite $tok, ReadableInterface $src): iterable
     {
-        if (! $this->stack->isEnabled()) {
+        if (!$this->stack->isEnabled()) {
             return [];
         }
 
@@ -289,23 +275,22 @@ final class SourceExecutor
 
         $this->logger->warning($message, [
             'position' => Position::fromOffset($tok->getOffset()),
-            'source'   => $src,
+            'source' => $src,
         ]);
 
         return $this->debug($src, $tok, ['warning ' . $message]);
     }
 
     /**
-     * @param Composite $token
-     * @param ReadableInterface $src
      * @return iterable<string>
      * @throws \Throwable
+     *
      * @psalm-suppress PossiblyNullReference first value of Composite Token cannot be null
      * @psalm-suppress PossiblyNullArgument same as PossiblyNullReference
      */
     private function doInclude(Composite $token, ReadableInterface $src): iterable
     {
-        if (! $this->stack->isEnabled()) {
+        if (!$this->stack->isEnabled()) {
             return [];
         }
 
@@ -325,13 +310,6 @@ final class SourceExecutor
         yield from $this->execute($inclusion);
     }
 
-
-    /**
-     * @param ReadableInterface $source
-     * @param string $file
-     * @param bool $withLocal
-     * @return ReadableInterface
-     */
     private function lookup(ReadableInterface $source, string $file, bool $withLocal): ReadableInterface
     {
         $file = $this->normalizeRelativePathname($file);
@@ -367,10 +345,6 @@ final class SourceExecutor
         throw new \LogicException(\sprintf('"%s": No such file or directory', $file));
     }
 
-    /**
-     * @param string $file
-     * @return string
-     */
     private function normalizeRelativePathname(string $file): string
     {
         $file = \trim($file, " \t\n\r\0\x0B/\\");
@@ -379,14 +353,13 @@ final class SourceExecutor
     }
 
     /**
-     * @param Composite $token
-     * @param ReadableInterface $source
      * @return iterable<string>
+     *
      * @psalm-suppress PossiblyNullReference first value of Composite Token cannot be null
      */
     private function doIfDefined(Composite $token, ReadableInterface $source): iterable
     {
-        if (! $this->stack->isEnabled()) {
+        if (!$this->stack->isEnabled()) {
             $this->stack->push(false);
 
             return [];
@@ -403,14 +376,13 @@ final class SourceExecutor
     }
 
     /**
-     * @param Composite $token
-     * @param ReadableInterface $source
      * @return iterable<string>
+     *
      * @psalm-suppress PossiblyNullReference first value of Composite Token cannot be null
      */
     private function doIfNotDefined(Composite $token, ReadableInterface $source): iterable
     {
-        if (! $this->stack->isEnabled()) {
+        if (!$this->stack->isEnabled()) {
             $this->stack->push(false);
 
             return [];
@@ -427,8 +399,6 @@ final class SourceExecutor
     }
 
     /**
-     * @param TokenInterface $token
-     * @param ReadableInterface $source
      * @return iterable<string>
      */
     private function doEndIf(TokenInterface $token, ReadableInterface $source): iterable
@@ -443,16 +413,15 @@ final class SourceExecutor
     }
 
     /**
-     * @param Composite $token
-     * @param ReadableInterface $source
      * @return iterable<string>
      * @throws RuntimeExceptionInterface
      * @throws \Throwable
+     *
      * @psalm-suppress PossiblyNullReference first value of Composite Token cannot be null
      */
     private function doIf(Composite $token, ReadableInterface $source): iterable
     {
-        if (! $this->stack->isEnabled()) {
+        if (!$this->stack->isEnabled()) {
             $this->stack->push(false);
 
             return [];
@@ -464,10 +433,9 @@ final class SourceExecutor
     }
 
     /**
-     * @param Composite $token
-     * @return bool
      * @throws RuntimeExceptionInterface
      * @throws \Throwable
+     *
      * @psalm-suppress PossiblyNullReference first value of Composite Token cannot be null
      */
     private function eval(Composite $token): bool
@@ -478,13 +446,11 @@ final class SourceExecutor
 
         $ast = $this->expressions->parse($processed);
 
-        return (bool)$ast->eval();
+        return (bool) $ast->eval();
     }
 
     /**
-     * @param string $body
      * @param DirectiveExecutorContext $ctx
-     * @return string
      */
     private function replace(string $body, int $ctx): string
     {
@@ -492,15 +458,13 @@ final class SourceExecutor
     }
 
     /**
-     * @param Composite $token
-     * @param ReadableInterface $source
      * @return iterable<string>
      * @throws RuntimeExceptionInterface
      * @throws \Throwable
      */
     private function doElseIf(Composite $token, ReadableInterface $source): iterable
     {
-        if (! $this->stack->isCompleted() && $this->eval($token)) {
+        if (!$this->stack->isCompleted() && $this->eval($token)) {
             $this->stack->complete();
 
             return [];
@@ -512,14 +476,12 @@ final class SourceExecutor
     }
 
     /**
-     * @param TokenInterface $token
-     * @param ReadableInterface $source
      * @return iterable<string>
      */
     private function doElse(TokenInterface $token, ReadableInterface $source): iterable
     {
         try {
-            if (! $this->stack->isCompleted()) {
+            if (!$this->stack->isCompleted()) {
                 $this->stack->inverse();
             } else {
                 $this->stack->update(false);
@@ -532,15 +494,14 @@ final class SourceExecutor
     }
 
     /**
-     * @param Composite $token
-     * @param ReadableInterface $source
      * @return iterable<string>
      * @throws DirectiveDefinitionExceptionInterface
+     *
      * @psalm-suppress PossiblyNullReference first value of Composite Token cannot be null
      */
     private function doObjectLikeDirective(Composite $token, ReadableInterface $source): iterable
     {
-        if (! $this->stack->isEnabled()) {
+        if (!$this->stack->isEnabled()) {
             return [];
         }
 
@@ -558,15 +519,14 @@ final class SourceExecutor
     }
 
     /**
-     * @param Composite $token
-     * @param ReadableInterface $source
      * @return iterable<string>
      * @throws DirectiveDefinitionExceptionInterface
+     *
      * @psalm-suppress PossiblyNullReference The values of Composite Token cannot be null in this cases
      */
     private function doFunctionLikeDirective(Composite $token, ReadableInterface $source): iterable
     {
-        if (! $this->stack->isEnabled()) {
+        if (!$this->stack->isEnabled()) {
             return [];
         }
 
@@ -584,19 +544,18 @@ final class SourceExecutor
         $this->directives->define($name, new FunctionLikeDirective($args, $value));
 
         return $this->debug($source, $token, [
-            'define ' . $name . '(' . $token[1]->getValue() . ') = ' . ($value ?: '""')
+            'define ' . $name . '(' . $token[1]->getValue() . ') = ' . ($value ?: '""'),
         ]);
     }
 
     /**
-     * @param Composite $token
-     * @param ReadableInterface $source
      * @return iterable<string>
+     *
      * @psalm-suppress PossiblyNullReference first value of Composite Token cannot be null
      */
     private function doRemoveDefine(Composite $token, ReadableInterface $source): iterable
     {
-        if (! $this->stack->isEnabled()) {
+        if (!$this->stack->isEnabled()) {
             return [];
         }
 
@@ -608,13 +567,9 @@ final class SourceExecutor
         return $this->debug($source, $token, ['undef ' . $name]);
     }
 
-    /**
-     * @param TokenInterface $token
-     * @return string
-     */
     private function doRenderCode(TokenInterface $token): string
     {
-        if (! $this->stack->isEnabled()) {
+        if (!$this->stack->isEnabled()) {
             return '';
         }
 

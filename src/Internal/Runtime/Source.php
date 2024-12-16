@@ -9,24 +9,11 @@ namespace FFI\Preprocessor\Internal\Runtime;
  */
 final class Source
 {
-    /**
-     * @param string $source
-     * @param string $insert
-     * @param int $offset
-     * @return string
-     */
     public static function insert(string $source, string $insert, int $offset): string
     {
         return self::replace($source, $insert, $offset, 0);
     }
 
-    /**
-     * @param string $source
-     * @param string $replace
-     * @param int $offset
-     * @param int $length
-     * @return string
-     */
     public static function replace(string $source, string $replace, int $offset, int $length): string
     {
         $prefix = self::prefix($source, $offset);
@@ -35,11 +22,6 @@ final class Source
         return $prefix . $replace . $suffix;
     }
 
-    /**
-     * @param string $source
-     * @param int $offset
-     * @return string
-     */
     public static function prefix(string $source, int $offset): string
     {
         $result = @\substr($source, 0, $offset);
@@ -51,11 +33,6 @@ final class Source
         return $result;
     }
 
-    /**
-     * @param string $source
-     * @param int $offset
-     * @return string
-     */
     public static function suffix(string $source, int $offset): string
     {
         $result = @\substr($source, $offset);

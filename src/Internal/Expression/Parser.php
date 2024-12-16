@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Internal\Expression;
 
 use FFI\Preprocessor\Internal\Expression\Ast\ExpressionInterface;
-use Phplrt\Contracts\Parser\ParserInterface;
 use Phplrt\Buffer\ArrayBuffer;
+use Phplrt\Contracts\Parser\ParserInterface;
 use Phplrt\Lexer\Lexer;
 use Phplrt\Parser\BuilderInterface;
 use Phplrt\Parser\ContextInterface;
@@ -54,9 +54,6 @@ final class Parser implements ParserInterface, BuilderInterface
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @return ExpressionInterface
      * @throws \Throwable
      */
     public function parse($source, array $options = []): ExpressionInterface

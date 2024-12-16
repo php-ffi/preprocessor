@@ -10,7 +10,6 @@ final class Normalizer
      * @psalm-taint-sink file $pathname
      * @param non-empty-string $pathname
      * @param non-empty-string $separator
-     * @return string
      */
     public static function normalize(string $pathname, string $separator = \DIRECTORY_SEPARATOR): string
     {

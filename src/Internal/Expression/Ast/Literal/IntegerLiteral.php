@@ -30,38 +30,24 @@ class IntegerLiteral extends Literal
      * @var int[]
      */
     private const TYPE_MAPPINGS = [
-        ''    => self::TYPE_LONG,
-        'l'   => self::TYPE_LONG,
-        'ul'  => self::TYPE_UNSIGNED_LONG,
-        'u'   => self::TYPE_UNSIGNED_LONG,
-        'll'  => self::TYPE_LONG_LONG,
+        '' => self::TYPE_LONG,
+        'l' => self::TYPE_LONG,
+        'ul' => self::TYPE_UNSIGNED_LONG,
+        'u' => self::TYPE_UNSIGNED_LONG,
+        'll' => self::TYPE_LONG_LONG,
         'ull' => self::TYPE_UNSIGNED_LONG_LONG,
     ];
 
-    /**
-     * @var int
-     */
     private int $value;
 
-    /**
-     * @var int
-     */
     private int $type;
 
-    /**
-     * @param int $value
-     * @param string $suffix
-     */
     public function __construct(int $value, string $suffix)
     {
         $this->value = $value;
         $this->type = $this->parseType($suffix);
     }
 
-    /**
-     * @param string $suffix
-     * @return int
-     */
     private function parseType(string $suffix): int
     {
         $type = self::TYPE_MAPPINGS[\strtolower($suffix)] ?? null;
@@ -73,9 +59,6 @@ class IntegerLiteral extends Literal
         return $type;
     }
 
-    /**
-     * @return int
-     */
     public function eval(): int
     {
         return $this->value;

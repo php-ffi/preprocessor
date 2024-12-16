@@ -47,10 +47,7 @@ class Preprocessor implements PreprocessorInterface, LoggerAwareInterface
         Environment\StandardEnvironment::class,
     ];
 
-    /**
-     * @param LoggerInterface|null $logger
-     */
-    public function __construct(LoggerInterface $logger = null)
+    public function __construct(?LoggerInterface $logger = null)
     {
         $this->directives = new DirectivesRepository();
         $this->directories = new DirectoriesRepository();
@@ -69,8 +66,6 @@ class Preprocessor implements PreprocessorInterface, LoggerAwareInterface
     }
 
     /**
-     * {@inheritDoc}
-     *
      * @param int-mask-of<Option::*> $options
      *
      * @psalm-suppress MissingParamType : PHP 7.4 does not allow mixed type hint.

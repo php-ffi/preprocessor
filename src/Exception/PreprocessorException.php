@@ -11,13 +11,9 @@ use Phplrt\Exception\RuntimeException;
 abstract class PreprocessorException extends RuntimeException
 {
     /**
-     * @param string $msg
-     * @param Src $src
-     * @param TokenInterface $tok
-     * @param \Throwable|null $prev
      * @return static
      */
-    public static function fromSource(string $msg, Src $src, TokenInterface $tok, \Throwable $prev = null): self
+    public static function fromSource(string $msg, Src $src, TokenInterface $tok, ?\Throwable $prev = null): self
     {
         $exception = new static($msg, 0, $prev);
         $exception->setSource($src);

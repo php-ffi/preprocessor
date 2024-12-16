@@ -11,9 +11,6 @@ use Phplrt\Contracts\Ast\NodeInterface;
  */
 abstract class Node implements NodeInterface
 {
-    /**
-     * @return \Traversable
-     */
     public function getIterator(): \Traversable
     {
         return new \EmptyIterator();

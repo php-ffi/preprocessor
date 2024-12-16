@@ -22,7 +22,7 @@ final class PhpEnvironment implements EnvironmentInterface
             foreach ($this->getCoreConstants() as $constant => $value) {
                 $isValidType = \is_scalar($value) || $value === null;
 
-                if (! $isValidType || ! \str_starts_with($constant, $prefix)) {
+                if (!$isValidType || !\str_starts_with($constant, $prefix)) {
                     continue;
                 }
 
@@ -35,20 +35,14 @@ final class PhpEnvironment implements EnvironmentInterface
     {
         $constants = \get_defined_constants(true);
 
-        return (array)($constants['Core'] ?? $constants['core'] ?? []);
+        return (array) ($constants['Core'] ?? $constants['core'] ?? []);
     }
 
-    /**
-     * @param mixed $value
-     */
     private function define(PreprocessorInterface $pre, string $name, $value): void
     {
         $pre->directives->define('__' . $name . '__', $this->toCLiteral($value));
     }
 
-    /**
-     * @param mixed $value
-     */
     private function toCLiteral($value): string
     {
         switch (true) {
@@ -62,7 +56,7 @@ final class PhpEnvironment implements EnvironmentInterface
                 return \sprintf('%g', $value);
 
             case \is_int($value):
-                return (string)$value;
+                return (string) $value;
 
             case \is_bool($value):
                 return $value ? '1' : '0';

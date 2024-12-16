@@ -14,7 +14,7 @@ use Phplrt\Source\File;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$input  = __DIR__ . '/../resources/expression/grammar.pp2';
+$input = __DIR__ . '/../resources/expression/grammar.pp2';
 $output = __DIR__ . '/../resources/expression.php';
 
 // Execute

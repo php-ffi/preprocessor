@@ -13,7 +13,7 @@ use Phplrt\Source\File;
  * 1) Correct all line breaks
  * 2) Cut all comments from the code
  *
- * @internal Simplifier is an internal library class, please do not use it in your code.
+ * @internal simplifier is an internal library class, please do not use it in your code
  * @psalm-internal Bic\Preprocessor\Internal
  */
 final class Simplifier
@@ -34,12 +34,8 @@ final class Simplifier
     private const PCRE_COMMENTS = '/(\G' .
         '|' . self::PCRE_BLOCK_COMMENT .
         '|' . self::PCRE_INLINE_COMMENT .
-    ')/isum';
+        ')/isum';
 
-    /**
-     * @param ReadableInterface $source
-     * @return ReadableInterface
-     */
     public function simplify(ReadableInterface $source): ReadableInterface
     {
         $content = $source->getContents();
@@ -50,10 +46,6 @@ final class Simplifier
         return File::fromSources($content);
     }
 
-    /**
-     * @param string $source
-     * @return string
-     */
     private function trimComments(string $source): string
     {
         return \preg_replace(self::PCRE_COMMENTS, '', $source);
@@ -61,9 +53,6 @@ final class Simplifier
 
     /**
      * Normalize windows-aware line breaks
-     *
-     * @param string $source
-     * @return string
      */
     private function normalizeLineDelimiters(string $source): string
     {

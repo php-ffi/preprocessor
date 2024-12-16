@@ -68,7 +68,7 @@ abstract class Directive implements FunctionLikeDirectiveInterface
             case $result === false:
                 return '0';
             default:
-                return (string)$result;
+                return (string) $result;
         }
     }
 }

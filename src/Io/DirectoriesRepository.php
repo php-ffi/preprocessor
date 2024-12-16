@@ -17,9 +17,6 @@ final class DirectoriesRepository implements RepositoryInterface, RegistrarInter
      */
     private array $directories = [];
 
-    /**
-     * @var bool
-     */
     private bool $optimizationRequired = false;
 
     /**
@@ -48,7 +45,7 @@ final class DirectoriesRepository implements RepositoryInterface, RegistrarInter
     public function exclude(string $directory): void
     {
         $filter = static fn(string $haystack): bool =>
-            ! \str_starts_with($haystack, Normalizer::normalize($directory))
+            !\str_starts_with($haystack, Normalizer::normalize($directory))
         ;
 
         /** @psalm-suppress PropertyTypeCoercion */
@@ -64,9 +61,6 @@ final class DirectoriesRepository implements RepositoryInterface, RegistrarInter
         return new \ArrayIterator($this->directories);
     }
 
-    /**
-     * @return void
-     */
     private function optimize(): void
     {
         $this->optimizationRequired = false;
