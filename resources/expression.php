@@ -1,9 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 use FFI\Preprocessor\Internal\Expression\Ast;
 
+/**
+ * @var array{
+ *     initial: array-key,
+ *     tokens: array{
+ *         default: array<non-empty-string, non-empty-string>,
+ *         ...
+ *     },
+ *     skip: list<non-empty-string>,
+ *     grammar: array<array-key, \Phplrt\Parser\Grammar\RuleInterface>,
+ *     reducers: array<array-key, callable(\Phplrt\Parser\Context, mixed):mixed>,
+ *     transitions?: array<array-key, mixed>
+ * }
+ */
 return [
-    'initial' => 17,
+    'initial' => 27,
     'tokens' => [
         'default' => [
             'T_HEX_CONSTANT' => '0x([0-9a-fA-F]+)((?i)[ul]*)',
@@ -55,181 +70,180 @@ return [
         'T_BLOCK_COMMENT',
         'T_COMMENT',
     ],
-    'transitions' => [
-    ],
+    'transitions' => [],
     'grammar' => [
-        'AdditiveExpression' => new Phplrt\Grammar\Concatenation(['MultiplicativeExpression', 51]),
-        'AndExpression' => new Phplrt\Grammar\Concatenation(['EqualityExpression', 32]),
-        'PrefixIncrement' => new Phplrt\Grammar\Concatenation([15, 'UnaryExpression']),
-        'ShiftExpression' => new Phplrt\Grammar\Concatenation(['AdditiveExpression', 46]),
-        'TypeName' => new Phplrt\Grammar\Concatenation(['TypeSpecifier']),
-        'TypeSpecifier' => new Phplrt\Grammar\Lexeme('T_IDENTIFIER', true),
-        'UnaryBitwiseNot' => new Phplrt\Grammar\Concatenation([14, 'UnaryExpression']),
-        'UnaryExpression' => new Phplrt\Grammar\Alternation(['PrefixIncrement', 'PrefixDecrement', 'PrimaryExpression', 'UnaryPlus', 'UnaryMinus', 'UnaryNot', 'UnaryBitwiseNot']),
-        'UnaryMinus' => new Phplrt\Grammar\Concatenation([12, 'UnaryExpression']),
-        'UnaryNot' => new Phplrt\Grammar\Concatenation([13, 'UnaryExpression']),
-        'UnaryPlus' => new Phplrt\Grammar\Concatenation([11, 'UnaryExpression']),
-        0 => new Phplrt\Grammar\Lexeme('T_IDENTIFIER', true),
-        'CastExpression' => new Phplrt\Grammar\Alternation([60, 'UnaryExpression']),
-        'ConditionalExpression' => new Phplrt\Grammar\Concatenation(['LogicalOrExpression']),
-        'EqualityExpression' => new Phplrt\Grammar\Concatenation(['ShiftExpression', 41]),
-        'ExclusiveOrExpression' => new Phplrt\Grammar\Concatenation(['AndExpression', 29]),
-        'Expression' => new Phplrt\Grammar\Concatenation(['ConditionalExpression']),
-        'InclusiveOrExpression' => new Phplrt\Grammar\Concatenation(['ExclusiveOrExpression', 26]),
-        'LogicalAndExpression' => new Phplrt\Grammar\Concatenation(['InclusiveOrExpression', 23]),
-        'LogicalOrExpression' => new Phplrt\Grammar\Concatenation(['LogicalAndExpression', 20]),
-        'MultiplicativeExpression' => new Phplrt\Grammar\Concatenation([57, 'CastExpression']),
-        'PrefixDecrement' => new Phplrt\Grammar\Concatenation([16, 'UnaryExpression']),
-        1 => new Phplrt\Grammar\Lexeme('T_DEC_CONSTANT', true),
-        2 => new Phplrt\Grammar\Lexeme('T_HEX_CONSTANT', true),
-        3 => new Phplrt\Grammar\Lexeme('T_OCT_CONSTANT', true),
-        4 => new Phplrt\Grammar\Lexeme('T_BIN_CONSTANT', true),
-        5 => new Phplrt\Grammar\Lexeme('T_BOOL_CONSTANT', true),
-        6 => new Phplrt\Grammar\Lexeme('T_STRING_LITERAL', true),
-        7 => new Phplrt\Grammar\Alternation([1, 2, 3, 4, 5, 6]),
-        8 => new Phplrt\Grammar\Lexeme('T_FLOAT_CONSTANT', true),
-        9 => new Phplrt\Grammar\Lexeme('T_DEC_CONSTANT', true),
-        10 => new Phplrt\Grammar\Lexeme('T_CHAR_CONSTANT', true),
-        11 => new Phplrt\Grammar\Lexeme('T_PLUS', false),
-        12 => new Phplrt\Grammar\Lexeme('T_MINUS', false),
-        13 => new Phplrt\Grammar\Lexeme('T_NOT', false),
-        14 => new Phplrt\Grammar\Lexeme('T_BIT_NOT', false),
-        15 => new Phplrt\Grammar\Lexeme('T_PLUS_PLUS', true),
-        16 => new Phplrt\Grammar\Lexeme('T_MINUS_MINUS', true),
-        17 => new Phplrt\Grammar\Concatenation(['Expression']),
-        18 => new Phplrt\Grammar\Lexeme('T_BOOL_OR', false),
-        19 => new Phplrt\Grammar\Concatenation([18, 'LogicalOrExpression']),
-        20 => new Phplrt\Grammar\Optional(19),
-        21 => new Phplrt\Grammar\Lexeme('T_BOOL_AND', false),
-        22 => new Phplrt\Grammar\Concatenation([21, 'LogicalAndExpression']),
-        23 => new Phplrt\Grammar\Optional(22),
-        24 => new Phplrt\Grammar\Lexeme('T_BIN_OR', false),
-        25 => new Phplrt\Grammar\Concatenation([24, 'InclusiveOrExpression']),
-        26 => new Phplrt\Grammar\Optional(25),
-        27 => new Phplrt\Grammar\Lexeme('T_BIN_XOR', false),
-        28 => new Phplrt\Grammar\Concatenation([27, 'ExclusiveOrExpression']),
-        29 => new Phplrt\Grammar\Optional(28),
-        30 => new Phplrt\Grammar\Lexeme('T_BIN_AND', false),
-        31 => new Phplrt\Grammar\Concatenation([30, 'AndExpression']),
-        32 => new Phplrt\Grammar\Optional(31),
-        33 => new Phplrt\Grammar\Lexeme('T_EQ', true),
-        34 => new Phplrt\Grammar\Lexeme('T_NEQ', true),
-        35 => new Phplrt\Grammar\Lexeme('T_GT', true),
-        36 => new Phplrt\Grammar\Lexeme('T_LT', true),
-        37 => new Phplrt\Grammar\Lexeme('T_GTE', true),
-        38 => new Phplrt\Grammar\Lexeme('T_LTE', true),
-        39 => new Phplrt\Grammar\Alternation([33, 34, 35, 36, 37, 38]),
-        40 => new Phplrt\Grammar\Concatenation([39, 'EqualityExpression']),
-        41 => new Phplrt\Grammar\Optional(40),
-        42 => new Phplrt\Grammar\Lexeme('T_L_SHIFT', true),
-        43 => new Phplrt\Grammar\Lexeme('T_R_SHIFT', true),
-        44 => new Phplrt\Grammar\Alternation([42, 43]),
-        45 => new Phplrt\Grammar\Concatenation([44, 'ShiftExpression']),
-        46 => new Phplrt\Grammar\Optional(45),
-        47 => new Phplrt\Grammar\Lexeme('T_PLUS', true),
-        48 => new Phplrt\Grammar\Lexeme('T_MINUS', true),
-        49 => new Phplrt\Grammar\Alternation([47, 48]),
-        50 => new Phplrt\Grammar\Concatenation([49, 'AdditiveExpression']),
-        51 => new Phplrt\Grammar\Optional(50),
-        52 => new Phplrt\Grammar\Lexeme('T_DIV', true),
-        53 => new Phplrt\Grammar\Lexeme('T_MUL', true),
-        54 => new Phplrt\Grammar\Lexeme('T_MOD', true),
-        55 => new Phplrt\Grammar\Alternation([52, 53, 54]),
-        56 => new Phplrt\Grammar\Concatenation(['CastExpression', 55]),
-        57 => new Phplrt\Grammar\Repetition(56, 0, INF),
-        58 => new Phplrt\Grammar\Lexeme('T_RND_BRACKET_OPEN', false),
-        59 => new Phplrt\Grammar\Lexeme('T_RND_BRACKET_CLOSE', false),
-        60 => new Phplrt\Grammar\Concatenation([58, 'TypeName', 59, 'CastExpression']),
-        61 => new Phplrt\Grammar\Lexeme('T_RND_BRACKET_OPEN', false),
-        62 => new Phplrt\Grammar\Lexeme('T_RND_BRACKET_CLOSE', false),
-        63 => new Phplrt\Grammar\Concatenation([61, 'Expression', 62]),
-        'PrimaryExpression' => new Phplrt\Grammar\Alternation([0, 7, 63]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_IDENTIFIER', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_DEC_CONSTANT', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_HEX_CONSTANT', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_OCT_CONSTANT', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_BIN_CONSTANT', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_BOOL_CONSTANT', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_STRING_LITERAL', true),
+        new \Phplrt\Parser\Grammar\Alternation([1, 2, 3, 4, 5, 6]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_FLOAT_CONSTANT', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_DEC_CONSTANT', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_CHAR_CONSTANT', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_IDENTIFIER', true),
+        new \Phplrt\Parser\Grammar\Concatenation([11]),
+        new \Phplrt\Parser\Grammar\Concatenation([25, 20]),
+        new \Phplrt\Parser\Grammar\Concatenation([26, 20]),
+        new \Phplrt\Parser\Grammar\Alternation([0, 7, 85]),
+        new \Phplrt\Parser\Grammar\Concatenation([21, 20]),
+        new \Phplrt\Parser\Grammar\Concatenation([22, 20]),
+        new \Phplrt\Parser\Grammar\Concatenation([23, 20]),
+        new \Phplrt\Parser\Grammar\Concatenation([24, 20]),
+        new \Phplrt\Parser\Grammar\Alternation([13, 14, 15, 16, 17, 18, 19]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_PLUS', false),
+        new \Phplrt\Parser\Grammar\Lexeme('T_MINUS', false),
+        new \Phplrt\Parser\Grammar\Lexeme('T_NOT', false),
+        new \Phplrt\Parser\Grammar\Lexeme('T_BIT_NOT', false),
+        new \Phplrt\Parser\Grammar\Lexeme('T_PLUS_PLUS', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_MINUS_MINUS', true),
+        new \Phplrt\Parser\Grammar\Concatenation([28]),
+        new \Phplrt\Parser\Grammar\Concatenation([29]),
+        new \Phplrt\Parser\Grammar\Concatenation([30]),
+        new \Phplrt\Parser\Grammar\Concatenation([31, 34]),
+        new \Phplrt\Parser\Grammar\Concatenation([35, 38]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_BOOL_OR', false),
+        new \Phplrt\Parser\Grammar\Concatenation([32, 30]),
+        new \Phplrt\Parser\Grammar\Optional(33),
+        new \Phplrt\Parser\Grammar\Concatenation([39, 42]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_BOOL_AND', false),
+        new \Phplrt\Parser\Grammar\Concatenation([36, 31]),
+        new \Phplrt\Parser\Grammar\Optional(37),
+        new \Phplrt\Parser\Grammar\Concatenation([43, 46]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_BIN_OR', false),
+        new \Phplrt\Parser\Grammar\Concatenation([40, 35]),
+        new \Phplrt\Parser\Grammar\Optional(41),
+        new \Phplrt\Parser\Grammar\Concatenation([47, 50]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_BIN_XOR', false),
+        new \Phplrt\Parser\Grammar\Concatenation([44, 39]),
+        new \Phplrt\Parser\Grammar\Optional(45),
+        new \Phplrt\Parser\Grammar\Concatenation([51, 60]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_BIN_AND', false),
+        new \Phplrt\Parser\Grammar\Concatenation([48, 43]),
+        new \Phplrt\Parser\Grammar\Optional(49),
+        new \Phplrt\Parser\Grammar\Concatenation([61, 66]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_EQ', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_NEQ', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_GT', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_LT', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_GTE', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_LTE', true),
+        new \Phplrt\Parser\Grammar\Alternation([52, 53, 54, 55, 56, 57]),
+        new \Phplrt\Parser\Grammar\Concatenation([58, 47]),
+        new \Phplrt\Parser\Grammar\Optional(59),
+        new \Phplrt\Parser\Grammar\Concatenation([67, 72]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_L_SHIFT', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_R_SHIFT', true),
+        new \Phplrt\Parser\Grammar\Alternation([62, 63]),
+        new \Phplrt\Parser\Grammar\Concatenation([64, 51]),
+        new \Phplrt\Parser\Grammar\Optional(65),
+        new \Phplrt\Parser\Grammar\Concatenation([79, 73]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_PLUS', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_MINUS', true),
+        new \Phplrt\Parser\Grammar\Alternation([68, 69]),
+        new \Phplrt\Parser\Grammar\Concatenation([70, 61]),
+        new \Phplrt\Parser\Grammar\Optional(71),
+        new \Phplrt\Parser\Grammar\Alternation([82, 20]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_DIV', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_MUL', true),
+        new \Phplrt\Parser\Grammar\Lexeme('T_MOD', true),
+        new \Phplrt\Parser\Grammar\Alternation([74, 75, 76]),
+        new \Phplrt\Parser\Grammar\Concatenation([73, 77]),
+        new \Phplrt\Parser\Grammar\Repetition(78, 0, INF),
+        new \Phplrt\Parser\Grammar\Lexeme('T_RND_BRACKET_OPEN', false),
+        new \Phplrt\Parser\Grammar\Lexeme('T_RND_BRACKET_CLOSE', false),
+        new \Phplrt\Parser\Grammar\Concatenation([80, 12, 81, 73]),
+        new \Phplrt\Parser\Grammar\Lexeme('T_RND_BRACKET_OPEN', false),
+        new \Phplrt\Parser\Grammar\Lexeme('T_RND_BRACKET_CLOSE', false),
+        new \Phplrt\Parser\Grammar\Concatenation([83, 28, 84]),
     ],
     'reducers' => [
-        0 => function (Phplrt\Parser\Context $ctx, $children) {
+        0 => static function (\Phplrt\Parser\Context $ctx, $children) {
             return new Ast\Literal\IdentifierLiteral($children->getValue());
         },
-        1 => function (Phplrt\Parser\Context $ctx, $children) {
-            return new Ast\Literal\IntegerLiteral((int) $children[0]->getValue(), $children[1]->getValue());
+        1 => static function (\Phplrt\Parser\Context $ctx, $children) {
+            return new Ast\Literal\IntegerLiteral((int)$children[0]->getValue(), $children[1]->getValue());
         },
-        2 => function (Phplrt\Parser\Context $ctx, $children) {
-            return new Ast\Literal\HexIntegerLiteral((string) $children[0]->getValue(), $children[1]->getValue());
+        2 => static function (\Phplrt\Parser\Context $ctx, $children) {
+            return new Ast\Literal\HexIntegerLiteral((string)$children[0]->getValue(), $children[1]->getValue());
         },
-        3 => function (Phplrt\Parser\Context $ctx, $children) {
-            return new Ast\Literal\OctIntegerLiteral((string) $children[0]->getValue(), $children[1]->getValue());
+        3 => static function (\Phplrt\Parser\Context $ctx, $children) {
+            return new Ast\Literal\OctIntegerLiteral((string)$children[0]->getValue(), $children[1]->getValue());
         },
-        4 => function (Phplrt\Parser\Context $ctx, $children) {
-            return new Ast\Literal\OctIntegerLiteral((string) $children[0]->getValue(), $children[1]->getValue());
+        4 => static function (\Phplrt\Parser\Context $ctx, $children) {
+            return new Ast\Literal\OctIntegerLiteral((string)$children[0]->getValue(), $children[1]->getValue());
         },
-        5 => function (Phplrt\Parser\Context $ctx, $children) {
+        5 => static function (\Phplrt\Parser\Context $ctx, $children) {
             return new Ast\Literal\BooleanLiteral(
                 $children->getValue() === 'true'
             );
         },
-        6 => function (Phplrt\Parser\Context $ctx, $children) {
+        6 => static function (\Phplrt\Parser\Context $ctx, $children) {
             $value = Ast\Literal\StringLiteral::parse(
                 $children[1]->getValue()
             );
 
             return new Ast\Literal\StringLiteral($value, $children[0]->getValue() !== '');
         },
-        'UnaryPlus' => function (Phplrt\Parser\Context $ctx, $children) {
-            return $children[0];
-        },
-        'UnaryMinus' => function (Phplrt\Parser\Context $ctx, $children) {
-            return new Ast\Math\UnaryMinus($children[0]);
-        },
-        'UnaryNot' => function (Phplrt\Parser\Context $ctx, $children) {
-            return new Ast\Math\NotExpression($children[0]);
-        },
-        'UnaryBitwiseNot' => function (Phplrt\Parser\Context $ctx, $children) {
-            return new Ast\Math\BitwiseNotExpression($children[1]);
-        },
-        'PrefixIncrement' => function (Phplrt\Parser\Context $ctx, $children) {
+        13 => static function (\Phplrt\Parser\Context $ctx, $children) {
             return new Ast\Math\PrefixIncrement($children[1]);
         },
-        'PrefixDecrement' => function (Phplrt\Parser\Context $ctx, $children) {
+        14 => static function (\Phplrt\Parser\Context $ctx, $children) {
             return new Ast\Math\PrefixDecrement($children[1]);
         },
-        17 => function (Phplrt\Parser\Context $ctx, $children) {
+        16 => static function (\Phplrt\Parser\Context $ctx, $children) {
             return $children[0];
         },
-        'LogicalOrExpression' => function (Phplrt\Parser\Context $ctx, $children) {
+        17 => static function (\Phplrt\Parser\Context $ctx, $children) {
+            return new Ast\Math\UnaryMinus($children[0]);
+        },
+        18 => static function (\Phplrt\Parser\Context $ctx, $children) {
+            return new Ast\Math\NotExpression($children[0]);
+        },
+        19 => static function (\Phplrt\Parser\Context $ctx, $children) {
+            return new Ast\Math\BitwiseNotExpression($children[1]);
+        },
+        27 => static function (\Phplrt\Parser\Context $ctx, $children) {
+            return $children[0];
+        },
+        30 => static function (\Phplrt\Parser\Context $ctx, $children) {
             if (\count($children) === 2) {
                 return new Ast\Logical\OrExpression($children[0], $children[1]);
             }
 
             return $children;
         },
-        'LogicalAndExpression' => function (Phplrt\Parser\Context $ctx, $children) {
+        31 => static function (\Phplrt\Parser\Context $ctx, $children) {
             if (\count($children) === 2) {
                 return new Ast\Logical\AndExpression($children[0], $children[1]);
             }
 
             return $children;
         },
-        'InclusiveOrExpression' => function (Phplrt\Parser\Context $ctx, $children) {
+        35 => static function (\Phplrt\Parser\Context $ctx, $children) {
             if (\count($children) === 2) {
                 return new Ast\Logical\BitwiseOrExpression($children[0], $children[1]);
             }
 
             return $children;
         },
-        'ExclusiveOrExpression' => function (Phplrt\Parser\Context $ctx, $children) {
+        39 => static function (\Phplrt\Parser\Context $ctx, $children) {
             if (\count($children) === 2) {
                 return new Ast\Logical\BitwiseXorExpression($children[0], $children[1]);
             }
 
             return $children;
         },
-        'AndExpression' => function (Phplrt\Parser\Context $ctx, $children) {
+        43 => static function (\Phplrt\Parser\Context $ctx, $children) {
             if (\count($children) === 2) {
                 return new Ast\Logical\BitwiseAndExpression($children[0], $children[1]);
             }
 
             return $children;
         },
-        'EqualityExpression' => function (Phplrt\Parser\Context $ctx, $children) {
+        47 => static function (\Phplrt\Parser\Context $ctx, $children) {
             if (\count($children) === 3) {
                 switch ($children[1]->getName()) {
                     case 'T_EQ': return new Ast\Comparison\Equal($children[0], $children[2]);
@@ -243,7 +257,7 @@ return [
 
             return $children;
         },
-        'ShiftExpression' => function (Phplrt\Parser\Context $ctx, $children) {
+        51 => static function (\Phplrt\Parser\Context $ctx, $children) {
             if (\count($children) === 3) {
                 switch ($children[1]->getName()) {
                     case 'T_L_SHIFT': return new Ast\Math\BitwiseLeftShiftExpression($children[0], $children[2]);
@@ -253,7 +267,7 @@ return [
 
             return $children;
         },
-        'AdditiveExpression' => function (Phplrt\Parser\Context $ctx, $children) {
+        61 => static function (\Phplrt\Parser\Context $ctx, $children) {
             if (\count($children) === 3) {
                 switch ($children[1]->getName()) {
                     case 'T_PLUS': return new Ast\Math\SumExpression($children[0], $children[2]);
@@ -263,7 +277,7 @@ return [
 
             return $children;
         },
-        'MultiplicativeExpression' => function (Phplrt\Parser\Context $ctx, $children) {
+        67 => static function (\Phplrt\Parser\Context $ctx, $children) {
             while (\count($children) >= 3) {
                 [$a, $op, $b] = [
                     \array_shift($children),
@@ -288,7 +302,7 @@ return [
 
             return $children;
         },
-        'CastExpression' => function (Phplrt\Parser\Context $ctx, $children) {
+        73 => static function (\Phplrt\Parser\Context $ctx, $children) {
             if (\is_array($children) && \count($children) === 2) {
                 return new Ast\CastExpression($children[0]->getValue(), $children[1]);
             }

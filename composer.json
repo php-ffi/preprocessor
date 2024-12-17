@@ -21,8 +21,8 @@
         "php": "^7.4|^8.0",
         "ffi/preprocessor-contracts": "^1.0",
         "psr/log": "^1.0|^2.0|^3.0",
-        "phplrt/parser": "^3.2",
-        "phplrt/lexer": "^3.2",
+        "phplrt/parser": "^3.6",
+        "phplrt/lexer": "^3.6",
         "symfony/polyfill-php80": "^1.27",
         "symfony/polyfill-ctype": "^1.27"
     },
@@ -38,7 +38,7 @@
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
         "monolog/monolog": "^2.9|^3.0",
-        "phplrt/phplrt": "^3.2"
+        "phplrt/phplrt": "^3.6"
     },
     "autoload-dev": {
         "psr-4": {

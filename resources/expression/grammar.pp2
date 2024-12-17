@@ -32,7 +32,7 @@ RootExpression -> { return $children[0]; }
  *
  */
 
-#Expression
+Expression
     : ConditionalExpression()
     ;
 
@@ -41,7 +41,7 @@ RootExpression -> { return $children[0]; }
  *     logical-OR-expression
  *     logical-OR-expression ? expression : conditional-expression
  */
-#ConditionalExpression
+ConditionalExpression
     : LogicalOrExpression()
     ;
 
@@ -50,7 +50,7 @@ RootExpression -> { return $children[0]; }
  *     logical-AND-expression
  *     logical-OR-expression || logical-AND-expression
  */
-#LogicalOrExpression -> {
+LogicalOrExpression -> {
     if (\count($children) === 2) {
         return new Ast\Logical\OrExpression($children[0], $children[1]);
     }
@@ -65,7 +65,7 @@ RootExpression -> { return $children[0]; }
  *     inclusive-OR-expression
  *     logical-AND-expression && inclusive-OR-expression
 */
-#LogicalAndExpression -> {
+LogicalAndExpression -> {
     if (\count($children) === 2) {
         return new Ast\Logical\AndExpression($children[0], $children[1]);
     }
@@ -80,7 +80,7 @@ RootExpression -> { return $children[0]; }
  *     exclusive-OR-expression
  *     inclusive-OR-expression | exclusive-OR-expression
  */
-#InclusiveOrExpression -> {
+InclusiveOrExpression -> {
     if (\count($children) === 2) {
         return new Ast\Logical\BitwiseOrExpression($children[0], $children[1]);
     }
@@ -95,7 +95,7 @@ RootExpression -> { return $children[0]; }
  *     AND-expression
  *     exclusive-OR-expression ^ AND-expression
  */
-#ExclusiveOrExpression -> {
+ExclusiveOrExpression -> {
     if (\count($children) === 2) {
         return new Ast\Logical\BitwiseXorExpression($children[0], $children[1]);
     }
@@ -110,7 +110,7 @@ RootExpression -> { return $children[0]; }
  *     equality-expression
  *     AND-expression & equality-expression
  */
-#AndExpression -> {
+AndExpression -> {
     if (\count($children) === 2) {
         return new Ast\Logical\BitwiseAndExpression($children[0], $children[1]);
     }
@@ -133,7 +133,7 @@ RootExpression -> { return $children[0]; }
  *     relational-expression <= shift-expression
  *     relational-expression >= shift-expression
  */
-#EqualityExpression -> {
+EqualityExpression -> {
     if (\count($children) === 3) {
         switch ($children[1]->getName()) {
             case 'T_EQ': return new Ast\Comparison\Equal($children[0], $children[2]);
@@ -156,7 +156,7 @@ RootExpression -> { return $children[0]; }
  *     shift-expression << additive-expression
  *     shift-expression >> additive-expression
  */
-#ShiftExpression -> {
+ShiftExpression -> {
     if (\count($children) === 3) {
         switch ($children[1]->getName()) {
             case 'T_L_SHIFT': return new Ast\Math\BitwiseLeftShiftExpression($children[0], $children[2]);
@@ -176,7 +176,7 @@ RootExpression -> { return $children[0]; }
  *     additive-expression + multiplicative-expression
  *     additive-expression - multiplicative-expression
  */
-#AdditiveExpression -> {
+AdditiveExpression -> {
     if (\count($children) === 3) {
         switch ($children[1]->getName()) {
             case 'T_PLUS': return new Ast\Math\SumExpression($children[0], $children[2]);
@@ -196,8 +196,7 @@ RootExpression -> { return $children[0]; }
  *     multiplicative-expression / cast-expression
  *     multiplicative-expression % cast-expression
  */
-
-#MultiplicativeExpression -> {
+MultiplicativeExpression -> {
     while (\count($children) >= 3) {
         [$a, $op, $b] = [
             \array_shift($children),
@@ -233,7 +232,7 @@ RootExpression -> { return $children[0]; }
  *     unary-expression
  *     ( type-name ) cast-expression
  */
-#CastExpression -> {
+CastExpression -> {
     if (\is_array($children) && \count($children) === 2) {
         return new Ast\CastExpression($children[0]->getValue(), $children[1]);
     }
@@ -244,7 +243,7 @@ RootExpression -> { return $children[0]; }
     | UnaryExpression()
     ;
 
-#PrimaryExpression
+PrimaryExpression
     : Identifier()
     | Literal()
     | ::T_RND_BRACKET_OPEN:: Expression() ::T_RND_BRACKET_CLOSE::

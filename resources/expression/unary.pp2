@@ -8,7 +8,7 @@
  *     sizeof unary-expression
  *     sizeof ( type-name )
  */
-#UnaryExpression
+UnaryExpression
     : PrefixIncrement()
     | PrefixDecrement()
     | PrimaryExpression()
@@ -18,26 +18,26 @@
     | UnaryBitwiseNot()
     ;
 
-#UnaryPlus -> { return $children[0]; }
+UnaryPlus -> { return $children[0]; }
     : ::T_PLUS:: UnaryExpression()
     ;
 
-#UnaryMinus -> { return new Ast\Math\UnaryMinus($children[0]); }
+UnaryMinus -> { return new Ast\Math\UnaryMinus($children[0]); }
     : ::T_MINUS:: UnaryExpression()
     ;
 
-#UnaryNot -> { return new Ast\Math\NotExpression($children[0]); }
+UnaryNot -> { return new Ast\Math\NotExpression($children[0]); }
     : ::T_NOT:: UnaryExpression()
     ;
 
-#UnaryBitwiseNot -> { return new Ast\Math\BitwiseNotExpression($children[1]); }
+UnaryBitwiseNot -> { return new Ast\Math\BitwiseNotExpression($children[1]); }
     : ::T_BIT_NOT:: UnaryExpression()
     ;
 
-#PrefixIncrement -> { return new Ast\Math\PrefixIncrement($children[1]); }
+PrefixIncrement -> { return new Ast\Math\PrefixIncrement($children[1]); }
     : <T_PLUS_PLUS> UnaryExpression()
     ;
 
-#PrefixDecrement -> { return new Ast\Math\PrefixDecrement($children[1]); }
+PrefixDecrement -> { return new Ast\Math\PrefixDecrement($children[1]); }
     : <T_MINUS_MINUS> UnaryExpression()
     ;

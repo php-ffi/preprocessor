@@ -17,6 +17,6 @@ $result = (new Compiler())
     ->build()
 ;
 
-$result->withClassUsage('Bic\\Preprocessor\\Internal\\Expression\\Ast');
+$result->withClassUsage('FFI\\Preprocessor\\Internal\\Expression\\Ast');
 
 \file_put_contents($output, $result->generate());
