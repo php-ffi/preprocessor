@@ -1,28 +1,33 @@
 includes:
   - phar://phpstan.phar/conf/bleedingEdge.neon
+  - vendor/phpat/phpat/extension.neon
   - vendor/phpstan/phpstan-deprecation-rules/rules.neon
   - vendor/phpstan/phpstan-strict-rules/rules.neon
 parameters:
   level: max
   phpVersion:
-    min: 70400
-    max: 80400
-  parallel:
-    jobSize: 20
-    maximumNumberOfProcesses: 4
-    minimumNumberOfJobsPerProcess: 2
+    min: 80100
+    max: 80500
+  strictRules:
+    allRules: true
+  phpat:
+    show_rule_names: true
+    ignore_built_in_classes: true
   paths:
     - src
+    - tests/Architecture
+  fileExtensions:
+    - php
   tmpDir: vendor/.cache.phpstan
-  rememberPossiblyImpureFunctionValues: false
-  checkTooWideReturnTypesInProtectedAndPublicMethods: true
-  checkImplicitMixed: true
-  checkBenevolentUnionTypes: true
-  reportPossiblyNonexistentGeneralArrayOffset: true
-  reportPossiblyNonexistentConstantArrayOffset: true
-  reportAlwaysTrueInLastCondition: true
-  reportAnyTypeWideningInVarTag: true
-  checkMissingOverrideMethodAttribute: false
-  inferPrivatePropertyTypeFromConstructor: true
-  tipsOfTheDay: false
-  checkMissingCallableSignature: true
+  reportUnmatchedIgnoredErrors: true
+  ignoreErrors:
+    # Every generated reducer receives $ctx and $children, whether the
+    # grammar uses them or not. The rest of the reducer code is analysed.
+    -
+      identifier: method.unusedParameter
+      path: src/Expression/CompiledExpressionParser.php
+services:
+  -
+    class: FFI\Preprocessor\Tests\Architecture\LibraryArchitectureTest
+    tags:
+      - phpat.test

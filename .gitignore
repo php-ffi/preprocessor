@@ -1,9 +1,9 @@
-.idea/
-vendor/
+# IDE
+/.idea/
 
-# Local testing
-include/
+# Composer
+/composer.lock
+/vendor/
+
+# Testing
 test.php
-
-composer.lock
-.phpunit.result.cache

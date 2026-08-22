@@ -1,28 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          colors="true"
          backupGlobals="true"
          stopOnFailure="false"
          processIsolation="false"
-         backupStaticAttributes="false"
          bootstrap="vendor/autoload.php"
-         convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true"
+         cacheDirectory="vendor/.cache.phpunit"
+         backupStaticProperties="false"
 >
-    <coverage>
-        <include>
-            <directory suffix=".php">src</directory>
-        </include>
-    </coverage>
     <testsuites>
         <testsuite name="unit">
-            <directory suffix="Test.php">tests</directory>
+            <directory>tests</directory>
+            <!-- The architecture rules are run by PHPStan, not by PHPUnit -->
+            <exclude>tests/Architecture</exclude>
         </testsuite>
     </testsuites>
+
+    <coverage/>
+
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+
     <php>
         <ini name="error_reporting" value="-1"/>
         <ini name="memory_limit" value="-1"/>
+        <env name="NO_COLOR" value="1" force="true"/>
     </php>
 </phpunit>

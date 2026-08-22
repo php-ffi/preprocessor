@@ -1,0 +1,53 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+namespace FFI\Preprocessor\Bin;
+
+/**
+ * Generates the parser from the grammar.
+ *
+ * The generated parser is committed. Run it (or `composer grammar:build`)
+ * after every change of `resources/grammar.pp3` or `resources/grammar/*.pp3`
+ * and commit the result along with the grammar.
+ */
+
+use Phplrt\Compiler\Compiler;
+use Phplrt\Compiler\Generator\ClassModifier;
+use Phplrt\Compiler\Generator\TargetPhpVersion;
+use Phplrt\Source\FileSource;
+use Symfony\Component\Console\Logger\ConsoleLogger;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Output\StreamOutput;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+const GRAMMAR_PATHNAME = __DIR__ . '/../resources/grammar.pp3';
+const OUTPUT_PATHNAME = __DIR__ . '/../src/Expression/CompiledExpressionParser.php';
+
+$compiler = new Compiler();
+
+if (\class_exists(ConsoleLogger::class)) {
+    $compiler->setLogger(new ConsoleLogger(
+        new StreamOutput(\STDOUT, OutputInterface::VERBOSITY_DEBUG),
+    ));
+}
+
+$compiler
+    ->load(FileSource::createFromPathname(GRAMMAR_PATHNAME))
+    ->generate()
+    // The reducers refer to the nodes relative to these namespaces,
+    // e.g. Node\Identifier, Literal\IntLiteral\DecIntLiteral or BinaryExpression\AddExpression
+    //// ->withClassImport('FFI\Preprocessor\Node')
+    // The token the @var tags of the reducers refer to
+    ->withClassImport('Phplrt\Contracts\Lexer\TokenInterface')
+    ->withNamespaceName('FFI\Preprocessor\Expression')
+    ->withClassName('CompiledExpressionParser')
+    // Extended by the hand-written ExpressionParser
+    ->withClassModifier(ClassModifier::Abstract)
+    // The lowest PHP version the library supports
+    ->withTargetPhpVersion(TargetPhpVersion::Php81)
+    ->save(OUTPUT_PATHNAME);
+
+\fwrite(\STDOUT, \sprintf("Generated into %s\n", \realpath(OUTPUT_PATHNAME)));

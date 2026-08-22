@@ -1,0 +1,3 @@
+%token T_NOTHING \h*
+
+Empty: ::T_NOTHING::*
