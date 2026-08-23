@@ -23,8 +23,8 @@ use Symfony\Component\Console\Output\StreamOutput;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-const GRAMMAR_PATHNAME = __DIR__ . '/../resources/grammar.pp3';
-const OUTPUT_PATHNAME = __DIR__ . '/../src/Expression/CompiledExpressionParser.php';
+const EXPRESSION_GRAMMAR_PATHNAME = __DIR__ . '/../resources/grammar.pp3';
+const EXPRESSION_OUTPUT_PATHNAME = __DIR__ . '/../src/Expression/CompiledExpressionParser.php';
 
 $compiler = new Compiler();
 
@@ -35,7 +35,7 @@ if (\class_exists(ConsoleLogger::class)) {
 }
 
 $compiler
-    ->load(FileSource::createFromPathname(GRAMMAR_PATHNAME))
+    ->load(FileSource::createFromPathname(EXPRESSION_GRAMMAR_PATHNAME))
     ->generate()
     // The reducers refer to the nodes relative to these namespaces,
     // e.g. Node\Identifier, Literal\IntLiteral\DecIntLiteral or BinaryExpression\AddExpression
@@ -48,6 +48,6 @@ $compiler
     ->withClassModifier(ClassModifier::Abstract)
     // The lowest PHP version the library supports
     ->withTargetPhpVersion(TargetPhpVersion::Php81)
-    ->save(OUTPUT_PATHNAME);
+    ->save(EXPRESSION_OUTPUT_PATHNAME);
 
-\fwrite(\STDOUT, \sprintf("Generated into %s\n", \realpath(OUTPUT_PATHNAME)));
+\fwrite(\STDOUT, \sprintf("Generated into %s\n", \realpath(EXPRESSION_OUTPUT_PATHNAME)));

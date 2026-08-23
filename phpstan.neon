@@ -23,9 +23,11 @@ parameters:
   ignoreErrors:
     # Every generated reducer receives $ctx and $children, whether the
     # grammar uses them or not. The rest of the reducer code is analysed.
+    # A grammar without reducers generates no such method.
     -
       identifier: method.unusedParameter
       path: src/Expression/CompiledExpressionParser.php
+      reportUnmatched: false
 services:
   -
     class: FFI\Preprocessor\Tests\Architecture\LibraryArchitectureTest

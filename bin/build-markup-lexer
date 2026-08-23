@@ -1,0 +1,34 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+namespace FFI\Preprocessor\Bin;
+
+/**
+ * Generates the parser from the grammar.
+ *
+ * The generated parser is committed. Run it (or `composer grammar:build`)
+ * after every change of `resources/grammar.pp3` or `resources/grammar/*.pp3`
+ * and commit the result along with the grammar.
+ */
+
+use Phplrt\Compiler\Compiler;
+use Phplrt\Source\FileSource;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+const MARKUP_GRAMMAR_PATHNAME = __DIR__ . '/../resources/markup.pp3';
+const MARKUP_OUTPUT_PATHNAME = __DIR__ . '/../src/Stream/Reader/BlockReader/CompiledMarkupLexer.php';
+
+$result = (new Compiler())
+    ->load(FileSource::createFromPathname(MARKUP_GRAMMAR_PATHNAME))
+    ->build();
+
+\ob_start();
+require __DIR__ . '/../resources/markup.tpl.php';
+$content = \ob_get_clean();
+
+\file_put_contents(MARKUP_OUTPUT_PATHNAME, $content);
+
+\fwrite(\STDOUT, \sprintf("Generated into %s\n", \realpath(MARKUP_OUTPUT_PATHNAME)));
