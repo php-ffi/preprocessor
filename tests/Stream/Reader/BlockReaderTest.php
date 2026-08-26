@@ -1,0 +1,292 @@
+<?php
+
+declare(strict_types=1);
+
+namespace FFI\Preprocessor\Tests\Stream\Reader;
+
+use FFI\Preprocessor\Exception\InternalException;
+use FFI\Preprocessor\Stream\ChunkInterface;
+use FFI\Preprocessor\Stream\Reader\BlockReader;
+use FFI\Preprocessor\Stream\SourceChunk;
+use FFI\Preprocessor\Stream\SourceDirective;
+use FFI\Preprocessor\Tests\TestCase;
+use Phplrt\Contracts\Source\Exception\SourceExceptionInterface;
+use Phplrt\Source\FileSource;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+
+#[CoversClass(BlockReader::class)]
+#[CoversClass(SourceDirective::class)]
+final class BlockReaderTest extends TestCase
+{
+    /**
+     * Sizes of the blocks the behaviour is checked with, the small ones split
+     * every construction by the end of a block somewhere.
+     */
+    private const BLOCK_SIZES = [1, 2, 3, 5, 17, 65_536];
+
+    /**
+     * Each chunk is the text and its offset in the file, a directive also has
+     * its name and body: `['text', 'int a;', 0]`, `['#define', 'X 1', 7]`.
+     *
+     * @return iterable<non-empty-string, array{string, list<list<int|string>>}>
+     */
+    public static function chunksDataProvider(): iterable
+    {
+        yield 'empty file' => ['', []];
+        yield 'text only' => ["int a;\nint b;\n", [['text', "int a;\nint b;\n", 0]]];
+        yield 'directive only' => ['#define X 1', [['#define', 'X 1', 0]]];
+        yield 'directive between text' => [
+            "int a;\n#define X 1\nint b;\n",
+            [['text', "int a;\n", 0], ['#define', 'X 1', 7], ['text', "int b;\n", 19]],
+        ];
+        yield 'consecutive directives' => [
+            "#ifdef X\n#endif\n",
+            [['#ifdef', 'X', 0], ['#endif', '', 9]],
+        ];
+        yield 'blanks before hash' => [" \t#include <a.h>\n", [['#include', '<a.h>', 2]]];
+        yield 'blanks after hash' => ["#  \tinclude <a.h>\n", [['#include', '<a.h>', 0]]];
+        yield 'blanks before body' => ["#define \t X", [['#define', 'X', 0]]];
+        yield 'body keeps blanks inside it' => ['#define F (x)  x ', [['#define', 'F (x)  x ', 0]]];
+        yield 'hash inside the body' => ['#define S(x) #x', [['#define', 'S(x) #x', 0]]];
+        yield 'hash after text on the line' => ["a = '#';\nx # y\n", [['text', "a = '#';\nx # y\n", 0]]];
+        yield 'hash in a string literal' => ["s = \"#define X\";\n", [['text', "s = \"#define X\";\n", 0]]];
+        yield 'null directive' => ["#\nint a;", [['#', '', 0], ['text', 'int a;', 2]]];
+        yield 'non-directive without a name' => ['# 42 "a.h"', [['#', '42 "a.h"', 0]]];
+        yield 'name is not a number' => ['#1define', [['#', '1define', 0]]];
+        yield 'name of non-ASCII letters' => ["#d\xC3\xA9fine X", [["#d\xC3\xA9fine", 'X', 0]]];
+        yield 'digraph of hash' => ["%:define X\n", [['#define', 'X', 0]]];
+        yield 'digraph after text on the line' => ["a %: b\n", [['text', "a %: b\n", 0]]];
+        yield 'paste operator at the start of a line' => ["## x\n%:%: y\n", [['text', "## x\n%:%: y\n", 0]]];
+        yield 'hash followed by the digraph' => ["#%:\n", [['#', '%:', 0]]];
+        yield 'hash, blank and hash' => ["# #\n", [['#', '#', 0]]];
+        yield 'carriage return and line feed' => [
+            "#define X\r\nint a;\r\n",
+            [['#define', 'X', 0], ['text', "int a;\r\n", 11]],
+        ];
+        yield 'lone carriage return' => ["int a;\r#define X\rint b;", [
+            ['text', "int a;\r", 0], ['#define', 'X', 7], ['text', 'int b;', 17],
+        ]];
+        yield 'byte order mark' => ["\xEF\xBB\xBF#define X\n", [['#define', 'X', 3]]];
+        yield 'byte order mark before text' => ["\xEF\xBB\xBFint a;", [['text', 'int a;', 3]]];
+        yield 'directive continued by splices' => [
+            "#define X \\\n  1 \\\r\n  + 2\nint a;",
+            [['#define', 'X   1   + 2', 0], ['text', 'int a;', 25]],
+        ];
+        yield 'name split by a splice' => ["#def\\\nine X\n", [['#define', 'X', 0]]];
+        yield 'hash on a line continued from text' => ["int a; \\\n#define X\n", [['text', "int a; #define X\n", 0]]];
+        yield 'splice in text' => ["in\\\nt a;\n#endif", [['text', "int a;\n", 0], ['#endif', '', 9]]];
+        yield 'splice at the end of a directive' => ["#define X \\\n", [['#define', 'X ', 0]]];
+        yield 'backslash that is not a splice' => ["#define S \"\\n\"\n", [['#define', 'S "\\n"', 0]]];
+        yield 'empty lines between directives' => ["#if 1\n\n\n#endif\n", [
+            ['#if', '1', 0], ['text', "\n\n", 6], ['#endif', '', 8],
+        ]];
+        yield 'hash inside a block comment' => ["/*\n#define X\n*/\nint a;", [
+            ['text', "/*\n#define X\n*/\nint a;", 0],
+        ]];
+        yield 'directive after a comment on its line' => ["/* c */ #define X\n", [
+            ['text', '/* c */', 0], ['#define', 'X', 8],
+        ]];
+        yield 'comment with new-line after text' => ["int a; /*\n*/ #define X\n", [
+            ['text', "int a; /*\n*/ #define X\n", 0],
+        ]];
+        yield 'directive after a line comment' => ["// a /* b\n#define X\n", [
+            ['text', "// a /* b\n", 0], ['#define', 'X', 10],
+        ]];
+        yield 'comment opening in a string literal' => ["s = \"/*\";\n#define X\n", [
+            ['text', "s = \"/*\";\n", 0], ['#define', 'X', 10],
+        ]];
+        yield 'quote in a character constant' => ["c = '\"';\n#define X\n", [
+            ['text', "c = '\"';\n", 0], ['#define', 'X', 9],
+        ]];
+        yield 'unterminated quote in text' => ["don't\n#define X\n", [
+            ['text', "don't\n", 0], ['#define', 'X', 6],
+        ]];
+        yield 'digit separator in text' => ["x = 1'000;\n#define X\n", [
+            ['text', "x = 1'000;\n", 0], ['#define', 'X', 11],
+        ]];
+        yield 'directive continued by a block comment' => ["#define X 1 /* a\nb */ 2\nint a;", [
+            ['#define', "X 1 /* a\nb */ 2", 0], ['text', 'int a;', 24],
+        ]];
+        yield 'directive inside a comment of a directive' => ["#define X /*\n#undef X\n*/\n", [
+            ['#define', "X /*\n#undef X\n*/", 0],
+        ]];
+        yield 'digit separator before a comment' => ["x = 1'000; /*\n#define X\n*/\n", [
+            ['text', "x = 1'000; /*\n#define X\n*/\n", 0],
+        ]];
+        yield 'quote after a number followed by a slash is a literal' => ["x = 1'/*';\n#define X\n", [
+            ['text', "x = 1'/*';\n", 0], ['#define', 'X', 11],
+        ]];
+        yield 'prefixed character constant of a digit' => ["c = u8'0'; /*\n#define X\n*/\n", [
+            ['text', "c = u8'0'; /*\n#define X\n*/\n", 0],
+        ]];
+        yield 'number after an identifier and a dot' => ["x = abc.5'f; /*\n#define X\n*/\n", [
+            ['text', "x = abc.5'f; /*\n#define X\n*/\n", 0],
+        ]];
+        yield 'number with an exponent sign' => ["x = 1e+5'0; /*\n#define X\n*/\n", [
+            ['text', "x = 1e+5'0; /*\n#define X\n*/\n", 0],
+        ]];
+        yield 'identifier of a universal character name' => ["x = \\u00E9'a'; /*\n#define X\n*/\n", [
+            ['text', "x = \\u00E9'a'; /*\n#define X\n*/\n", 0],
+        ]];
+        yield 'digit separator in a directive' => ["#if 1'000 /* a\n*/ > X\nint a;", [
+            ['#if', "1'000 /* a\n*/ > X", 0], ['text', 'int a;', 22],
+        ]];
+        yield 'long universal character name split by the blocks' => ["x = \\U0001F600'a'; /*\n#define X\n*/\n", [
+            ['text', "x = \\U0001F600'a'; /*\n#define X\n*/\n", 0],
+        ]];
+        yield 'line longer than a block' => [\str_repeat('int a; ', 12) . "\n#define X\n", [
+            ['text', \str_repeat('int a; ', 12) . "\n", 0], ['#define', 'X', 85],
+        ]];
+        yield 'splice inside the end of a comment' => ["/* a *\\\n/\n#define X\n", [
+            ['text', "/* a */\n", 0], ['#define', 'X', 10],
+        ]];
+        yield 'splices inside the end of a comment longer than the lookahead' => [
+            "/* a *" . \str_repeat("\\\n", 10) . "/\n#define X\n",
+            [['text', "/* a */\n", 0], ['#define', 'X', 28]],
+        ];
+        yield 'splice inside the start of a comment' => ["/\\\n*\n#define X\n*/\n", [
+            ['text', "/*\n#define X\n*/\n", 0],
+        ]];
+        yield 'splice inside the start of a line comment' => ["x /\\\n/ c /*\n#define X\n", [
+            ['text', "x // c /*\n", 0], ['#define', 'X', 12],
+        ]];
+        yield 'splice inside a digit separator' => ["x = 1\\\n'000; /*\n#define X\n*/\n", [
+            ['text', "x = 1'000; /*\n#define X\n*/\n", 0],
+        ]];
+        yield 'splice inside the paste operator' => ["#\\\n# x\n#define X\n", [
+            ['text', "## x\n", 0], ['#define', 'X', 7],
+        ]];
+        yield 'splice inside the digraph of hash' => ["%\\\n:define X\n", [['#define', 'X', 0]]];
+        yield 'comment opening in a header name' => ["#include <a/*b.h>\n#define X\n*/\n", [
+            ['#include', '<a/*b.h>', 0], ['#define', 'X', 18], ['text', "*/\n", 28],
+        ]];
+        yield 'comment before a header name' => ["#include /* c */ <a/*b.h>\n#define X\n", [
+            ['#include', '<a/*b.h>', 0], ['#define', 'X', 26],
+        ]];
+        yield 'header name of include_next' => ["#include_next <a/*b.h>\n#define X\n", [
+            ['#include_next', '<a/*b.h>', 0], ['#define', 'X', 23],
+        ]];
+        yield 'header name of import' => ["#import <a/*b.h>\n#define X\n", [
+            ['#import', '<a/*b.h>', 0], ['#define', 'X', 17],
+        ]];
+        yield 'header name of embed' => ["#embed <a/*b>\n#define X\n", [
+            ['#embed', '<a/*b>', 0], ['#define', 'X', 14],
+        ]];
+        yield 'header name in __has_include of if' => ["#if __has_include(<a/*b.h>)\n#define X\n#endif\n", [
+            ['#if', '__has_include(<a/*b.h>)', 0], ['#define', 'X', 28], ['#endif', '', 38],
+        ]];
+        yield 'header name in __has_embed of elif' => ["#elif __has_embed ( <a/*b> )\n#define X\n", [
+            ['#elif', '__has_embed ( <a/*b> )', 0], ['#define', 'X', 29],
+        ]];
+        yield 'comment opening in an angle of define' => ["#define H <a/*b.h>\n#define X\n*/\n", [
+            ['#define', "H <a/*b.h>\n#define X\n*/", 0],
+        ]];
+        yield 'comment opening in __has_include of define' => ["#define H __has_include(<a/*b.h>)\n#define X\n*/\n", [
+            ['#define', "H __has_include(<a/*b.h>)\n#define X\n*/", 0],
+        ]];
+        yield 'quoted header name ends at its quote' => ["#include \"a\\\" /*\n#define X\n*/\n", [
+            ['#include', "\"a\\\" /*\n#define X\n*/", 0],
+        ]];
+        yield 'directive name split by a splice before a header name' => ["#inc\\\nlude <a/*b.h>\n#define X\n", [
+            ['#include', '<a/*b.h>', 0], ['#define', 'X', 20],
+        ]];
+        yield 'vertical tab after hash' => ["#\x0Bdefine X\n#\x0B\nint a;", [
+            ['#define', 'X', 0], ['#', '', 11], ['text', 'int a;', 14],
+        ]];
+        yield 'universal character name split by a splice' => ["x = \\u00\\\nE9'a'; /*\n#define X\n*/\n", [
+            ['text', "x = \\u00E9'a'; /*\n#define X\n*/\n", 0],
+        ]];
+        yield 'blank line after a comment' => ["/* a */\n  #endif", [
+            ['text', "/* a */\n", 0], ['#endif', '', 10],
+        ]];
+    }
+
+    /**
+     * @param list<list<int|string>> $expected
+     */
+    #[DataProvider('chunksDataProvider')]
+    public function testFileIsSplitIntoTextAndDirectives(string $content, array $expected): void
+    {
+        foreach (self::BLOCK_SIZES as $blockSize) {
+            $chunks = (new BlockReader($blockSize))->read(self::createFile($content));
+
+            self::assertSame($expected, self::describe($chunks), \sprintf('Block of %d bytes', $blockSize));
+        }
+    }
+
+    public function testChunksKeepTheFile(): void
+    {
+        $file = self::createFile("int a;\n#define X\n");
+
+        foreach ((new BlockReader())->read($file) as $chunk) {
+            self::assertSame($file, $chunk->source);
+        }
+    }
+
+    public function testDirectiveIsTheWholeLineWithoutSplices(): void
+    {
+        $directive = self::readSingleDirective("  #  define X \\\n 1\n");
+
+        self::assertSame('#  define X  1', (string) $directive);
+        self::assertSame('define', $directive->name);
+        self::assertSame(10, $directive->bodyOffset);
+    }
+
+    public function testOffsetInDirectivePointsToItsByteInTheFile(): void
+    {
+        $content = "int a;\n#define X \\\n  1\n";
+        $directive = self::readSingleDirective($content);
+
+        // "1" is at offset 12 of "#define X   1" and at offset 21 of the file
+        self::assertSame('1', $directive->content[12]);
+        self::assertSame(21, $directive->getPhysicalOffset(12));
+        self::assertSame('1', $content[21]);
+    }
+
+    public function testUnreadableFileIsReportedBeforeTheIteration(): void
+    {
+        $file = new FileSource(__DIR__ . '/missing-file.h');
+
+        try {
+            (new BlockReader())->read($file);
+        } catch (InternalException $e) {
+            self::assertStringContainsString('missing-file.h', $e->getMessage());
+            self::assertInstanceOf(SourceExceptionInterface::class, $e->getPrevious());
+
+            return;
+        }
+
+        self::fail('InternalException has not been thrown');
+    }
+
+    private static function readSingleDirective(string $content): SourceDirective
+    {
+        foreach ((new BlockReader())->read(self::createFile($content)) as $chunk) {
+            if ($chunk instanceof SourceDirective) {
+                return $chunk;
+            }
+        }
+
+        self::fail('No directive has been read');
+    }
+
+    /**
+     * @param iterable<int, ChunkInterface> $chunks
+     * @return list<list<int|string>>
+     */
+    private static function describe(iterable $chunks): array
+    {
+        $result = [];
+
+        foreach ($chunks as $chunk) {
+            $result[] = match (true) {
+                $chunk instanceof SourceDirective => ['#' . $chunk->name, $chunk->body, $chunk->offset],
+                $chunk instanceof SourceChunk => ['text', (string) $chunk, $chunk->offset],
+                default => self::fail(\sprintf('Unexpected chunk %s', $chunk::class)),
+            };
+        }
+
+        return $result;
+    }
+}
