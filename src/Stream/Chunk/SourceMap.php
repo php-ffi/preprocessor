@@ -41,7 +41,7 @@ final class SourceMap
     /**
      * @param list<int<0, max>> $offsets offset of each splice from the start
      *        of the chunk in the file, in ascending order
-     * @param list<int<2, 3>> $lengths size of each splice, of the same index
+     * @param list<int<2, max>> $lengths size of each splice, of the same index
      *        as its offset
      */
     public static function createFromSplices(array $offsets, array $lengths): self
@@ -76,8 +76,22 @@ final class SourceMap
      */
     public function getPhysicalOffset(int $offset): int
     {
+        $count = $this->countSplices($offset);
+
+        return $count === 0 ? $offset : $offset + $this->shifts[$count - 1];
+    }
+
+    /**
+     * Returns the number of the splices removed before the byte at the given
+     * offset of the text, each of them is a new-line of the file.
+     *
+     * @param int<0, max> $offset
+     * @return int<0, max>
+     */
+    public function countSplices(int $offset): int
+    {
         if ($this->offsets === []) {
-            return $offset;
+            return 0;
         }
 
         // The number of splices removed at or before the offset
@@ -94,7 +108,36 @@ final class SourceMap
             }
         }
 
-        return $low === 0 ? $offset : $offset + $this->shifts[$low - 1];
+        return $low;
+    }
+
+    /**
+     * Returns the map of a fragment of the text: the splices inside it,
+     * relative to its start.
+     *
+     * @param int<0, max> $offset
+     * @param int<0, max> $length
+     */
+    public function slice(int $offset, int $length): self
+    {
+        $first = $this->countSplices($offset);
+        $last = $this->countSplices(\max($offset, $offset + $length - 1));
+
+        if ($first === $last) {
+            return self::createEmpty();
+        }
+
+        $removed = $first === 0 ? 0 : $this->shifts[$first - 1];
+        $offsets = [];
+        $shifts = [];
+
+        for ($i = $first; $i < $last; ++$i) {
+            $offsets[] = $this->offsets[$i] - $offset;
+            $shifts[] = $this->shifts[$i] - $removed;
+        }
+
+        // @phpstan-ignore-next-line the splices inside the fragment are past its start and remove at least one byte each
+        return new self($offsets, $shifts);
     }
 
     /**
