@@ -51,6 +51,14 @@ final class ChunkBuilder
     private int $offset;
 
     /**
+     * Offset in {@see $text} right after its last line feed of source text,
+     * not in a comment and not of a line splice, `0` in case of there is none
+     *
+     * @var int<0, max>
+     */
+    private int $lineEnd = 0;
+
+    /**
      * Creates the chunks of the file
      */
     private readonly ChunkFactory $factory;
@@ -58,9 +66,15 @@ final class ChunkBuilder
     /**
      * @param int<0, max> $offset offset in the file the text starts at
      */
-    public function __construct(FileInterface $file, int $offset = 0)
-    {
-        $this->factory = new ChunkFactory($file);
+    public function __construct(
+        FileInterface $file,
+        int $offset = 0,
+        /**
+         * Tells the line splices
+         */
+        private readonly Splicer $splicer = new Splicer(),
+    ) {
+        $this->factory = new ChunkFactory($file, $splicer);
         $this->offset = $offset;
     }
 
@@ -73,8 +87,14 @@ final class ChunkBuilder
             return;
         }
 
+        $lineEnd = $this->splicer->findLastLineEnd($text);
+
+        if ($lineEnd !== null) {
+            $this->lineEnd = \strlen($this->text) + $lineEnd;
+        }
+
         $this->text .= $text;
-        $this->isLineStart = self::isLineStartAfter($text, $this->isLineStart);
+        $this->isLineStart = $this->isLineStartAfter($text, $this->isLineStart);
     }
 
     /**
@@ -116,6 +136,27 @@ final class ChunkBuilder
 
         $chunk = $this->factory->createSourceChunk($this->text, $this->offset);
         $this->text = '';
+        $this->lineEnd = 0;
+
+        return $chunk;
+    }
+
+    /**
+     * Returns the complete lines of the text collected so far, the text of
+     * the last line stays collected, {@see null} in case of there is no
+     * complete line.
+     */
+    public function takeCompleteLines(): ?SourceChunk
+    {
+        if ($this->lineEnd === 0) {
+            return null;
+        }
+
+        $chunk = $this->factory->createSourceChunk(\substr($this->text, 0, $this->lineEnd), $this->offset);
+
+        $this->text = \substr($this->text, $this->lineEnd);
+        $this->offset += $this->lineEnd;
+        $this->lineEnd = 0;
 
         return $chunk;
     }
@@ -132,6 +173,7 @@ final class ChunkBuilder
     {
         $this->text = '';
         $this->offset = $next;
+        $this->lineEnd = 0;
         $this->isLineStart = true;
 
         return $this->factory->createDirective($line, $offset);
@@ -139,30 +181,31 @@ final class ChunkBuilder
 
     /**
      * Whether only white space and comments precede the end of the fragment
-     * on its line. A new-line right after a backslash is a line splice and
-     * does not start a line.
+     * on its line. The new-line of a line splice does not start a line.
      *
      * @param bool $isLineStart whether only white space and comments precede
      *        the start of the fragment on its line
      */
-    private static function isLineStartAfter(string $fragment, bool $isLineStart): bool
+    private function isLineStartAfter(string $fragment, bool $isLineStart): bool
     {
         $end = \strlen($fragment);
 
         while (($newLine = self::findLastNewLine($fragment, $end)) !== null) {
-            if (!self::isBlank(\substr($fragment, $newLine + 1, $end - $newLine - 1))) {
+            if (!$this->isBlank(\substr($fragment, $newLine + 1, $end - $newLine - 1))) {
                 return false;
             }
 
-            if (!self::isSplice($fragment, $newLine)) {
+            $splice = $this->splicer->findSpliceStart($fragment, $newLine);
+
+            if ($splice === null) {
                 return true;
             }
 
-            // The line continues the previous one
-            $end = $newLine;
+            // The line continues the previous one, the splice is not a part of it
+            $end = $splice;
         }
 
-        return $isLineStart && self::isBlank(\substr($fragment, 0, $end));
+        return $isLineStart && $this->isBlank(\substr($fragment, 0, $end));
     }
 
     /**
@@ -180,9 +223,9 @@ final class ChunkBuilder
 
         // A negative offset limits the search to the bytes before the end
         $limit = $end - \strlen($fragment) - 1;
-        /** @var int<0, max>|false $lineFeed */
+        /** @var int<0, max>|false */
         $lineFeed = \strrpos($fragment, "\n", $limit);
-        /** @var int<0, max>|false $carriageReturn */
+        /** @var int<0, max>|false */
         $carriageReturn = \strrpos($fragment, "\r", $limit);
 
         if ($lineFeed === false) {
@@ -193,26 +236,11 @@ final class ChunkBuilder
     }
 
     /**
-     * Whether the new-line at the given offset ends a line splice: a
-     * backslash right before it, or before the `\r` of `\r\n`.
-     *
-     * @param int<0, max> $offset
-     */
-    private static function isSplice(string $fragment, int $offset): bool
-    {
-        if ($fragment[$offset] === "\n" && $offset > 0 && $fragment[$offset - 1] === "\r") {
-            --$offset;
-        }
-
-        return $offset > 0 && $fragment[$offset - 1] === '\\';
-    }
-
-    /**
      * Whether the text consists of white space and line splices only.
      */
-    private static function isBlank(string $text): bool
+    private function isBlank(string $text): bool
     {
-        $text = \str_replace(["\\\r\n", "\\\n", "\\\r"], '', $text);
+        $text = $this->splicer->removeSplices($text);
 
         return \strspn($text, self::BLANKS) === \strlen($text);
     }

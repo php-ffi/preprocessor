@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Stream\Reader;
 
 use FFI\Preprocessor\Exception\InternalException;
+use FFI\Preprocessor\Exception\SyntaxErrorException;
 use FFI\Preprocessor\Stream\Reader\BlockReader\ChunkBuilder;
 use FFI\Preprocessor\Stream\Reader\BlockReader\CompiledMarkupLexer;
+use FFI\Preprocessor\Stream\Reader\BlockReader\Splicer;
 use FFI\Preprocessor\Stream\SourceChunk;
 use FFI\Preprocessor\Stream\SourceDirective;
 use Phplrt\Contracts\Lexer\Exception\LexerExceptionInterface;
@@ -40,6 +42,20 @@ final class BlockReader implements ReaderInterface
      */
     private const LOOKAHEAD = 16;
 
+    /**
+     * The limit of the backtracking of PCRE while a buffer is split, enough
+     * for a logical line of hundreds of megabytes
+     */
+    private const BACKTRACK_LIMIT = '1000000000';
+
+    /**
+     * A literal, a line comment or a block comment of the text of a line
+     * without splices, the one of a block comment up to its end or to the
+     * end of the text
+     */
+    private const DIRECTIVE_PART_PATTERN = '~"(?:[^"\\\\\n]++|\\\\.)*+"?|\'(?:[^\'\\\\\n]++|\\\\.)*+\'?|//[^\n]*+'
+        . '|/\*(?:[^*]++|\*(?!/))*+(?:\*/)?~s';
+
     public function __construct(
         /**
          * Number of bytes read from a file at a time
@@ -51,8 +67,15 @@ final class BlockReader implements ReaderInterface
          * Splits the blocks into the tokens of the markup
          */
         private readonly CompiledMarkupLexer $lexer = new CompiledMarkupLexer(),
+        /**
+         * Tells the line splices
+         */
+        private readonly Splicer $splicer = new Splicer(),
     ) {}
 
+    /**
+     * @throws InternalException in case of the file cannot be read
+     */
     public function read(FileInterface $file): iterable
     {
         try {
@@ -68,6 +91,7 @@ final class BlockReader implements ReaderInterface
      * @param string $buffer the first block of the file
      * @return \Generator<int, SourceChunk|SourceDirective>
      * @throws InternalException in case of the file cannot be read
+     * @throws SyntaxErrorException in case of the file ends in a comment
      */
     private function createChunks(FileInterface $file, string $buffer): \Generator
     {
@@ -88,14 +112,14 @@ final class BlockReader implements ReaderInterface
                 $buffer = \substr($buffer, $base);
             }
 
-            $builder = new ChunkBuilder($file, $base);
+            $builder = new ChunkBuilder($file, $base, $this->splicer);
 
             while (true) {
                 // The tokens that end close to the end of the buffer may continue in the next block
                 $consumed = 0;
-                $limit = \strlen(\rtrim($buffer, "\\\r\n")) - self::LOOKAHEAD;
+                $limit = \strlen(\rtrim($buffer, "\\\r\n \t\f\v")) - self::LOOKAHEAD;
 
-                foreach ($this->lexer->lex(new StringSource($buffer)) as $token) {
+                foreach ($this->lex($buffer) as $token) {
                     if ($token->id < 0) {
                         break;
                     }
@@ -108,13 +132,18 @@ final class BlockReader implements ReaderInterface
                         break;
                     }
 
-                    yield from $this->append($builder, $token, $base);
+                    yield from $this->append($builder, $token, $base, $file);
 
                     $consumed = $end;
                 }
 
                 if ($isEnd) {
                     break;
+                }
+
+                // A long text without directives is put out by its complete lines
+                if (\strlen($builder->text) >= $this->blockSize && ($lines = $builder->takeCompleteLines()) !== null) {
+                    yield $lines;
                 }
 
                 $buffer = \substr($buffer, $consumed);
@@ -136,14 +165,44 @@ final class BlockReader implements ReaderInterface
     }
 
     /**
+     * Splits the buffer into the tokens of the markup. A logical line is a
+     * single match whatever its length: the limit of the backtracking of
+     * PCRE is raised while the buffer is split.
+     *
+     * @return list<TokenInterface>
+     * @throws LexerExceptionInterface in case of the buffer cannot be split
+     * @throws SourceExceptionInterface in case of the buffer cannot be read
+     */
+    private function lex(string $buffer): array
+    {
+        $limit = \ini_get('pcre.backtrack_limit');
+        \ini_set('pcre.backtrack_limit', self::BACKTRACK_LIMIT);
+
+        try {
+            $tokens = [];
+
+            foreach ($this->lexer->lex(new StringSource($buffer)) as $token) {
+                $tokens[] = $token;
+            }
+
+            return $tokens;
+        } finally {
+            if ($limit !== false) {
+                \ini_set('pcre.backtrack_limit', $limit);
+            }
+        }
+    }
+
+    /**
      * Adds the token to the chunks being built, yields the chunks it
      * completes.
      *
      * @param int<0, max> $base offset in the file of the buffer the token has
      *        been read from
      * @return \Generator<int, SourceChunk|SourceDirective>
+     * @throws SyntaxErrorException in case of a block comment is not closed
      */
-    private function append(ChunkBuilder $builder, TokenInterface $token, int $base): \Generator
+    private function append(ChunkBuilder $builder, TokenInterface $token, int $base, FileInterface $file): \Generator
     {
         switch ($token->id) {
             case CompiledMarkupLexer::T_TEXT:
@@ -151,11 +210,31 @@ final class BlockReader implements ReaderInterface
                 break;
 
             case CompiledMarkupLexer::T_COMMENT:
+                $comment = $this->splicer->removeSplices($token->value);
+
+                // A source file does not end in a partial comment (5.1.1.2p3), GCC fails
+                if (\strlen($comment) < 4 || !\str_ends_with($comment, '*/')) {
+                    throw SyntaxErrorException::becauseCommentIsNotClosed($file, $base + $token->offset);
+                }
+
+                $builder->appendComment($token->value);
+                break;
+
             case CompiledMarkupLexer::T_LINE_COMMENT:
                 $builder->appendComment($token->value);
                 break;
 
             case CompiledMarkupLexer::T_DIRECTIVE:
+                \assert($token instanceof Token);
+
+                // The new-line that ends the line is the only capturing group
+                $newLine = $token->captures[0] ?? '';
+
+                // A line without a new-line ends the file, a comment of it may be not closed (5.1.1.2p3)
+                if ($newLine === '' && $this->hasUnclosedComment($token->value)) {
+                    throw SyntaxErrorException::becauseCommentIsNotClosed($file, $base + $token->offset);
+                }
+
                 if (!$builder->isLineStart) {
                     $builder->appendText($token->value);
                     break;
@@ -167,10 +246,6 @@ final class BlockReader implements ReaderInterface
                     yield $text;
                 }
 
-                \assert($token instanceof Token);
-
-                // The new-line that ends the line is the only capturing group
-                $newLine = $token->captures[0] ?? '';
                 $line = \substr($token->value, 0, \strlen($token->value) - \strlen($newLine));
                 $offset = $base + $token->offset;
 
@@ -186,9 +261,31 @@ final class BlockReader implements ReaderInterface
     }
 
     /**
-     * Adds the complete lines of a text that reaches the end of the buffer,
-     * so that a long text does not stay in the buffer. Returns the number of
-     * bytes added.
+     * Whether a block comment of the line of a directive is not closed, the
+     * literals and the line comments aside.
+     */
+    private function hasUnclosedComment(string $line): bool
+    {
+        $text = $this->splicer->removeSplices($line);
+
+        if (!\str_contains($text, '/*')) {
+            return false;
+        }
+
+        \preg_match_all(self::DIRECTIVE_PART_PATTERN, $text, $matches);
+
+        foreach ($matches[0] as $part) {
+            if (\str_starts_with($part, '/*') && (\strlen($part) < 4 || !\str_ends_with($part, '*/'))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Adds the complete lines of a text that reaches the end of the buffer.
+     * Returns the number of bytes added.
      *
      * @return int<0, max>
      */
@@ -198,7 +295,8 @@ final class BlockReader implements ReaderInterface
             return 0;
         }
 
-        $end = self::findLastLineEnd($token->value);
+        // Nothing continues past a line feed: a lone carriage return may start "\r\n"
+        $end = $this->splicer->findLastLineEnd($token->value);
 
         if ($end === null) {
             return 0;
@@ -207,38 +305,5 @@ final class BlockReader implements ReaderInterface
         $builder->appendText(\substr($token->value, 0, $end));
 
         return $end;
-    }
-
-    /**
-     * Returns the offset right after the last line feed of the text that is
-     * not a part of a line splice, {@see null} in case of there is none.
-     * Nothing continues past such a line feed: a lone carriage return may be
-     * the start of "\r\n", a splice joins the lines.
-     *
-     * @return int<1, max>|null
-     */
-    private static function findLastLineEnd(string $text): ?int
-    {
-        $limit = \strlen($text);
-
-        while ($limit > 0) {
-            // A negative offset limits the search to the bytes before the limit
-            /** @var int<0, max>|false $lineFeed */
-            $lineFeed = \strrpos($text, "\n", $limit - \strlen($text) - 1);
-
-            if ($lineFeed === false) {
-                return null;
-            }
-
-            $before = $lineFeed > 0 && $text[$lineFeed - 1] === "\r" ? $lineFeed - 2 : $lineFeed - 1;
-
-            if ($before < 0 || $text[$before] !== '\\') {
-                return $lineFeed + 1;
-            }
-
-            $limit = $lineFeed;
-        }
-
-        return null;
     }
 }

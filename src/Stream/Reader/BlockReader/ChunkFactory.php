@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Stream\Reader\BlockReader;
 
-use FFI\Preprocessor\Stream\Reader\BlockReader\ChunkFactory\Splicer;
 use FFI\Preprocessor\Stream\SourceChunk;
 use FFI\Preprocessor\Stream\SourceDirective;
 use Phplrt\Contracts\Source\FileInterface;
