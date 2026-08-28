@@ -12,6 +12,7 @@ use FFI\Preprocessor\Stream\Reader\BlockReader\Splicer;
 use FFI\Preprocessor\Stream\SourceChunk;
 use FFI\Preprocessor\Stream\SourceDirective;
 use Phplrt\Contracts\Lexer\Exception\LexerExceptionInterface;
+use Phplrt\Contracts\Lexer\Exception\RuntimeExceptionInterface;
 use Phplrt\Contracts\Lexer\TokenInterface;
 use Phplrt\Contracts\Source\Exception\SourceExceptionInterface;
 use Phplrt\Contracts\Source\FileInterface;
@@ -45,8 +46,15 @@ final class BlockReader implements ReaderInterface
     /**
      * The limit of the backtracking of PCRE while a buffer is split, enough
      * for a logical line of hundreds of megabytes
+     *
+     * @var non-empty-string
      */
-    private const BACKTRACK_LIMIT = '1000000000';
+    private const PCRE_BACKTRACK_LIMIT = '1000000000';
+
+    /**
+     * @var non-empty-string
+     */
+    private const PCRE_BACKTRACK_LIMIT_OPTION = 'pcre.backtrack_limit';
 
     /**
      * A literal, a line comment or a block comment of the text of a line
@@ -75,6 +83,7 @@ final class BlockReader implements ReaderInterface
 
     /**
      * @throws InternalException in case of the file cannot be read
+     * @throws SyntaxErrorException
      */
     public function read(FileInterface $file): iterable
     {
@@ -170,15 +179,13 @@ final class BlockReader implements ReaderInterface
      * PCRE is raised while the buffer is split.
      *
      * @return list<TokenInterface>
-     * @throws LexerExceptionInterface in case of the buffer cannot be split
-     * @throws SourceExceptionInterface in case of the buffer cannot be read
+     * @throws LexerExceptionInterface
+     * @throws RuntimeExceptionInterface
+     * @throws \Throwable
      */
     private function lex(string $buffer): array
     {
-        $limit = \ini_get('pcre.backtrack_limit');
-        \ini_set('pcre.backtrack_limit', self::BACKTRACK_LIMIT);
-
-        try {
+        return self::withExtraPcreBacktrackLimit(function () use ($buffer): array {
             $tokens = [];
 
             foreach ($this->lexer->lex(new StringSource($buffer)) as $token) {
@@ -186,9 +193,24 @@ final class BlockReader implements ReaderInterface
             }
 
             return $tokens;
+        });
+    }
+
+    /**
+     * @template TArgResult of mixed
+     * @param \Closure(): TArgResult $then
+     * @return TArgResult
+     */
+    private static function withExtraPcreBacktrackLimit(\Closure $then): mixed
+    {
+        $limit = \ini_get(self::PCRE_BACKTRACK_LIMIT_OPTION);
+        \ini_set(self::PCRE_BACKTRACK_LIMIT_OPTION, self::PCRE_BACKTRACK_LIMIT);
+
+        try {
+            return $then();
         } finally {
             if ($limit !== false) {
-                \ini_set('pcre.backtrack_limit', $limit);
+                \ini_set(self::PCRE_BACKTRACK_LIMIT_OPTION, $limit);
             }
         }
     }

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Tests\Stream\Reader\BlockReader\ChunkFactory;
+namespace FFI\Preprocessor\Tests\Stream\Reader\BlockReader;
 
-use FFI\Preprocessor\Stream\Reader\BlockReader\ChunkFactory\Splicer;
+use FFI\Preprocessor\Stream\Reader\BlockReader\Splicer;
 use FFI\Preprocessor\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -26,7 +26,8 @@ final class SplicerTest extends TestCase
         yield 'splice inside identifier' => ["in\\\nt x;", 'int x;'];
         yield 'splice at the end' => ["#define X 1 \\\n", '#define X 1 '];
         yield 'splice only' => ["\\\n", ''];
-        yield 'backslash followed by space is kept' => ["a \\ \nb", "a \\ \nb"];
+        yield 'blanks before the new-line belong to the splice' => ["a \\ \t\f\x0B\nb", 'a b'];
+        yield 'backslash followed by text is kept' => ["a \\ x\nb", "a \\ x\nb"];
         yield 'escape sequence is kept' => ['"a\\nb"', '"a\\nb"'];
         yield 'backslash at the end without new-line is kept' => ['a\\', 'a\\'];
         yield 'only the backslash next to the new-line is deleted' => ["a\\\\\nb", 'a\\b'];
@@ -58,6 +59,7 @@ final class SplicerTest extends TestCase
         yield 'splice at the start' => ["\\\nint x;"];
         yield 'splices in an identifier' => ["lo\\\nng\\\r\n_name = 1;"];
         yield 'escaped backslash before a splice' => ["\"\\\\\" \\\n x"];
+        yield 'splices with blanks' => ["a\\  \nb\\\t\r\nc"];
     }
 
     #[DataProvider('splicedFragmentDataProvider')]
@@ -74,5 +76,28 @@ final class SplicerTest extends TestCase
                 \sprintf('The byte at offset %d of the text', $offset),
             );
         }
+    }
+
+    /**
+     * @return iterable<non-empty-string, array{non-empty-string, int<0, max>, bool}>
+     */
+    public static function spliceEndDataProvider(): iterable
+    {
+        yield 'line feed after a backslash' => ["a\\\n", 2, true];
+        yield 'line feed of carriage return and line feed' => ["a\\\r\n", 3, true];
+        yield 'carriage return after a backslash' => ["a\\\r\n", 2, true];
+        yield 'blanks between' => ["a\\ \t\n", 4, true];
+        yield 'line feed after text' => ["a\n", 1, false];
+        yield 'line feed at the start' => ["\n", 0, false];
+        yield 'text between' => ["\\a\n", 2, false];
+    }
+
+    /**
+     * @param int<0, max> $offset
+     */
+    #[DataProvider('spliceEndDataProvider')]
+    public function testNewLineEndsSpliceAfterBackslash(string $text, int $offset, bool $expected): void
+    {
+        self::assertSame($expected, (new Splicer())->isSpliceEnd($text, $offset));
     }
 }

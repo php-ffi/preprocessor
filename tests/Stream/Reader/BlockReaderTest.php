@@ -77,7 +77,39 @@ final class BlockReaderTest extends TestCase
         yield 'hash on a line continued from text' => ["int a; \\\n#define X\n", [['text', "int a; #define X\n", 0]]];
         yield 'splice in text' => ["in\\\nt a;\n#endif", [['text', "int a;\n", 0], ['#endif', '', 9]]];
         yield 'splice at the end of a directive' => ["#define X \\\n", [['#define', 'X ', 0]]];
-        yield 'backslash that is not a splice' => ["#define S \"\\n\"\n", [['#define', 'S "\\n"', 0]]];
+        yield 'directive continued by a splice with blanks' => ["#define X 1 \\ \t\n 2\nint a;", [
+            ['#define', 'X 1  2', 0],
+            ['text', 'int a;', 19],
+        ]];
+        yield 'hash on a line continued by a splice with blanks' => ["int a; \\  \n#define X\n", [
+            ['text', "int a; #define X\n", 0],
+        ]];
+        yield 'line comment continued by a splice with blanks' => ["// a \\ \n#define X\nint a;", [
+            ['text', "// a #define X\nint a;", 0],
+        ]];
+        yield 'string literal continued by a splice with blanks' => ["s = \"a\\ \nb\";\n#define X\n", [
+            ['text', "s = \"ab\";\n", 0],
+            ['#define', 'X', 13],
+        ]];
+        yield 'stray backslash before a splice of a directive' => ["#define B x\\\\\ny\nB\n", [
+            ['#define', 'B x\\y', 0],
+            ['text', "B\n", 16],
+        ]];
+        yield 'escape sequence split by a splice' => ["s = \"a\\\\\n\"\";\n#define X\n", [
+            ['text', "s = \"a\\\"\";\n", 0],
+            ['#define', 'X', 13],
+        ]];
+        yield 'hash after a line of a splice' => ["\\\n#define X 1\nX\n", [
+            ['text', '', 0],
+            ['#define', 'X 1', 2],
+            ['text', "X\n", 14],
+        ]];
+        yield 'hash after blanks and a splice' => [" \\\n #define W\n", [['text', ' ', 0], ['#define', 'W', 4]]];
+        yield 'backslash followed by text is not a splice' => ["#define X \\ a\nint b;", [
+            ['#define', 'X \\ a', 0],
+            ['text', 'int b;', 14],
+        ]];
+        yield 'backslash that is not a splice' =>["#define S \"\\n\"\n", [['#define', 'S "\\n"', 0]]];
         yield 'empty lines between directives' => ["#if 1\n\n\n#endif\n", [
             ['#if', '1', 0], ['text', "\n\n", 6], ['#endif', '', 8],
         ]];
@@ -215,6 +247,21 @@ final class BlockReaderTest extends TestCase
         }
     }
 
+    public function testLongTextIsReadByCompleteLines(): void
+    {
+        $content = \str_repeat("int a; /* x\ny */\n", 10) . "b \\\nc\n";
+        $chunks = \iterator_to_array((new BlockReader(8))->read(self::createFile($content)), false);
+
+        self::assertGreaterThan(1, \count($chunks));
+
+        foreach ($chunks as $chunk) {
+            self::assertInstanceOf(SourceChunk::class, $chunk);
+            // Every chunk ends a line of source text, never in a comment or a splice
+            self::assertSame(\substr_count((string) $chunk, '/*'), \substr_count((string) $chunk, '*/'));
+            self::assertStringEndsWith("\n", (string) $chunk);
+        }
+    }
+
     public function testChunksKeepTheFile(): void
     {
         $file = self::createFile("int a;\n#define X\n");
@@ -272,14 +319,29 @@ final class BlockReaderTest extends TestCase
     }
 
     /**
+     * Describes the chunks, the consecutive text chunks as one: a long text
+     * may be put out by its lines.
+     *
      * @param iterable<int, ChunkInterface> $chunks
      * @return list<list<int|string>>
      */
     private static function describe(iterable $chunks): array
     {
         $result = [];
+        $previous = null;
 
         foreach ($chunks as $chunk) {
+            if ($chunk instanceof SourceChunk && $previous instanceof SourceChunk) {
+                $last = \array_pop($result);
+                self::assertNotNull($last);
+                self::assertSame($previous->getPhysicalOffset(\strlen($previous->content)), $chunk->offset);
+                $result[] = ['text', $last[1] . $chunk, $last[2]];
+                $previous = $chunk;
+
+                continue;
+            }
+
+            $previous = $chunk;
             $result[] = match (true) {
                 $chunk instanceof SourceDirective => ['#' . $chunk->name, $chunk->body, $chunk->offset],
                 $chunk instanceof SourceChunk => ['text', (string) $chunk, $chunk->offset],
