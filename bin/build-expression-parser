@@ -24,7 +24,7 @@ use Symfony\Component\Console\Output\StreamOutput;
 require __DIR__ . '/../vendor/autoload.php';
 
 const EXPRESSION_GRAMMAR_PATHNAME = __DIR__ . '/../resources/grammar.pp3';
-const EXPRESSION_OUTPUT_PATHNAME = __DIR__ . '/../src/Expression/CompiledExpressionParser.php';
+const EXPRESSION_OUTPUT_PATHNAME = __DIR__ . '/../src/Expression/Parser/CompiledExpressionParser.php';
 
 $compiler = new Compiler();
 
@@ -37,12 +37,14 @@ if (\class_exists(ConsoleLogger::class)) {
 $compiler
     ->load(FileSource::createFromPathname(EXPRESSION_GRAMMAR_PATHNAME))
     ->generate()
-    // The reducers refer to the nodes relative to these namespaces,
-    // e.g. Node\Identifier, Literal\IntLiteral\DecIntLiteral or BinaryExpression\AddExpression
-    //// ->withClassImport('FFI\Preprocessor\Node')
+    // The reducers refer to the nodes relative to this namespace,
+    // e.g. Node\Literal\IntLiteral\DecIntLiteral or Node\BinaryExpression\AddExpression
+    ->withClassImport('FFI\Preprocessor\Expression\Node')
     // The token the @var tags of the reducers refer to
     ->withClassImport('Phplrt\Contracts\Lexer\TokenInterface')
-    ->withNamespaceName('FFI\Preprocessor\Expression')
+    // The literal parsers and the exceptions are referred to relative to
+    // this namespace, e.g. ExpressionParser\IntParser or Exception\SyntaxErrorException
+    ->withNamespaceName('FFI\Preprocessor\Expression\Parser')
     ->withClassName('CompiledExpressionParser')
     // Extended by the hand-written ExpressionParser
     ->withClassModifier(ClassModifier::Abstract)

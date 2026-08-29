@@ -16,10 +16,15 @@
 %pragma parser.disable Phplrt\Parser\Builder\Compiler\LeftRecursionValidationParserCompilerPass
 
 /**
- * Line splices, a backslash immediately followed by a new-line, none or
- * several of them.
+ * A line splice: a backslash followed by a new-line, the blanks between them
+ * are a part of the splice as GCC and Clang read it (translation phase 1).
  */
-%fragment SPLICES (?:\\(?:\r\n|\n|\r))*+
+%fragment SPLICE \\[\x20\t\f\x0B]*+(?:\r\n|\n|\r)
+
+/**
+ * Line splices, none or several of them.
+ */
+%fragment SPLICES (?&SPLICE)*+
 
 /**
  * A hexadecimal digit of a universal character name.
@@ -44,10 +49,10 @@
 %fragment NUMBER (?:\.(?&SPLICES))?[0-9](?:(?&SPLICES)(?:[eEpP](?&SPLICES)[+-]|[0-9A-Za-z_\x80-\xFF.]|(?&UCN)|'(?&SPLICES)[0-9A-Za-z_]))*+
 
 /**
- * A splice or an escape sequence: a backslash and the byte after it, a
- * new-line of two bytes included.
+ * A splice or an escape sequence: a backslash and the byte after it, the
+ * splices between them aside (translation phase 2 goes first).
  */
-%fragment ESCAPE \\(?:\r\n|[\s\S])
+%fragment ESCAPE (?&SPLICE)|\\(?&SPLICES)[^\r\n]
 
 /**
  * A string literal or a character constant, up to its closing quote or up to
@@ -76,14 +81,14 @@
  * White space between the tokens of a directive: the blanks, the line
  * splices and the block comments.
  */
-%fragment BLANKS (?:[\x20\t\f\x0B]++|\\(?:\r\n|\n|\r)|(?&COMMENT))*+
+%fragment BLANKS (?:[\x20\t\f\x0B]++|(?&SPLICE)|(?&COMMENT))*+
 
 /**
  * 6.4.8 Header names, read as they are written: no comment, literal or escape
  * sequence inside, the line splices aside. A quoted name ends at the first
  * `"`, as GCC reads it.
  */
-%fragment HEADER_NAME <(?:[^>\r\n\\]++|\\(?:\r\n|\n|\r)|\\)*+>?|"(?:[^"\r\n\\]++|\\(?:\r\n|\n|\r)|\\)*+"?
+%fragment HEADER_NAME <(?:[^>\r\n\\]++|(?&SPLICE)|\\)*+>?|"(?:[^"\r\n\\]++|(?&SPLICE)|\\)*+"?
 
 /**
  * The end of a name: no byte of an identifier follows it.

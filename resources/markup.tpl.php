@@ -1,6 +1,6 @@
 <?php
 /** @var \Phplrt\Compiler\CompilerResult $result */
-echo '<?php';
+echo "<?php\n";
 ?>
 
 declare(strict_types=1);

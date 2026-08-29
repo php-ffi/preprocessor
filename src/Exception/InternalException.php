@@ -12,9 +12,29 @@ use Phplrt\Contracts\Source\FileInterface;
  */
 final class InternalException extends PreprocessorException
 {
-    private function __construct(string $message, \Throwable $reason)
+    private function __construct(string $message, ?\Throwable $reason = null)
     {
         parent::__construct($message, 0, $reason);
+    }
+
+    public static function becauseInternalErrorOccurs(string $message, ?\Throwable $prev = null): self
+    {
+        return new self($message, reason: $prev);
+    }
+
+    private static function escape(string $message): string
+    {
+        return \addcslashes($message, '"');
+    }
+
+    /**
+     * @param \Throwable $reason the failure reported by the factory of the sources
+     */
+    public static function becauseSourceIsNotCreatable(\Throwable $reason): self
+    {
+        $message = \sprintf('The source cannot be created: "%s"', self::escape($reason->getMessage()));
+
+        return new self($message, $reason);
     }
 
     /**
@@ -24,8 +44,8 @@ final class InternalException extends PreprocessorException
     {
         $message = \sprintf(
             'The source "%s" cannot be read: "%s"',
-            \addcslashes($source->pathname, '"'),
-            \addcslashes($reason->getMessage(), '"'),
+            self::escape($source->pathname),
+            self::escape($reason->getMessage()),
         );
 
         return new self($message, $reason);
