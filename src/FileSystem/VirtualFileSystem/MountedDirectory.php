@@ -14,10 +14,10 @@ use Phplrt\Source\FileSource;
  * they are at the moment of the lookup. The case sensitivity of their names
  * is the one of the real file system.
  *
- * @readonly
- *
  * @internal this is an internal library class, please do not use it in your code
  * @psalm-internal FFI\Preprocessor\FileSystem
+ *
+ * @readonly
  */
 final class MountedDirectory
 {

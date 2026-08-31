@@ -9,10 +9,10 @@ use FFI\Preprocessor\FileSystem\VirtualFileSystem;
 /**
  * Brings a virtual pathname to its single spelling
  *
- * @readonly
- *
  * @internal this is an internal library class, please do not use it in your code
  * @psalm-internal FFI\Preprocessor\FileSystem
+ *
+ * @readonly
  */
 final class PathNormalizer
 {
