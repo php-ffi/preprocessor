@@ -236,7 +236,7 @@ final class BlockReader implements ReaderInterface
 
                 // A source file does not end in a partial comment (5.1.1.2p3), GCC fails
                 if (\strlen($comment) < 4 || !\str_ends_with($comment, '*/')) {
-                    throw SyntaxErrorException::becauseCommentIsNotClosed($file, $base + $token->offset);
+                    throw new SyntaxErrorException('Unterminated comment', $file, $base + $token->offset);
                 }
 
                 $builder->appendComment($token->value);
@@ -254,7 +254,7 @@ final class BlockReader implements ReaderInterface
 
                 // A line without a new-line ends the file, a comment of it may be not closed (5.1.1.2p3)
                 if ($newLine === '' && $this->hasUnclosedComment($token->value)) {
-                    throw SyntaxErrorException::becauseCommentIsNotClosed($file, $base + $token->offset);
+                    throw new SyntaxErrorException('Unterminated comment', $file, $base + $token->offset);
                 }
 
                 if (!$builder->isLineStart) {

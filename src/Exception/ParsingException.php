@@ -17,7 +17,7 @@ use Phplrt\Source\VirtualSource;
  */
 abstract class ParsingException extends PreprocessorException
 {
-    protected function __construct(
+    public function __construct(
         string $message,
         /**
          * The source the failure occurred in
