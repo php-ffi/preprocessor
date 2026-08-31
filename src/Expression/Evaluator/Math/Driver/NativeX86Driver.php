@@ -19,7 +19,7 @@ final class NativeX86Driver implements MathDriverInterface
     private static function createError(): PlatformException
     {
         return PlatformException::becausePlatformErrorOccurs(
-            '64-bit arithmetic requires a 64-bit version of PHP, as well as the GMP or BCMath extension'
+            '64-bit arithmetic requires a 64-bit version of PHP, as well as the GMP or BCMath extension',
         );
     }
 

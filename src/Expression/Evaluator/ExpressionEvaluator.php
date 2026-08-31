@@ -110,7 +110,7 @@ final class ExpressionEvaluator implements ExpressionEvaluatorInterface
      * @param MathDriverInterface<TNumber>|null $math
      */
     public function __construct(
-        ?MathDriverInterface $math = null
+        ?MathDriverInterface $math = null,
     ) {
         $this->math = $this->createMathDriver($math);
 
