@@ -80,4 +80,75 @@ final class SourceMapTest extends TestCase
         self::assertSame(4, $map->getPhysicalOffset(1));
         self::assertSame(5, $map->getPhysicalLength(0, 2));
     }
+
+    /**
+     * Splices of the text `ab\⏎cd\⏎\⏎ef`.
+     *
+     * @return iterable<non-empty-string, array{int<0, max>, int<0, max>}>
+     */
+    public static function spliceCountDataProvider(): iterable
+    {
+        yield 'start' => [0, 0];
+        yield 'before the first splice' => [1, 0];
+        yield 'after the first splice' => [2, 1];
+        yield 'between' => [3, 1];
+        yield 'after the consecutive splices' => [4, 3];
+        yield 'end' => [6, 3];
+    }
+
+    /**
+     * @param int<0, max> $offset
+     * @param int<0, max> $expected
+     */
+    #[DataProvider('spliceCountDataProvider')]
+    public function testSplicesBeforeOffsetAreCounted(int $offset, int $expected): void
+    {
+        self::assertSame($expected, SourceMap::createFromSplices([2, 6, 8], [2, 2, 2])->countSplices($offset));
+        self::assertSame(0, SourceMap::createEmpty()->countSplices($offset));
+    }
+
+    /**
+     * The fragments of the text `abcdef` of the file `ab\⏎cd\⏎\⏎ef`, the
+     * offset in the file of each byte of the fragment relative to the start
+     * of the fragment.
+     *
+     * @return iterable<non-empty-string, array{int<0, max>, int<0, max>, list<int>}>
+     */
+    public static function sliceDataProvider(): iterable
+    {
+        yield 'whole text' => [0, 6, [0, 1, 4, 5, 10, 11]];
+        yield 'across all splices' => [1, 4, [0, 3, 4, 9]];
+        yield 'between splices' => [2, 2, [0, 1]];
+        yield 'across consecutive splices' => [3, 3, [0, 5, 6]];
+        yield 'after splices' => [4, 2, [0, 1]];
+        yield 'empty' => [3, 0, []];
+    }
+
+    /**
+     * @param int<0, max> $offset
+     * @param int<0, max> $length
+     * @param list<int> $expected
+     */
+    #[DataProvider('sliceDataProvider')]
+    public function testSliceKeepsSplicesInsideFragment(int $offset, int $length, array $expected): void
+    {
+        $map = SourceMap::createFromSplices([2, 6, 8], [2, 2, 2]);
+        $slice = $map->slice($offset, $length);
+        $start = $map->getPhysicalOffset($offset);
+
+        $actual = [];
+
+        for ($i = 0; $i < $length; ++$i) {
+            $actual[] = $slice->getPhysicalOffset($i);
+            self::assertSame($map->getPhysicalOffset($offset + $i) - $start, $slice->getPhysicalOffset($i));
+        }
+
+        self::assertSame($expected, $actual);
+    }
+
+    public function testSliceOfEmptyMapIsEmpty(): void
+    {
+        self::assertTrue(SourceMap::createEmpty()->slice(2, 3)->isEmpty());
+        self::assertTrue(SourceMap::createFromSplices([2, 6, 8], [2, 2, 2])->slice(4, 2)->isEmpty());
+    }
 }
