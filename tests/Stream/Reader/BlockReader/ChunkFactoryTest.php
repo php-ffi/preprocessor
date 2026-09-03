@@ -34,10 +34,6 @@ final class ChunkFactoryTest extends TestCase
         yield 'digraph' => ['%:define X', ['define', 'X', 9]];
         yield 'hash followed by digraph' => ['#%:', ['', '%:', 1]];
         yield 'name split by a splice' => ["#def\\\nine X", ['define', 'X', 8]];
-        yield 'comment before name' => ['# /* c */ define X', ['define', 'X', 17]];
-        yield 'comment after name' => ['#define/* c */X', ['define', 'X', 14]];
-        yield 'comment with new-line after name' => ["#define /* a\nb */ X", ['define', 'X', 18]];
-        yield 'comment in the body is kept' => ['#define X /* c */ 1', ['define', 'X /* c */ 1', 8]];
     }
 
     /**
@@ -81,10 +77,33 @@ final class ChunkFactoryTest extends TestCase
         self::assertSame(\strpos($content, 't a'), $chunk->getPhysicalOffset(2));
     }
 
+    public function testDirectiveKeepsThePlaceOfItsCommentsInTheFile(): void
+    {
+        $line = '#define X /* c */ 1';
+        // The comment of 7 bytes is the space at offset 10
+        $directive = (new ChunkFactory(self::createFile($line)))->createDirective('#define X   1', 0, [11], [6]);
+
+        self::assertSame('X   1', $directive->body);
+        self::assertSame(\strpos($line, '/*'), $directive->getPhysicalOffset(10));
+        self::assertSame(\strpos($line, '1'), $directive->getPhysicalOffset(12));
+    }
+
+    public function testSourceChunkKeepsThePlaceOfItsCommentsAndSplicesInTheFile(): void
+    {
+        $content = "a /* c */ b\\\nc";
+        // The comment of 7 bytes is the space at offset 2, the splice follows "b"
+        $chunk = (new ChunkFactory(self::createFile($content)))->createSourceChunk("a   b\\\nc", 0, [3], [6]);
+
+        self::assertSame('a   bc', (string) $chunk);
+        self::assertSame(\strpos($content, '/*'), $chunk->getPhysicalOffset(2));
+        self::assertSame(\strpos($content, 'b'), $chunk->getPhysicalOffset(4));
+        self::assertSame(\strrpos($content, 'c'), $chunk->getPhysicalOffset(5));
+    }
+
     public function testSourceChunkWithoutSplicesHasEmptyMap(): void
     {
         $chunk = (new ChunkFactory(self::createFile("int a;\n")))->createSourceChunk("int a;\n", 0);
 
-        self::assertTrue($chunk->splices->isEmpty());
+        self::assertTrue($chunk->map->isEmpty());
     }
 }

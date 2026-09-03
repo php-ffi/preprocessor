@@ -8,14 +8,14 @@ use FFI\Preprocessor\Stream\Chunk\SourceMap;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
- * Base of the chunks: the text without the line splices and the place it
- * has been read from.
+ * Base of the chunks: the text without the line splices and the comments, and
+ * the place it has been read from.
  */
 abstract class Chunk implements ChunkInterface
 {
     public function __construct(
         /**
-         * The text of the chunk without the line splices
+         * The text of the chunk without the line splices, the comments replaced by a space each
          */
         public readonly string $content,
         /**
@@ -29,19 +29,19 @@ abstract class Chunk implements ChunkInterface
          */
         public readonly int $offset,
         /**
-         * The line splices removed from the text
+         * The bytes of the file the text skips: the line splices and the comments
          */
-        public readonly SourceMap $splices,
+        public readonly SourceMap $map,
     ) {}
 
     public function getPhysicalOffset(int $offset): int
     {
-        return $this->offset + $this->splices->getPhysicalOffset($offset);
+        return $this->offset + $this->map->getPhysicalOffset($offset);
     }
 
     public function getPhysicalLength(int $offset, int $length): int
     {
-        return $this->splices->getPhysicalLength($offset, $length);
+        return $this->map->getPhysicalLength($offset, $length);
     }
 
     public function __toString(): string

@@ -101,10 +101,10 @@ final class SourceMapTest extends TestCase
      * @param int<0, max> $expected
      */
     #[DataProvider('spliceCountDataProvider')]
-    public function testSplicesBeforeOffsetAreCounted(int $offset, int $expected): void
+    public function testShiftsBeforeOffsetAreCounted(int $offset, int $expected): void
     {
-        self::assertSame($expected, SourceMap::createFromSplices([2, 6, 8], [2, 2, 2])->countSplices($offset));
-        self::assertSame(0, SourceMap::createEmpty()->countSplices($offset));
+        self::assertSame($expected, SourceMap::createFromSplices([2, 6, 8], [2, 2, 2])->countShifts($offset));
+        self::assertSame(0, SourceMap::createEmpty()->countShifts($offset));
     }
 
     /**
@@ -150,5 +150,70 @@ final class SourceMapTest extends TestCase
     {
         self::assertTrue(SourceMap::createEmpty()->slice(2, 3)->isEmpty());
         self::assertTrue(SourceMap::createFromSplices([2, 6, 8], [2, 2, 2])->slice(4, 2)->isEmpty());
+    }
+
+    public function testMapWithoutShiftsIsEmpty(): void
+    {
+        self::assertTrue(SourceMap::createFromShifts([], [])->isEmpty());
+    }
+
+    /**
+     * The text `a b c` of the file `a /* x *\/ b /* y *\/ c`: each comment of
+     * 7 bytes is the space after which the text skips 6 bytes.
+     *
+     * @return iterable<non-empty-string, array{int<0, max>, int<0, max>}>
+     */
+    public static function commentOffsetDataProvider(): iterable
+    {
+        yield 'before the first comment' => [0, 0];
+        yield 'the space of the first comment' => [1, 1];
+        yield 'after the first comment' => [2, 8];
+        yield 'the space of the second comment' => [3, 9];
+        yield 'after the second comment' => [4, 16];
+        yield 'end of the text' => [5, 17];
+    }
+
+    /**
+     * @param int<0, max> $offset
+     * @param int<0, max> $expected
+     */
+    #[DataProvider('commentOffsetDataProvider')]
+    public function testOffsetIsShiftedByTheCommentsBeforeIt(int $offset, int $expected): void
+    {
+        $map = SourceMap::createFromShifts([2, 4], [6, 6]);
+
+        self::assertFalse($map->isEmpty());
+        self::assertSame($expected, $map->getPhysicalOffset($offset));
+    }
+
+    public function testShiftsOfOneOffsetAreAdded(): void
+    {
+        $map = SourceMap::createFromShifts([2, 2, 5], [6, 2, 1]);
+
+        self::assertSame(1, $map->getPhysicalOffset(1));
+        self::assertSame(10, $map->getPhysicalOffset(2));
+        self::assertSame(14, $map->getPhysicalOffset(5));
+        self::assertSame(2, $map->countShifts(2));
+    }
+
+    public function testSplicesAreShiftsOfTheirOwn(): void
+    {
+        $splices = SourceMap::createFromSplices([2, 6, 8], [2, 2, 2]);
+        $shifts = SourceMap::createFromShifts([2, 4, 4], [2, 2, 2]);
+
+        for ($offset = 0; $offset <= 6; ++$offset) {
+            self::assertSame($splices->getPhysicalOffset($offset), $shifts->getPhysicalOffset($offset));
+        }
+    }
+
+    public function testSliceKeepsCommentsInsideFragment(): void
+    {
+        $map = SourceMap::createFromShifts([2, 4], [6, 6]);
+        $slice = $map->slice(1, 3);
+
+        self::assertSame(0, $slice->getPhysicalOffset(0));
+        self::assertSame(7, $slice->getPhysicalOffset(1));
+        self::assertSame(8, $slice->getPhysicalOffset(2));
+        self::assertSame(9, $map->getPhysicalLength(1, 3));
     }
 }

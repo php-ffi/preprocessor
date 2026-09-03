@@ -30,7 +30,7 @@ final class SourceChunk extends Chunk
             content: \substr($this->content, $offset, $length),
             source: $this->source,
             offset: $this->getPhysicalOffset($offset),
-            splices: $this->splices->slice($offset, $length),
+            map: $this->map->slice($offset, $length),
         );
     }
 }

@@ -31,20 +31,41 @@ final class Splicer
     private const BLANKS = " \t\f\v";
 
     /**
-     * Returns the map of the splices of the fragment, empty in case of there
-     * are none.
+     * Returns the map of the splices of the fragment and of the comments it
+     * has had replaced by a space, empty in case of there are none.
+     *
+     * @param list<int<1, max>> $commentOffsets offset in the fragment of the
+     *        byte after the space that replaces a comment, in ascending order
+     * @param list<int<1, max>> $commentSizes number of the bytes of the file
+     *        the space replaces besides itself, of the same index as its
+     *        offset
      */
-    public function createSourceMap(string $fragment): SourceMap
+    public function createSourceMap(string $fragment, array $commentOffsets = [], array $commentSizes = []): SourceMap
     {
         $offsets = [];
-        $lengths = [];
+        $sizes = [];
+        $removed = 0;
+        $comment = 0;
+        $comments = \count($commentOffsets);
 
         foreach (self::findSplices($fragment) as $offset => $length) {
-            $offsets[] = $offset;
-            $lengths[] = $length;
+            for (; $comment < $comments && $commentOffsets[$comment] <= $offset; ++$comment) {
+                $offsets[] = $commentOffsets[$comment] - $removed;
+                $sizes[] = $commentSizes[$comment];
+            }
+
+            $offsets[] = $offset - $removed;
+            $sizes[] = $length;
+            $removed += $length;
         }
 
-        return $offsets === [] ? SourceMap::createEmpty() : SourceMap::createFromSplices($offsets, $lengths);
+        for (; $comment < $comments; ++$comment) {
+            $offsets[] = $commentOffsets[$comment] - $removed;
+            $sizes[] = $commentSizes[$comment];
+        }
+
+        // @phpstan-ignore-next-line the offsets of the shifts are past the bytes the splices before them have removed
+        return $offsets === [] ? SourceMap::createEmpty() : SourceMap::createFromShifts($offsets, $sizes);
     }
 
     /**

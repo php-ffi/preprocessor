@@ -78,6 +78,63 @@ final class SplicerTest extends TestCase
         }
     }
 
+    public function testMapOfCommentsIsEmptyWithoutThem(): void
+    {
+        self::assertTrue((new Splicer())->createSourceMap('int a;', [], [])->isEmpty());
+    }
+
+    /**
+     * The text of the fragment and the comments replaced in it: `[offset after the space, bytes besides it]`.
+     *
+     * @return iterable<non-empty-string, array{non-empty-string, list<int<1, max>>, list<int<1, max>>}>
+     */
+    public static function commentedFragmentDataProvider(): iterable
+    {
+        yield 'comment only' => ['a b', [2], [4]];
+        yield 'comments' => ['a b c', [2, 4], [6, 2]];
+        yield 'comment and splice after it' => ["a b\\\nc", [2], [6]];
+        yield 'comment and splice before it' => ["a\\\nb c", [5], [6]];
+        yield 'comment and splice at the same offset' => ["a \\\nb", [2], [3]];
+        yield 'comments between splices' => ["a\\\nb c d\\\ne", [5, 7], [3, 5]];
+    }
+
+    /**
+     * @param non-empty-string $fragment the file with every comment shortened to the space
+     * @param list<int<1, max>> $offsets
+     * @param list<int<1, max>> $sizes
+     */
+    #[DataProvider('commentedFragmentDataProvider')]
+    public function testCommentsAndSplicesAreMergedIntoOneMap(string $fragment, array $offsets, array $sizes): void
+    {
+        $splicer = new Splicer();
+        $map = $splicer->createSourceMap($fragment, $offsets, $sizes);
+        $text = $splicer->removeSplices($fragment);
+
+        // The file the fragment is made of: the comment is `/*` and `*/` around the bytes it takes
+        $file = '';
+        $previous = 0;
+
+        foreach ($offsets as $i => $commentOffset) {
+            $file .= \substr($fragment, $previous, $commentOffset - 1 - $previous);
+            $file .= '/' . \str_repeat('*', $sizes[$i]);
+            $previous = $commentOffset;
+        }
+
+        $file .= \substr($fragment, $previous);
+
+        for ($i = 0, $length = \strlen($text); $i < $length; ++$i) {
+            $physical = $map->getPhysicalOffset($i);
+
+            if ($text[$i] === ' ' && ($file[$physical] ?? '') === '/') {
+                continue;
+            }
+
+            self::assertSame($text[$i], $file[$physical] ?? '', \sprintf('The byte at offset %d of the text', $i));
+        }
+
+        self::assertSame(\strlen($file), $map->getPhysicalOffset($length));
+    }
+
     /**
      * @return iterable<non-empty-string, array{non-empty-string, int<0, max>, bool}>
      */

@@ -6,7 +6,9 @@ namespace FFI\Preprocessor\Stream\Reader;
 
 use FFI\Preprocessor\Exception\InternalException;
 use FFI\Preprocessor\Exception\SyntaxErrorException;
+use FFI\Preprocessor\Stream\Reader\BlockReader\BacktrackLimit;
 use FFI\Preprocessor\Stream\Reader\BlockReader\ChunkBuilder;
+use FFI\Preprocessor\Stream\Reader\BlockReader\CommentReplacer;
 use FFI\Preprocessor\Stream\Reader\BlockReader\CompiledMarkupLexer;
 use FFI\Preprocessor\Stream\Reader\BlockReader\Splicer;
 use FFI\Preprocessor\Stream\SourceChunk;
@@ -44,25 +46,9 @@ final class BlockReader implements ReaderInterface
     private const LOOKAHEAD = 16;
 
     /**
-     * The limit of the backtracking of PCRE while a buffer is split, enough
-     * for a logical line of hundreds of megabytes
-     *
-     * @var non-empty-string
+     * Replaces the comments of the lines of the directives
      */
-    private const PCRE_BACKTRACK_LIMIT = '1000000000';
-
-    /**
-     * @var non-empty-string
-     */
-    private const PCRE_BACKTRACK_LIMIT_OPTION = 'pcre.backtrack_limit';
-
-    /**
-     * A literal, a line comment or a block comment of the text of a line
-     * without splices, the one of a block comment up to its end or to the
-     * end of the text
-     */
-    private const DIRECTIVE_PART_PATTERN = '~"(?:[^"\\\\\n]++|\\\\.)*+"?|\'(?:[^\'\\\\\n]++|\\\\.)*+\'?|//[^\n]*+'
-        . '|/\*(?:[^*]++|\*(?!/))*+(?:\*/)?~s';
+    private readonly CommentReplacer $replacer;
 
     public function __construct(
         /**
@@ -79,7 +65,9 @@ final class BlockReader implements ReaderInterface
          * Tells the line splices
          */
         private readonly Splicer $splicer = new Splicer(),
-    ) {}
+    ) {
+        $this->replacer = new CommentReplacer($splicer);
+    }
 
     /**
      * @throws InternalException in case of the file cannot be read
@@ -175,8 +163,7 @@ final class BlockReader implements ReaderInterface
 
     /**
      * Splits the buffer into the tokens of the markup. A logical line is a
-     * single match whatever its length: the limit of the backtracking of
-     * PCRE is raised while the buffer is split.
+     * single match whatever its length.
      *
      * @return list<TokenInterface>
      * @throws LexerExceptionInterface
@@ -185,7 +172,7 @@ final class BlockReader implements ReaderInterface
      */
     private function lex(string $buffer): array
     {
-        return self::withExtraPcreBacktrackLimit(function () use ($buffer): array {
+        return BacktrackLimit::run(function () use ($buffer): array {
             $tokens = [];
 
             foreach ($this->lexer->lex(new StringSource($buffer)) as $token) {
@@ -194,25 +181,6 @@ final class BlockReader implements ReaderInterface
 
             return $tokens;
         });
-    }
-
-    /**
-     * @template TArgResult of mixed
-     * @param \Closure(): TArgResult $then
-     * @return TArgResult
-     */
-    private static function withExtraPcreBacktrackLimit(\Closure $then): mixed
-    {
-        $limit = \ini_get(self::PCRE_BACKTRACK_LIMIT_OPTION);
-        \ini_set(self::PCRE_BACKTRACK_LIMIT_OPTION, self::PCRE_BACKTRACK_LIMIT);
-
-        try {
-            return $then();
-        } finally {
-            if ($limit !== false) {
-                \ini_set(self::PCRE_BACKTRACK_LIMIT_OPTION, $limit);
-            }
-        }
     }
 
     /**
@@ -252,13 +220,13 @@ final class BlockReader implements ReaderInterface
                 // The new-line that ends the line is the only capturing group
                 $newLine = $token->captures[0] ?? '';
 
-                // A line without a new-line ends the file, a comment of it may be not closed (5.1.1.2p3)
-                if ($newLine === '' && $this->hasUnclosedComment($token->value)) {
-                    throw new SyntaxErrorException('Unterminated comment', $file, $base + $token->offset);
-                }
+                $line = \substr($token->value, 0, \strlen($token->value) - \strlen($newLine));
+                $offset = $base + $token->offset;
+                $replacement = $this->replacer->replace($line, $file, $offset);
 
                 if (!$builder->isLineStart) {
-                    $builder->appendText($token->value);
+                    $builder->appendReplacedText($replacement);
+                    $builder->appendText($newLine);
                     break;
                 }
 
@@ -268,11 +236,15 @@ final class BlockReader implements ReaderInterface
                     yield $text;
                 }
 
-                $line = \substr($token->value, 0, \strlen($token->value) - \strlen($newLine));
-                $offset = $base + $token->offset;
+                \assert($replacement->text !== '');
 
-                // @phpstan-ignore-next-line the line starts with the marker, so it is never empty
-                yield $builder->createDirective($line, $offset, $offset + $token->size);
+                yield $builder->createDirective(
+                    $replacement->text,
+                    $offset,
+                    $offset + $token->size,
+                    $replacement->offsets,
+                    $replacement->sizes,
+                );
                 break;
 
             case CompiledMarkupLexer::T_STRING:
@@ -280,29 +252,6 @@ final class BlockReader implements ReaderInterface
                 $builder->appendToken($token->value);
                 break;
         }
-    }
-
-    /**
-     * Whether a block comment of the line of a directive is not closed, the
-     * literals and the line comments aside.
-     */
-    private function hasUnclosedComment(string $line): bool
-    {
-        $text = $this->splicer->removeSplices($line);
-
-        if (!\str_contains($text, '/*')) {
-            return false;
-        }
-
-        \preg_match_all(self::DIRECTIVE_PART_PATTERN, $text, $matches);
-
-        foreach ($matches[0] as $part) {
-            if (\str_starts_with($part, '/*') && (\strlen($part) < 4 || !\str_ends_with($part, '*/'))) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**

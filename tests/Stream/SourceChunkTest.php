@@ -34,7 +34,7 @@ final class SourceChunkTest extends TestCase
 
         self::assertSame('t x', $slice->content);
         self::assertSame(14, $slice->offset);
-        self::assertTrue($slice->splices->isEmpty());
+        self::assertTrue($slice->map->isEmpty());
     }
 
     public function testWholeSliceIsChunkItself(): void

@@ -40,10 +40,10 @@ final class SourceDirective extends Chunk
         string $content,
         FileInterface $source,
         int $offset,
-        SourceMap $splices,
+        SourceMap $map,
     ) {
         $this->body = \substr($content, $bodyOffset);
 
-        parent::__construct($content, $source, $offset, $splices);
+        parent::__construct($content, $source, $offset, $map);
     }
 }
