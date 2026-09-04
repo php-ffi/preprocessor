@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream;
+namespace FFI\Preprocessor\Stream\Chunk\TaggedChunk;
 
-use FFI\Preprocessor\Stream\Chunk\SourceMap;
+use FFI\Preprocessor\Stream\Chunk\SourceMap\SourceMap;
+use FFI\Preprocessor\Stream\Chunk\TaggedChunk;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
@@ -13,7 +14,7 @@ use Phplrt\Contracts\Source\FileInterface;
  *
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 6.10.1 General
  */
-final class SourceDirective extends Chunk
+final class SourceDirective extends TaggedChunk
 {
     /**
      * The rest of the line after the name and the blanks after it, such as

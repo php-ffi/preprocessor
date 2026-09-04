@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Stream;
 
-use FFI\Preprocessor\Stream\Chunk\SourceMap;
+use FFI\Preprocessor\Stream\Chunk\SourceMap\SourceMap;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
  * Base of the chunks: the text without the line splices and the comments, and
  * the place it has been read from.
  */
-abstract class Chunk implements ChunkInterface
+abstract class Chunk implements \Stringable
 {
     public function __construct(
         /**
@@ -34,11 +34,26 @@ abstract class Chunk implements ChunkInterface
         public readonly SourceMap $map,
     ) {}
 
+    /**
+     * Returns the offset in the file of the byte at the given offset of the
+     * text of the chunk.
+     *
+     * @param int<0, max> $offset
+     * @return int<0, max>
+     */
     public function getPhysicalOffset(int $offset): int
     {
         return $this->offset + $this->map->getPhysicalOffset($offset);
     }
 
+    /**
+     * Returns the size in the file of the part of the text of the chunk,
+     * the line splices inside it included.
+     *
+     * @param int<0, max> $offset
+     * @param int<1, max> $length
+     * @return int<1, max>
+     */
     public function getPhysicalLength(int $offset, int $length): int
     {
         return $this->map->getPhysicalLength($offset, $length);

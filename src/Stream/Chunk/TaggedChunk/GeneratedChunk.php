@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream;
+namespace FFI\Preprocessor\Stream\Chunk\TaggedChunk;
 
-use FFI\Preprocessor\Stream\Chunk\SourceMap;
+use FFI\Preprocessor\Stream\Chunk\SourceMap\SourceMap;
+use FFI\Preprocessor\Stream\Chunk\TaggedChunk;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
@@ -13,7 +14,7 @@ use Phplrt\Contracts\Source\FileInterface;
  * stands for the place of what it replaces, every offset of its text maps to
  * that place.
  */
-final class GeneratedChunk extends Chunk
+final class GeneratedChunk extends TaggedChunk
 {
     /**
      * @param int<0, max> $offset the offset in the file of what the text
