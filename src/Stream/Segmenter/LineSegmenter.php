@@ -32,6 +32,11 @@ final class LineSegmenter implements SegmenterInterface
     private const NAME_PATTERN = '~\G[ \t\f\x0B]*+([A-Za-z_\x80-\xFF][A-Za-z0-9_\x80-\xFF]*+)?[ \t\f\x0B]*+~';
 
     /**
+     * Blanks and new-lines.
+     */
+    private const BLANKS = " \t\r\n\f\x0B";
+
+    /**
      * @return \Generator<int, SourceChunk|SourceDirective>
      * @throws InternalException in case of the text cannot be matched
      */
@@ -72,8 +77,10 @@ final class LineSegmenter implements SegmenterInterface
         $position = 0;
 
         foreach ($this->getDirectives($lines->content) as [[$line, $start], [$blanks], [$marker]]) {
-            if ($start > $position) {
-                yield $this->createSourceChunk($lines->slice($position, $start - $position));
+            $text = $this->findSourceChunk($lines->slice($position, $start - $position));
+
+            if ($text !== null) {
+                yield $text;
             }
 
             $directive = $lines->slice($start + \strlen($blanks), \strlen($line) - \strlen($blanks));
@@ -83,8 +90,10 @@ final class LineSegmenter implements SegmenterInterface
             $position = $start + \strlen($line) + $this->measureNewLine($lines->content, $start + \strlen($line));
         }
 
-        if ($position < \strlen($lines->content)) {
-            yield $this->createSourceChunk($lines->slice($position));
+        $text = $this->findSourceChunk($lines->slice($position));
+
+        if ($text !== null) {
+            yield $text;
         }
     }
 
@@ -127,8 +136,16 @@ final class LineSegmenter implements SegmenterInterface
         return 0;
     }
 
-    private function createSourceChunk(UntaggedChunk $chunk): SourceChunk
+    /**
+     * Returns the source text, or {@see null} in case of it consists of the
+     * blanks and the new-lines only.
+     */
+    private function findSourceChunk(UntaggedChunk $chunk): ?SourceChunk
     {
+        if (\strspn($chunk->content, self::BLANKS) === \strlen($chunk->content)) {
+            return null;
+        }
+
         return new SourceChunk($chunk->content, $chunk->source, $chunk->offset, $chunk->map);
     }
 
