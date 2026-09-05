@@ -6,7 +6,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\DirectiveHandlerInterface;
-use FFI\Preprocessor\Stream\SourceDirective;
+use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 
 /**
  * `#line` changes the presumed line number and file name (6.10.6).

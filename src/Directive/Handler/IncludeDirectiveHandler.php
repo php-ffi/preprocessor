@@ -6,7 +6,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\DirectiveHandlerInterface;
-use FFI\Preprocessor\Stream\SourceDirective;
+use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 
 /**
  * `#include` includes a header or a source file (6.10.3).

@@ -6,7 +6,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\OutputIndependentDirectiveHandlerInterface;
-use FFI\Preprocessor\Stream\SourceDirective;
+use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 
 /**
  * `#ifdef` and `#ifndef` open a conditional section by whether a macro is defined (6.10.2).

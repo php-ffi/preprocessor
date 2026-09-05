@@ -8,7 +8,7 @@ use FFI\Preprocessor\Diagnostic\Diagnostic;
 use FFI\Preprocessor\Diagnostic\Diagnostic\Severity;
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\DirectiveHandlerInterface;
-use FFI\Preprocessor\Stream\SourceDirective;
+use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 
 /**
  * `#warning` reports its message as a warning (C23 6.10.7, an extension of
