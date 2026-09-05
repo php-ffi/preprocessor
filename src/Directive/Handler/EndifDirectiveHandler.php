@@ -6,6 +6,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\OutputIndependentDirectiveHandlerInterface;
+use FFI\Preprocessor\Exception\SyntaxErrorException;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 
 /**
@@ -15,8 +16,22 @@ use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
  */
 final class EndifDirectiveHandler implements OutputIndependentDirectiveHandlerInterface
 {
+    /**
+     * @throws SyntaxErrorException in case of there is no open section
+     */
     public function handle(SourceDirective $directive, DirectiveContext $context): iterable
     {
-        throw new \BadMethodCallException('The handler is not implemented yet');
+        if (!$context->output->hasSection()) {
+            throw SyntaxErrorException::becauseDirectiveHasNoSection(
+                $directive->source,
+                $directive->getPhysicalOffset(0),
+                'endif',
+            );
+        }
+
+        $context->reportExtraTokens($directive);
+        $context->output->pop();
+
+        return [];
     }
 }

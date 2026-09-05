@@ -6,6 +6,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\OutputIndependentDirectiveHandlerInterface;
+use FFI\Preprocessor\Exception\SyntaxErrorException;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 
 /**
@@ -15,8 +16,32 @@ use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
  */
 final class ElseDirectiveHandler implements OutputIndependentDirectiveHandlerInterface
 {
+    /**
+     * @throws SyntaxErrorException in case of there is no open section or it has the `#else` already
+     */
     public function handle(SourceDirective $directive, DirectiveContext $context): iterable
     {
-        throw new \BadMethodCallException('The handler is not implemented yet');
+        $output = $context->output;
+
+        if (!$output->hasSection()) {
+            throw SyntaxErrorException::becauseDirectiveHasNoSection(
+                $directive->source,
+                $directive->getPhysicalOffset(0),
+                'else',
+            );
+        }
+
+        if ($output->hasLastBranch()) {
+            throw SyntaxErrorException::becauseDirectiveFollowsElse(
+                $directive->source,
+                $directive->getPhysicalOffset(0),
+                'else',
+            );
+        }
+
+        $context->reportExtraTokens($directive);
+        $output->swapLast();
+
+        return [];
     }
 }

@@ -16,4 +16,9 @@ final class OutputStackException extends PreprocessorException
     {
         return new self('The output stack has no open conditional section');
     }
+
+    public static function becauseBranchFollowsLastOne(): self
+    {
+        return new self('The last branch of the conditional section has been started already');
+    }
 }

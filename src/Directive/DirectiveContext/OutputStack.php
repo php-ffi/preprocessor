@@ -37,6 +37,14 @@ final class OutputStack
     private array $taken = [];
 
     /**
+     * Whether the last branch of the section has been started, the innermost
+     * section last
+     *
+     * @var list<bool>
+     */
+    private array $ended = [];
+
+    /**
      * Whether the text and the directives other than the ones that manage the
      * stack are put out.
      */
@@ -76,6 +84,19 @@ final class OutputStack
     }
 
     /**
+     * Whether the current section is in its last branch, which no branch
+     * follows.
+     *
+     * @throws OutputStackException in case of there is no open section
+     */
+    public function hasLastBranch(): bool
+    {
+        $this->assertSection();
+
+        return $this->ended[\count($this->ended) - 1];
+    }
+
+    /**
      * Opens a section with its first branch, enabled in case of the condition
      * is true and the output is enabled.
      */
@@ -85,18 +106,21 @@ final class OutputStack
 
         $this->enabled[] = $isOuterEnabled && $isEnabled;
         $this->taken[] = !$isOuterEnabled || $isEnabled;
+        $this->ended[] = false;
     }
 
     /**
-     * Starts the next branch of the current section, as `#elif` and `#else`
-     * do. It is enabled in case of the condition is true, no branch of the
+     * Starts the next branch of the current section, as `#elif` does.
+     * It is enabled in case of the condition is true, no branch of the
      * section has been taken and the output is enabled outside the section.
      *
-     * @throws OutputStackException in case of there is no open section
+     * @throws OutputStackException in case of there is no open section or its last branch has been started
      */
     public function swap(bool $isEnabled = true): void
     {
-        $this->assertSection();
+        if ($this->hasLastBranch()) {
+            throw OutputStackException::becauseBranchFollowsLastOne();
+        }
 
         $isTaken = $this->hasBranchTaken();
 
@@ -104,6 +128,20 @@ final class OutputStack
         $this->push($isEnabled && !$isTaken);
         \array_pop($this->taken);
         $this->taken[] = $isTaken || $isEnabled;
+    }
+
+    /**
+     * Starts the last branch of the current section, as `#else` does. No
+     * branch can follow it.
+     *
+     * @throws OutputStackException in case of there is no open section or its last branch has been started
+     */
+    public function swapLast(): void
+    {
+        $this->swap();
+
+        \array_pop($this->ended);
+        $this->ended[] = true;
     }
 
     /**
@@ -117,6 +155,7 @@ final class OutputStack
 
         \array_pop($this->enabled);
         \array_pop($this->taken);
+        \array_pop($this->ended);
     }
 
     /**
