@@ -1,0 +1,35 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+namespace FFI\Preprocessor\Bin;
+
+/**
+ * Generates the pattern of the preprocessing tokens from their grammar.
+ *
+ * The generated class is committed. Run it (or `composer grammar:build`)
+ * after every change of `resources/tokens.pp3` and commit the result along
+ * with the grammar.
+ */
+
+use Phplrt\Compiler\Compiler;
+use Phplrt\Source\FileSource;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+const TOKENS_GRAMMAR_PATHNAME = __DIR__ . '/../resources/tokens.pp3';
+const TOKENS_TEMPLATE_PATHNAME = __DIR__ . '/../resources/tokens.tpl.php';
+const TOKENS_OUTPUT_PATHNAME = __DIR__ . '/../src/Lexer/CompiledTokenLexer.php';
+
+$result = (new Compiler())
+    ->load(FileSource::createFromPathname(TOKENS_GRAMMAR_PATHNAME))
+    ->build();
+
+\ob_start();
+require TOKENS_TEMPLATE_PATHNAME;
+$content = \ob_get_clean();
+
+\file_put_contents(TOKENS_OUTPUT_PATHNAME, $content);
+
+\fwrite(\STDOUT, \sprintf("Generated into %s\n", \realpath(TOKENS_OUTPUT_PATHNAME)));

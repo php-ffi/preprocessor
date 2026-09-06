@@ -57,11 +57,11 @@
     "scripts": {
         "grammar:check": [
             "phplrt check resources/grammar.pp3 -v",
-            "phplrt check resources/markup.pp3 -v"
+            "phplrt check resources/tokens.pp3 -v"
         ],
         "grammar:build": [
             "@php bin/build-expression-parser",
-            "@php bin/build-markup-lexer"
+            "@php bin/build-token-lexer"
         ],
         "test:unit": "phpunit --testdox",
         "linter:check": "phpstan analyse --configuration phpstan.neon --memory-limit 256M",

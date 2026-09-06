@@ -1,0 +1,74 @@
+/**
+ * -----------------------------------------------------------------------------
+ *  Preprocessing tokens of C23, see ISO/IEC 9899:2024, 6.4.
+ * -----------------------------------------------------------------------------
+ *
+ *  The tokens of a text without line splices: the text of a chunk of the
+ *  stream, whose splices the reader has removed. Every byte belongs to a
+ *  token, white space and comments included, so that the tokens cover the
+ *  text without gaps. The longest sequence that may form a token is the token
+ *  (6.4p4): a token declared earlier wins over a later one that starts at the
+ *  same byte.
+ *
+ *  Header names are not here: they are recognized only in their contexts
+ *  (6.4.7), which the lexer of the tokens knows.
+ */
+
+%pragma lexer.pcre.disable Utf8
+%pragma parser.disable Phplrt\Parser\Builder\Compiler\LeftRecursionValidationParserCompilerPass
+
+/**
+ * 6.4.3 Universal character names, a part of an identifier or a number.
+ */
+%fragment UCN \\(?:u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})
+
+/**
+ * An escape sequence of a character constant or a string literal: a
+ * backslash and the byte after it, unless the byte ends the line.
+ */
+%fragment ESCAPE \\[^\r\n]
+
+/**
+ * 6.4.9 Comments and the white-space characters, one or more of them. A
+ * block comment that is not closed lasts up to the end of the text.
+ */
+%token T_WHITESPACE (?:[\x20\t\f\x0B\r\n]++|/\*(?:[^*]++|\*(?!/))*+(?:\*/|\z)|//[^\r\n]*+)++
+
+/**
+ * 6.4.5 String literals with the encoding prefixes. A literal that is not
+ * closed lasts up to the end of the line, so that a stray quote does not
+ * swallow the rest of the text.
+ */
+%token T_STRING (?:u8|[uUL])?"(?:[^"\\\r\n]++|(?&ESCAPE))*+"?
+
+/**
+ * 6.4.4.5 Character constants with the encoding prefixes, not closed ones
+ * included, as the string literals.
+ */
+%token T_CHAR (?:u8|[uUL])?'(?:[^'\\\r\n]++|(?&ESCAPE))*+'?
+
+/**
+ * 6.4.8 Preprocessing numbers with the digit separators: `'` continues a
+ * number only before a digit or a nondigit.
+ */
+%token T_NUMBER \.?[0-9](?:[eEpP][+-]|[0-9A-Za-z_\x80-\xFF.]|(?&UCN)|'[0-9A-Za-z_])*+
+
+/**
+ * 6.4.3 Identifiers. A byte of a multibyte character is a part of an
+ * identifier, as is a universal character name.
+ */
+%token T_IDENTIFIER (?:[A-Za-z_\x80-\xFF]|(?&UCN))(?:[0-9A-Za-z_\x80-\xFF]|(?&UCN))*+
+
+/**
+ * 6.4.6 Punctuators, a longer one before the ones it starts with, the
+ * digraphs included.
+ */
+%token T_PUNCTUATOR %:%:|\.\.\.|<<=|>>=|->|\+\+|--|<<|>>|<=|>=|==|!=|&&|\|\||\*=|/=|%=|\+=|-=|&=|\^=|\|=|\#\#|::|<:|:>|<%|%>|%:|[\[\](){}.&*+\-~!/%<>^|?:;=,\#]
+
+/**
+ * Each other non-white-space byte (6.4p3), a lone quote and a backslash
+ * included.
+ */
+%token T_OTHER [\s\S]
+
+Nothing: Nothing();
