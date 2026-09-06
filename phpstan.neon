@@ -33,3 +33,11 @@ services:
     class: FFI\Preprocessor\Tests\Architecture\LibraryArchitectureTest
     tags:
       - phpat.test
+  -
+    class: FFI\Preprocessor\Tests\Architecture\FileSystemArchitectureTest
+    tags:
+      - phpat.test
+  -
+    class: FFI\Preprocessor\Tests\Architecture\ExpressionArchitectureTest
+    tags:
+      - phpat.test
