@@ -52,4 +52,4 @@ jobs:
       - name: Check Generated Parser Is Up To Date
         run: |
           composer grammar:build
-          git diff --exit-code -- src/Expression/CompiledExpressionParser.php src/Stream/Reader/BlockReader/CompiledMarkupLexer.php
+          git diff --exit-code -- src/Expression/Parser/CompiledExpressionParser.php src/Lexer/CompiledTokenLexer.php
