@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Stream\Reader\Transformer;
 
-use FFI\Preprocessor\Exception\InternalException;
-use FFI\Preprocessor\Exception\SyntaxErrorException;
 use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Stream\Exception\UnclosedCommentException;
+use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
 
 /**
  * Step of the translation phases 1 to 3 over the text of a file that arrives
@@ -26,8 +26,8 @@ interface TransformerInterface
      * chunk is final.
      *
      * @param bool $isFinal whether the chunk ends the file
-     * @throws SyntaxErrorException in case of the text breaks the rules of the step
-     * @throws InternalException in case of the text cannot be processed
+     * @throws UnclosedCommentException in case of the text breaks the rules of the step
+     * @throws UnmatchedTextException in case of the text cannot be matched
      */
     public function transform(UntaggedChunk $input, bool $isFinal): Transformation;
 }

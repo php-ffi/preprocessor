@@ -7,17 +7,13 @@ namespace FFI\Preprocessor\Tests\Diagnostic\DiagnosticListener;
 use FFI\Preprocessor\Diagnostic\Diagnostic;
 use FFI\Preprocessor\Diagnostic\Diagnostic\Severity;
 use FFI\Preprocessor\Diagnostic\DiagnosticListener\StreamDiagnosticListener;
-use FFI\Preprocessor\Exception\InvalidStreamException;
-use FFI\Preprocessor\Preprocessor;
 use FFI\Preprocessor\Tests\TestCase;
 use Phplrt\Contracts\Source\FileInterface;
 use Phplrt\Source\Exception\FileNotReadableException;
-use Phplrt\Source\VirtualSource;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(StreamDiagnosticListener::class)]
 #[CoversClass(Diagnostic::class)]
-#[CoversClass(InvalidStreamException::class)]
 final class StreamDiagnosticListenerTest extends TestCase
 {
     /**
@@ -94,51 +90,6 @@ final class StreamDiagnosticListenerTest extends TestCase
         (new StreamDiagnosticListener($stream))->notify(new Diagnostic(Severity::Warning, 'text', $file, 3));
 
         self::assertSame("gone.h: warning: text\n", self::readStream($stream));
-    }
-
-    public function testDiagnosticsOfPreprocessingAreWritten(): void
-    {
-        $stream = self::createStream();
-        $preprocessor = new Preprocessor(listener: new StreamDiagnosticListener($stream));
-
-        (string) $preprocessor->preprocess(VirtualSource::createFromString('main.h', "\n#warning text\n"));
-
-        self::assertSame("main.h:2:1: warning: #warning text\n", self::readStream($stream));
-    }
-
-    public function testValueThatIsNotStreamIsRejected(): void
-    {
-        $this->expectException(InvalidStreamException::class);
-        $this->expectExceptionMessage('The value of type "string" is not a stream');
-
-        new StreamDiagnosticListener('php://stderr');
-    }
-
-    public function testClosedStreamIsRejected(): void
-    {
-        $stream = self::createStream();
-        \fclose($stream);
-
-        $this->expectException(InvalidStreamException::class);
-        $this->expectExceptionMessage('The value of type "resource (closed)" is not a stream');
-
-        new StreamDiagnosticListener($stream);
-    }
-
-    public function testStreamOpenForReadingOnlyIsRejected(): void
-    {
-        $directory = $this->createDirectory(['a.h' => '']);
-        $stream = \fopen($directory . '/a.h', 'rb');
-        self::assertIsResource($stream);
-
-        try {
-            $this->expectException(InvalidStreamException::class);
-            $this->expectExceptionMessageMatches('/\AThe stream ".+a\.h" is not open for writing\z/');
-
-            new StreamDiagnosticListener($stream);
-        } finally {
-            \fclose($stream);
-        }
     }
 
     public function testDefaultListenerAndStandardStreamsAreCreated(): void

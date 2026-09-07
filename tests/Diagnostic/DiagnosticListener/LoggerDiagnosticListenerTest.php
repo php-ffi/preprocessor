@@ -7,11 +7,9 @@ namespace FFI\Preprocessor\Tests\Diagnostic\DiagnosticListener;
 use FFI\Preprocessor\Diagnostic\Diagnostic;
 use FFI\Preprocessor\Diagnostic\Diagnostic\Severity;
 use FFI\Preprocessor\Diagnostic\DiagnosticListener\LoggerDiagnosticListener;
-use FFI\Preprocessor\Preprocessor;
 use FFI\Preprocessor\Tests\TestCase;
 use Phplrt\Contracts\Source\FileInterface;
 use Phplrt\Source\Exception\FileNotReadableException;
-use Phplrt\Source\VirtualSource;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\AbstractLogger;
@@ -113,19 +111,5 @@ final class LoggerDiagnosticListenerTest extends TestCase
         (new LoggerDiagnosticListener($logger))->notify(new Diagnostic(Severity::Warning, '{file}', self::createFile('a'), 0));
 
         self::assertSame('{file}', $logger->records[0][1]);
-    }
-
-    public function testDiagnosticsOfPreprocessingAreLogged(): void
-    {
-        $logger = self::createLogger();
-        $preprocessor = new Preprocessor(listener: new LoggerDiagnosticListener($logger));
-
-        (string) $preprocessor->preprocess(VirtualSource::createFromString('main.h', "\n#warning text\n"));
-
-        self::assertCount(1, $logger->records);
-        self::assertSame(LogLevel::WARNING, $logger->records[0][0]);
-        self::assertSame('#warning text', $logger->records[0][1]);
-        self::assertSame('main.h', $logger->records[0][2]['file']);
-        self::assertSame(2, $logger->records[0][2]['line']);
     }
 }

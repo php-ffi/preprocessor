@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Tests\Stream;
 
 use FFI\Preprocessor\Stream\Chunk;
-use FFI\Preprocessor\Stream\Chunk\SourceMap;
-use FFI\Preprocessor\Stream\SourceChunk;
+use FFI\Preprocessor\Stream\Chunk\SourceMap\Edit;
+use FFI\Preprocessor\Stream\Chunk\SourceMap\SourceMap;
+use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceChunk;
 use FFI\Preprocessor\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -22,8 +23,9 @@ final class ChunkTest extends TestCase
 
     public function testOffsetInTextIsTranslatedToOffsetInFile(): void
     {
-        // The chunk "in\⏎t x;" starts at offset 10 of its file
-        $chunk = new SourceChunk('int x;', self::createFile(''), 10, SourceMap::createFromSplices([2], [2]));
+        // The chunk "in\<new-line>t x;" starts at offset 10 of its file
+        $map = SourceMap::createEmpty()->withEdits([new Edit(2, 2)]);
+        $chunk = new SourceChunk('int x;', self::createFile(''), 10, $map);
 
         self::assertSame(10, $chunk->getPhysicalOffset(0));
         self::assertSame(14, $chunk->getPhysicalOffset(2));

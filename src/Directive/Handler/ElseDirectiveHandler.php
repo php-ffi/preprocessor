@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
+use FFI\Preprocessor\Directive\Exception\MisplacedDirectiveException;
 use FFI\Preprocessor\Directive\OutputIndependentDirectiveHandlerInterface;
-use FFI\Preprocessor\Exception\SyntaxErrorException;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 
 /**
@@ -17,14 +17,14 @@ use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 final class ElseDirectiveHandler implements OutputIndependentDirectiveHandlerInterface
 {
     /**
-     * @throws SyntaxErrorException in case of there is no open section or it has the `#else` already
+     * @throws MisplacedDirectiveException in case of there is no open section or it has the `#else` already
      */
     public function handle(SourceDirective $directive, DirectiveContext $context): iterable
     {
         $output = $context->output;
 
         if (!$output->hasSection()) {
-            throw SyntaxErrorException::becauseDirectiveHasNoSection(
+            throw MisplacedDirectiveException::becauseSectionIsNotOpen(
                 $directive->source,
                 $directive->getPhysicalOffset(0),
                 'else',
@@ -32,7 +32,7 @@ final class ElseDirectiveHandler implements OutputIndependentDirectiveHandlerInt
         }
 
         if ($output->hasLastBranch()) {
-            throw SyntaxErrorException::becauseDirectiveFollowsElse(
+            throw MisplacedDirectiveException::becauseSectionHasElse(
                 $directive->source,
                 $directive->getPhysicalOffset(0),
                 'else',

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Stream\Segmenter;
 
-use FFI\Preprocessor\Exception\InternalException;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk;
 use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
 
 /**
  * Tells the source text from the preprocessing directives in the cleaned
@@ -26,7 +26,7 @@ interface SegmenterInterface
      *
      * @param iterable<int, UntaggedChunk> $chunks the consecutive pieces of the file
      * @return iterable<int, TaggedChunk>
-     * @throws InternalException in case of the text cannot be matched
+     * @throws UnmatchedTextException in case of the text cannot be matched
      */
     public function segment(iterable $chunks): iterable;
 }

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Stream\Reader;
 
-use FFI\Preprocessor\Exception\InternalException;
-use FFI\Preprocessor\Exception\SyntaxErrorException;
 use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Stream\Exception\UnclosedCommentException;
+use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
+use FFI\Preprocessor\Stream\Exception\UnreadableFileException;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
@@ -23,8 +24,9 @@ interface ReaderInterface
      * made while they are iterated.
      *
      * @return iterable<int, UntaggedChunk>
-     * @throws InternalException in case of the file cannot be read
-     * @throws SyntaxErrorException in case of the file ends in a comment
+     * @throws UnreadableFileException in case of the file cannot be read
+     * @throws UnclosedCommentException in case of the file ends in a comment
+     * @throws UnmatchedTextException in case of the text cannot be matched
      */
     public function read(FileInterface $file): iterable;
 }

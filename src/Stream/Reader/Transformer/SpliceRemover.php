@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Stream\Reader\Transformer;
 
-use FFI\Preprocessor\Exception\InternalException;
 use FFI\Preprocessor\Stream\Chunk\SourceMap\Edit;
 use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
 
 /**
  * Translation phase 2: removes each backslash followed by a new-line, blanks
@@ -27,7 +27,7 @@ final class SpliceRemover implements TransformerInterface
     private const UNFINISHED_PATTERN = '~\G\\\\[ \t\f\x0B]*+\r?\z~';
 
     /**
-     * @throws InternalException in case of the text cannot be matched
+     * @throws UnmatchedTextException in case of the text cannot be matched
      */
     public function transform(UntaggedChunk $input, bool $isFinal): Transformation
     {
@@ -50,12 +50,12 @@ final class SpliceRemover implements TransformerInterface
 
     /**
      * @return list<Edit>
-     * @throws InternalException in case of the text cannot be matched
+     * @throws UnmatchedTextException in case of the text cannot be matched
      */
     private function getSplices(string $text): array
     {
         if (\preg_match_all(self::SPLICE_PATTERN, $text, $matches, \PREG_OFFSET_CAPTURE) === false) {
-            throw InternalException::becauseTextIsNotMatched('line splices');
+            throw UnmatchedTextException::becauseTextIsNotMatched('line splices');
         }
 
         /** @var list<array{string, int<0, max>}> $splices */

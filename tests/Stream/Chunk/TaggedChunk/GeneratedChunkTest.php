@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Tests\Stream;
+namespace FFI\Preprocessor\Tests\Stream\Chunk\TaggedChunk;
 
-use FFI\Preprocessor\Stream\GeneratedChunk;
+use FFI\Preprocessor\Stream\Chunk\TaggedChunk\GeneratedChunk;
 use FFI\Preprocessor\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 

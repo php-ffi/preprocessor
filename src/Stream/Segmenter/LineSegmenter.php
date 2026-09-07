@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Stream\Segmenter;
 
-use FFI\Preprocessor\Exception\InternalException;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceChunk;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
 
 /**
  * Directive is a line whose first token is `#` or `%:`, any other line is
@@ -38,7 +38,7 @@ final class LineSegmenter implements SegmenterInterface
 
     /**
      * @return \Generator<int, SourceChunk|SourceDirective>
-     * @throws InternalException in case of the text cannot be matched
+     * @throws UnmatchedTextException in case of the text cannot be matched
      */
     public function segment(iterable $chunks): \Generator
     {
@@ -70,7 +70,7 @@ final class LineSegmenter implements SegmenterInterface
      * Splits the complete lines.
      *
      * @return \Generator<int, SourceChunk|SourceDirective>
-     * @throws InternalException in case of the text cannot be matched
+     * @throws UnmatchedTextException in case of the text cannot be matched
      */
     private function split(UntaggedChunk $lines): \Generator
     {
@@ -102,12 +102,12 @@ final class LineSegmenter implements SegmenterInterface
      * marker and the marker, each with its offset.
      *
      * @return list<array{array{string, int<0, max>}, array{string, int<0, max>}, array{string, int<0, max>}}>
-     * @throws InternalException in case of the text cannot be matched
+     * @throws UnmatchedTextException in case of the text cannot be matched
      */
     private function getDirectives(string $text): array
     {
         if (\preg_match_all(self::DIRECTIVE_PATTERN, $text, $matches, \PREG_SET_ORDER | \PREG_OFFSET_CAPTURE) === false) {
-            throw InternalException::becauseTextIsNotMatched('lines');
+            throw UnmatchedTextException::becauseTextIsNotMatched('lines');
         }
 
         /** @var list<array{array{string, int<0, max>}, array{string, int<0, max>}, array{string, int<0, max>}}> */
@@ -151,12 +151,12 @@ final class LineSegmenter implements SegmenterInterface
 
     /**
      * @param string $marker the `#` or `%:` the line starts with
-     * @throws InternalException in case of the line cannot be matched
+     * @throws UnmatchedTextException in case of the line cannot be matched
      */
     private function createDirective(UntaggedChunk $line, string $marker): SourceDirective
     {
         if (\preg_match(self::NAME_PATTERN, $line->content, $matches, offset: \strlen($marker)) !== 1) {
-            throw InternalException::becauseTextIsNotMatched('directive');
+            throw UnmatchedTextException::becauseTextIsNotMatched('directive');
         }
 
         return new SourceDirective(

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Stream\Reader\Transformer;
 
-use FFI\Preprocessor\Exception\InternalException;
-use FFI\Preprocessor\Exception\SyntaxErrorException;
 use FFI\Preprocessor\Stream\Chunk\SourceMap\Edit;
 use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Stream\Exception\UnclosedCommentException;
+use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
 
 /**
  * Translation phase 3: replaces each comment by one space. The comment
@@ -82,8 +82,8 @@ final class CommentReplacer implements TransformerInterface
     private const BLOCK_PATTERN = '~/\*(?:[^*]++|\*(?!/))*+\*/~';
 
     /**
-     * @throws SyntaxErrorException in case of the last chunk of the file ends in a block comment that is not closed
-     * @throws InternalException in case of the text cannot be matched
+     * @throws UnclosedCommentException in case of the last chunk of the file ends in a block comment that is not closed
+     * @throws UnmatchedTextException in case of the text cannot be matched
      */
     public function transform(UntaggedChunk $input, bool $isFinal): Transformation
     {
@@ -111,7 +111,7 @@ final class CommentReplacer implements TransformerInterface
                 }
             } elseif (isset($match['unclosed'])) {
                 if ($isFinal) {
-                    throw SyntaxErrorException::becauseCommentIsNotClosed($input->source, $input->getPhysicalOffset($start));
+                    throw UnclosedCommentException::becauseFileEnds($input->source, $input->getPhysicalOffset($start));
                 }
 
                 $end = \PHP_INT_MAX;
@@ -184,7 +184,7 @@ final class CommentReplacer implements TransformerInterface
 
     /**
      * @return list<array{0: array{string, int<0, max>}, lead?: array{string, int}, unclosed?: array{string, int}}>
-     * @throws InternalException in case of the text cannot be matched
+     * @throws UnmatchedTextException in case of the text cannot be matched
      */
     private function getMatches(string $text): array
     {
@@ -193,7 +193,7 @@ final class CommentReplacer implements TransformerInterface
         }
 
         if (\preg_match_all(self::PATTERN, $text, $matches, \PREG_SET_ORDER | \PREG_OFFSET_CAPTURE) === false) {
-            throw InternalException::becauseTextIsNotMatched('comments');
+            throw UnmatchedTextException::becauseTextIsNotMatched('comments');
         }
 
         /** @var list<array{0: array{string, int<0, max>}, lead?: array{string, int}, unclosed?: array{string, int}}> */
