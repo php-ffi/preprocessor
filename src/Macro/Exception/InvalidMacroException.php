@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace FFI\Preprocessor\Macro\Exception;
+
+/**
+ * Occurs when a macro cannot be defined as asked: the name is not a macro
+ * name with an optional parameter list, or the replacement is not a single
+ * line.
+ */
+final class InvalidMacroException extends MacroException
+{
+    public static function becauseNameIsInvalid(string $name): self
+    {
+        $message = \sprintf('Macro name "%s" is not a valid macro identifier', \addcslashes($name, '"'));
+
+        return new self($message);
+    }
+}
