@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Tests\Stream\Reader;
 
 use FFI\Preprocessor\Stream\Exception\UnclosedCommentException;
-use FFI\Preprocessor\Stream\Exception\UnreadableFileException;
 use FFI\Preprocessor\Stream\Reader\BlockReader;
 use FFI\Preprocessor\Tests\TestCase;
 use Phplrt\Contracts\Source\Exception\SourceExceptionInterface;
@@ -111,16 +110,15 @@ final class BlockReaderTest extends TestCase
         self::assertSame("a /* c */\\\nb\n",\implode('', [...(new BlockReader([], 4))->read($file)]));
     }
 
-    public function testUnreadableFileIsReportedWithTheReasonOfTheFailure(): void
+    public function testFailureOfTheFileIsNotWrapped(): void
     {
         $file = new FileSource(__DIR__ . '/missing-file.h');
 
         try {
             \iterator_to_array(BlockReader::createDefault()->read($file), false);
             self::fail('The exception is expected');
-        } catch (UnreadableFileException $e) {
+        } catch (SourceExceptionInterface $e) {
             self::assertStringContainsString('missing-file.h', $e->getMessage());
-            self::assertInstanceOf(SourceExceptionInterface::class, $e->getPrevious());
         }
     }
 }

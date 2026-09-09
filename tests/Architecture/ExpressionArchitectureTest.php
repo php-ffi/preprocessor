@@ -72,7 +72,7 @@ final class ExpressionArchitectureTest
             ->dependOn()
             ->classes(
                 Selector::inNamespace('FFI\Preprocessor\Expression\Exception'),
-                Selector::classname('FFI\Preprocessor\Exception\ParsingException'),
+                Selector::classname('FFI\Preprocessor\Exception\RuntimeException'),
             )
             ->because('a failure of an expression is a failure at a place of its text');
     }

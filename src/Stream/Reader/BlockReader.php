@@ -7,11 +7,9 @@ namespace FFI\Preprocessor\Stream\Reader;
 use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
 use FFI\Preprocessor\Stream\Exception\UnclosedCommentException;
 use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
-use FFI\Preprocessor\Stream\Exception\UnreadableFileException;
 use FFI\Preprocessor\Stream\Reader\Transformer\CommentReplacer;
 use FFI\Preprocessor\Stream\Reader\Transformer\SpliceRemover;
 use FFI\Preprocessor\Stream\Reader\Transformer\TransformerInterface;
-use Phplrt\Contracts\Source\Exception\SourceExceptionInterface;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
@@ -65,14 +63,15 @@ final class BlockReader implements ReaderInterface
 
     /**
      * @return \Generator<int, UntaggedChunk>
-     * @throws UnreadableFileException in case of the file cannot be read
      * @throws UnclosedCommentException in case of the file ends in a comment
      * @throws UnmatchedTextException in case of the text cannot be matched
+     * @throws \Throwable in case of internal error occurs
      */
     public function read(FileInterface $file): \Generator
     {
         // The byte order mark is read whole whatever the size of a block is
-        $block = $this->readBlock($file, 0, \max($this->blockSize, \strlen(self::BYTE_ORDER_MARK)));
+        $block = $file->read(0, \max($this->blockSize, \strlen(self::BYTE_ORDER_MARK)));
+
         $position = \strlen($block);
         $isFinal = $block === '';
         $offset = 0;
@@ -104,24 +103,10 @@ final class BlockReader implements ReaderInterface
                 return;
             }
 
-            $block = $this->readBlock($file, $position, $this->blockSize);
+            $block = $file->read($position, $this->blockSize);
             $isFinal = $block === '';
             $offset = $position;
             $position += \strlen($block);
-        }
-    }
-
-    /**
-     * @param int<0, max> $position
-     * @param int<1, max> $size
-     * @throws UnreadableFileException in case of the file cannot be read
-     */
-    private function readBlock(FileInterface $file, int $position, int $size): string
-    {
-        try {
-            return $file->read($position, $size);
-        } catch (SourceExceptionInterface $e) {
-            throw UnreadableFileException::becauseReadFails($file, $e);
         }
     }
 }

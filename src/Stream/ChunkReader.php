@@ -7,7 +7,6 @@ namespace FFI\Preprocessor\Stream;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk;
 use FFI\Preprocessor\Stream\Exception\UnclosedCommentException;
 use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
-use FFI\Preprocessor\Stream\Exception\UnreadableFileException;
 use FFI\Preprocessor\Stream\Reader\BlockReader;
 use FFI\Preprocessor\Stream\Reader\ReaderInterface;
 use FFI\Preprocessor\Stream\Segmenter\LineSegmenter;
@@ -51,9 +50,9 @@ final class ChunkReader
      * they are iterated.
      *
      * @return iterable<int, TaggedChunk>
-     * @throws UnreadableFileException in case of the file cannot be read
      * @throws UnclosedCommentException in case of the file ends in a comment
      * @throws UnmatchedTextException in case of the text cannot be matched
+     * @throws \Throwable in case of internal error occurs
      */
     public function read(FileInterface $file): iterable
     {

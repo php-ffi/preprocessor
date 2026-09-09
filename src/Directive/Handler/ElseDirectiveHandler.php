@@ -24,17 +24,19 @@ final class ElseDirectiveHandler implements OutputIndependentDirectiveHandlerInt
         $output = $context->output;
 
         if (!$output->hasSection()) {
-            throw MisplacedDirectiveException::becauseSectionIsNotOpen(
+            throw MisplacedDirectiveException::becauseOpeningIsMissing(
                 $directive->source,
                 $directive->getPhysicalOffset(0),
                 'else',
+                'if',
             );
         }
 
         if ($output->hasLastBranch()) {
-            throw MisplacedDirectiveException::becauseSectionHasElse(
+            throw MisplacedDirectiveException::becauseEndingIsPassed(
                 $directive->source,
                 $directive->getPhysicalOffset(0),
+                'else',
                 'else',
             );
         }

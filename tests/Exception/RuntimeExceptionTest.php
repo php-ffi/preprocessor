@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Tests\Exception;
 
-use FFI\Preprocessor\Exception\ParsingException;
+use FFI\Preprocessor\Exception\RuntimeException;
 use FFI\Preprocessor\Tests\TestCase;
 use Phplrt\Contracts\Source\ReadableInterface;
 use Phplrt\Source\FileSource;
 use Phplrt\Source\StringSource;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(ParsingException::class)]
-final class ParsingExceptionTest extends TestCase
+#[CoversClass(RuntimeException::class)]
+final class RuntimeExceptionTest extends TestCase
 {
     /**
      * @param int<0, max> $offset
      * @param int<0, max> $length
      */
-    private static function createException(ReadableInterface $source, int $offset, int $length = 0): ParsingException
+    private static function createException(ReadableInterface $source, int $offset, int $length = 0): RuntimeException
     {
-        return new class ('Unexpected "@"', $source, $offset, $length) extends ParsingException {
+        return new class ('Unexpected "@"', $source, $offset, $length) extends RuntimeException {
             /**
              * @param int<0, max> $offset
              * @param int<0, max> $length

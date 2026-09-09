@@ -22,10 +22,11 @@ final class EndifDirectiveHandler implements OutputIndependentDirectiveHandlerIn
     public function handle(SourceDirective $directive, DirectiveContext $context): iterable
     {
         if (!$context->output->hasSection()) {
-            throw MisplacedDirectiveException::becauseSectionIsNotOpen(
+            throw MisplacedDirectiveException::becauseOpeningIsMissing(
                 $directive->source,
                 $directive->getPhysicalOffset(0),
                 'endif',
+                'if',
             );
         }
 
