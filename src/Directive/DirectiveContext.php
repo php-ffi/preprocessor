@@ -6,6 +6,7 @@ namespace FFI\Preprocessor\Directive;
 
 use FFI\Preprocessor\Diagnostic\DiagnosticListenerInterface;
 use FFI\Preprocessor\Directive\DirectiveContext\OutputStack;
+use FFI\Preprocessor\FileSystem\FileSystemInterface;
 use FFI\Preprocessor\Macro\MacroRepository;
 
 /**
@@ -26,5 +27,9 @@ final class DirectiveContext
          * The macros defined at the moment, `#define` and `#undef` change them
          */
         public readonly MacroRepository $macros,
+        /**
+         * The files `#include` and `#embed` search
+         */
+        public readonly FileSystemInterface $files,
     ) {}
 }

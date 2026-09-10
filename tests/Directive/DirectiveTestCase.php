@@ -6,6 +6,8 @@ namespace FFI\Preprocessor\Tests\Directive;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\DirectiveContext\OutputStack;
+use FFI\Preprocessor\FileSystem\FileSystemInterface;
+use FFI\Preprocessor\FileSystem\VirtualFileSystem;
 use FFI\Preprocessor\Macro\MacroRepository;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 use FFI\Preprocessor\Stream\ChunkReader;
@@ -32,7 +34,13 @@ abstract class DirectiveTestCase extends TestCase
         RecordingDiagnosticListener $listener,
         ?OutputStack $output = null,
         ?MacroRepository $macros = null,
+        ?FileSystemInterface $files = null,
     ): DirectiveContext {
-        return new DirectiveContext($output ?? new OutputStack(), $listener, $macros ?? new MacroRepository());
+        return new DirectiveContext(
+            $output ?? new OutputStack(),
+            $listener,
+            $macros ?? new MacroRepository(),
+            $files ?? new VirtualFileSystem(),
+        );
     }
 }

@@ -20,4 +20,13 @@ final class InvalidDirectiveBodyException extends RuntimeException
     {
         return new self(\sprintf('#%s expects an identifier as a macro name', $directive), $source, $offset);
     }
+
+    /**
+     * @param string $directive name of the directive
+     * @param int<0, max> $offset offset of the first byte of the body in the source
+     */
+    public static function becauseHeaderNameIsInvalid(ReadableInterface $source, int $offset, string $directive): self
+    {
+        return new self(\sprintf('#%s expects "FILENAME" or <FILENAME>', $directive), $source, $offset);
+    }
 }
