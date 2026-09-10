@@ -14,7 +14,7 @@ use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
  *
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 6.10.2 Conditional inclusion
  */
-final class EndifDirectiveHandler implements OutputIndependentDirectiveHandlerInterface
+final class EndifDirectiveHandler extends DirectiveHandler implements OutputIndependentDirectiveHandlerInterface
 {
     /**
      * @throws MisplacedDirectiveException in case of there is no open section
@@ -30,7 +30,7 @@ final class EndifDirectiveHandler implements OutputIndependentDirectiveHandlerIn
             );
         }
 
-        $context->reportExtraTokens($directive);
+        $this->reportExtraTokens($context, $directive);
         $context->output->pop();
 
         return [];
