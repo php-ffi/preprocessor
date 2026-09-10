@@ -6,6 +6,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\DirectiveHandlerInterface;
+use FFI\Preprocessor\Stream\Chunk\TaggedChunk\GeneratedChunk;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 
 /**
@@ -17,6 +18,12 @@ final class PragmaDirectiveHandler implements DirectiveHandlerInterface
 {
     public function handle(SourceDirective $directive, DirectiveContext $context): iterable
     {
-        throw new \BadMethodCallException('The handler is not implemented yet');
+        $body = \trim($directive->body);
+
+        if ($body === '') {
+            return [new GeneratedChunk("#pragma\n", $directive->source, $directive->getPhysicalOffset(0))];
+        }
+
+        return [new GeneratedChunk("#pragma $body\n", $directive->source, $directive->getPhysicalOffset(0))];
     }
 }
