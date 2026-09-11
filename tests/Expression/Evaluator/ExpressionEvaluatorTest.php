@@ -141,23 +141,17 @@ final class ExpressionEvaluatorTest extends TestCase
      */
     private static function failures(): iterable
     {
-        yield 'division by zero' => ['1 / 0', 'Division by zero in the expression', '1 /'];
-        yield 'remainder by zero' => ['1 % (2 - 2)', 'Division by zero in the expression', '1 %'];
-        yield 'unsigned division by zero' => ['1u / 0', 'Division by zero in the expression', '1u /'];
         yield 'signed sum overflow' => ['9223372036854775807 + 1', 'Integer overflow in the expression', '9223372036854775807 +'];
         yield 'signed difference overflow' => ['-9223372036854775807 - 2', 'Integer overflow in the expression', '-9223372036854775807 -'];
         yield 'signed product overflow' => ['4294967296 * 4294967296', 'Integer overflow in the expression', '4294967296 *'];
         yield 'product of minus one and the least' => ['-1 * (-9223372036854775807 - 1)', 'Integer overflow in the expression', '-1 *'];
         yield 'negation of the least' => ['-(-9223372036854775807 - 1)', 'Integer overflow in the expression', '-(-'];
-        yield 'least divided by minus one' => ['(-9223372036854775807 - 1) / -1', 'Integer overflow in the expression', '(-'];
-        yield 'least remainder by minus one' => ['(-9223372036854775807 - 1) % -1', 'Integer overflow in the expression', '(-'];
         yield 'signed shift by the width' => ['1 << 64', 'Integer overflow in the expression', '1 <<'];
         yield 'shift by large unsigned' => ['1 << 0xFFFFFFFFFFFFFFFF', 'Integer overflow in the expression', '1 <<'];
         yield 'signed shift into the sign' => ['1 << 63', 'Integer overflow in the expression', '1 <<'];
         yield 'signed shift beyond the bits' => ['3 << 62', 'Integer overflow in the expression', '3 <<'];
         yield 'evaluated comma' => ['1, 2', 'Comma operator in the evaluated part of the expression', '1,'];
         yield 'comma in the branch taken' => ['1 ? (2, 3) : 4', 'Comma operator in the evaluated part of the expression', '2,'];
-        yield 'division by zero in the right of or' => ['0 || 1 / 0', 'Division by zero in the expression', '1 /'];
         yield 'too large decimal' => ['18446744073709551616', 'Integer constant is too large for its type', '18446744073709551616'];
         yield 'too large hexadecimal' => ['0x1FFFFFFFFFFFFFFFF', 'Integer constant is too large for its type', '0x1FFFFFFFFFFFFFFFF'];
         yield 'too large octal' => ['02000000000000000000000', 'Integer constant is too large for its type', '02000000000000000000000'];

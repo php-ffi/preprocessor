@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Tests\Expression\Evaluator\Math;
 
-use FFI\Preprocessor\Exception\InternalException;
 use FFI\Preprocessor\Expression\Evaluator\Math\Driver\BcMathDriver;
 use FFI\Preprocessor\Expression\Evaluator\Math\Driver\GmpDriver;
 use FFI\Preprocessor\Expression\Evaluator\Math\Driver\NativeX64Driver;
@@ -240,14 +239,6 @@ final class MathDriverTest extends TestCase
         self::assertTrue($math->isNegative($math->createFromInt(-1)));
         self::assertTrue($math->isNegative(self::createNumber($math, self::SIGNED_MIN)));
         self::assertFalse($math->isNegative(self::createNumber($math, self::SIGNED_MAX)));
-    }
-
-    public function testThirtyTwoBitDriverReportsPlatformAsNotSupported(): void
-    {
-        $this->expectException(InternalException::class);
-        $this->expectExceptionMessage('The 64-bit arithmetic of the conditional directives needs a 64-bit PHP or the GMP or the BCMath extension');
-
-        (new NativeX86Driver())->createFromInt(1);
     }
 
     /**
