@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Tests;
 
-use FFI\Preprocessor\LegacyMacro\ExpansionContextInterface;
-use FFI\Preprocessor\Lexer\Token;
 use FFI\Preprocessor\Stream\Chunk\SourceMap\SourceMap;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceChunk;
 use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
@@ -52,66 +50,6 @@ abstract class TestCase extends BaseTestCase
     protected static function createUntaggedChunk(string $content, int $offset = 0): UntaggedChunk
     {
         return UntaggedChunk::createFromString(self::createFile($content), $content, $offset);
-    }
-
-    /**
-     * Creates the context of the computed macros: the token stands on the
-     * line of the given number in a file of the given name.
-     *
-     * @param int<1, max> $line
-     */
-    protected static function createExpansionContext(
-        string $fileName = 'test.h',
-        int $line = 1,
-        string $time = '2026-10-17 12:34:56',
-    ): ExpansionContextInterface {
-        return new class ($fileName, $line, new \DateTimeImmutable($time)) implements ExpansionContextInterface {
-            /**
-             * @var array<non-empty-string, int<0, max>>
-             */
-            private array $counters = [];
-
-            /**
-             * @param int<1, max> $line
-             */
-            public function __construct(
-                private readonly string $fileName,
-                private readonly int $line,
-                private readonly \DateTimeImmutable $time,
-            ) {}
-
-            public function getFileName(Token $token): string
-            {
-                return $this->fileName;
-            }
-
-            public function getLine(Token $token): int
-            {
-                return $this->line;
-            }
-
-            public function getTime(): \DateTimeImmutable
-            {
-                return $this->time;
-            }
-
-            public function getIncludeDepth(): int
-            {
-                return 0;
-            }
-
-            public function getRootFileName(): string
-            {
-                return $this->fileName;
-            }
-
-            public function increment(string $counter): int
-            {
-                $this->counters[$counter] ??= 0;
-
-                return $this->counters[$counter]++;
-            }
-        };
     }
 
     /**

@@ -20,7 +20,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 const TOKENS_GRAMMAR_PATHNAME = __DIR__ . '/../resources/tokens.pp3';
 const TOKENS_TEMPLATE_PATHNAME = __DIR__ . '/../resources/tokens.tpl.php';
-const TOKENS_OUTPUT_PATHNAME = __DIR__ . '/../src/Lexer/CompiledTokenLexer.php';
+const TOKENS_OUTPUT_PATHNAME = __DIR__ . '/../src/Macro/Executor/MacroExpander/CompiledTokenLexer.php';
 
 $result = (new Compiler())
     ->load(FileSource::createFromPathname(TOKENS_GRAMMAR_PATHNAME))

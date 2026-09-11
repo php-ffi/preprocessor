@@ -5,16 +5,18 @@ echo "<?php\n";
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Lexer;
+namespace FFI\Preprocessor\Macro\Executor\MacroExpander;
+
+use Phplrt\Lexer\Lexer;
 
 /**
- * The compiled pattern of the preprocessing tokens and the identifiers of
- * the token kinds it marks, generated from `resources/tokens.pp3`.
+ * The lexer of the preprocessing tokens (6.4) and the identifiers of the
+ * token kinds it marks, generated from `resources/tokens.pp3`.
  *
  * @internal this is an internal library class, please do not use it in your code
- * @psalm-internal FFI\Preprocessor\Lexer
+ * @psalm-internal FFI\Preprocessor\Macro\Executor
  */
-final class CompiledTokenLexer
+final class CompiledTokenLexer extends Lexer
 {
 <?php foreach ($result->lexer->names as $id => $token): ?>
 <?php if (\str_starts_with($token, 'T_')): ?>
@@ -30,4 +32,9 @@ final class CompiledTokenLexer
      * @var non-empty-string
      */
     public const PATTERN = <?=var_export($result->lexer->pattern, true)?>;
+
+    public function __construct()
+    {
+        parent::__construct(pattern: self::PATTERN);
+    }
 }
