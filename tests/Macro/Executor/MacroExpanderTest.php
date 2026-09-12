@@ -6,6 +6,11 @@ namespace FFI\Preprocessor\Tests\Macro\Executor;
 
 use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
+use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro;
+use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\ParamExpander;
+use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\ParamStringifier;
+use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\Placeholder;
+use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\PlaceholderKind;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\TemplateFunctionLikeMacro;
 use FFI\Preprocessor\Macro\MacroRepository;
 use FFI\Preprocessor\Tests\TestCase;
@@ -31,7 +36,26 @@ final class MacroExpanderTest extends TestCase
         $macros->defineByMacro('F', new TemplateFunctionLikeMacro('F(%s)', 1));
         $macros->defineByMacro('V3', new TemplateFunctionLikeMacro('%s%s%s', 3, true));
 
-        return new MacroExpander($macros);
+        $expander = new MacroExpander($macros);
+        $paramExpander = new ParamExpander($expander);
+        $stringifier = new ParamStringifier();
+
+        $macros->defineByString('N', '5');
+        // #define STR(x) #x
+        $macros->defineByMacro('STR', new CompiledFunctionLikeMacro('%s', $paramExpander, $stringifier, [
+            new Placeholder(0, PlaceholderKind::Stringified),
+        ], 1));
+        // #define XSTR(x) STR(x)
+        $macros->defineByMacro('XSTR', new CompiledFunctionLikeMacro('STR(%s)', $paramExpander, $stringifier, [
+            new Placeholder(0, PlaceholderKind::Expanded),
+        ], 1));
+        // #define CAT(a, b) a ## b
+        $macros->defineByMacro('CAT', new CompiledFunctionLikeMacro('%s%s', $paramExpander, $stringifier, [
+            new Placeholder(0, PlaceholderKind::Raw),
+            new Placeholder(1, PlaceholderKind::Raw),
+        ], 2));
+
+        return $expander;
     }
 
     /**
@@ -58,6 +82,10 @@ final class MacroExpanderTest extends TestCase
         yield 'no parameters' => ['NONE()', '0'];
         yield 'variadic tail is joined' => ['LOG(a, b, c)', 'log(a, b, c)'];
         yield 'variadic tail is omitted' => ['LOG(a)', 'log(a, )'];
+        yield 'stringified argument is not expanded' => ['STR(N)', '"N"'];
+        yield 'stringified argument keeps its literals' => ['STR(a   "x  \" y"  b)', '"a \"x  \\\\\\" y\" b"'];
+        yield 'stringified expanded argument' => ['XSTR(N)', '"5"'];
+        yield 'operands of concatenation are not expanded' => ['CAT(N, 1)', 'N1'];
     }
 
     #[DataProvider('expansionDataProvider')]

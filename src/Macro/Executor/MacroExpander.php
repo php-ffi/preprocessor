@@ -16,7 +16,7 @@ use Phplrt\Source\StringSource;
 
 /**
  * Replaces the invocations of macros in a text by their replacements, and
- * rescans the result for more (6.10.5).
+ * rescans the result for more (6.10.5). A macro gets the arguments as written.
  *
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 6.10.5 Macro replacement
  */
@@ -97,7 +97,7 @@ final class MacroExpander
      * Reads the arguments of an invocation that follow the macro name,
      * returns {@see null} in case of the name is not followed by `(`.
      *
-     * @return list<string>|null the arguments expanded, the variadic ones as a single one
+     * @return list<string>|null the arguments as written, the variadic ones as a single one
      * @throws MacroInvocationException in case of the argument list is not closed or has a wrong number of arguments
      */
     private function findArguments(string $name, FunctionLikeMacro $macro, Expansion $expansion): ?array
@@ -121,7 +121,7 @@ final class MacroExpander
             return null;
         }
 
-        return $this->expandArguments($name, $macro, $this->readArguments($name, $expansion), $expansion);
+        return $this->normalizeArguments($name, $macro, $this->readArguments($name, $expansion));
     }
 
     /**
@@ -167,7 +167,7 @@ final class MacroExpander
      * @return list<string>
      * @throws MacroInvocationException in case of the number of the arguments is wrong
      */
-    private function expandArguments(string $name, FunctionLikeMacro $macro, array $arguments, Expansion $expansion): array
+    private function normalizeArguments(string $name, FunctionLikeMacro $macro, array $arguments): array
     {
         $named = $macro->args;
 
@@ -195,17 +195,7 @@ final class MacroExpander
             $result[] = \implode(self::SEPARATOR, \array_slice($arguments, $named));
         }
 
-        return \array_map(fn(string $argument): string => $this->expandArgument($argument, $expansion), $result);
-    }
-
-    /**
-     * @throws MacroInvocationException in case of an invocation in the argument is malformed
-     */
-    private function expandArgument(string $argument, Expansion $expansion): string
-    {
-        $pieces = $this->readTokens(\trim($argument, self::BLANKS));
-
-        return $this->expandTokens(new Expansion($pieces, $expansion->getDisabled()));
+        return \array_map(static fn(string $argument): string => \trim($argument, self::BLANKS), $result);
     }
 
     /**

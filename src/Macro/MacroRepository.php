@@ -81,21 +81,38 @@ final class MacroRepository implements MacroRepositoryInterface
         throw InvalidMacroException::becauseNameIsInvalid($name);
     }
 
+    /**
+     * @param non-empty-string $name
+     * @throws \Throwable in case of internal error occurs
+     */
     public function define(string $name, mixed $replacement = '1'): void
     {
         $this->defineByString($name, $replacement);
     }
 
+    /**
+     * @param non-empty-string $name
+     * @throws \Throwable in case of internal error occurs
+     */
     public function defineByString(string $name, string $replacement): void
     {
         $this->defineByMacro($name, new ObjectLikeMacro($replacement));
     }
 
+    /**
+     * @param non-empty-string $name
+     * @param \Closure(string ...): string $replacement
+     * @throws \Throwable in case of internal error occurs
+     */
     public function defineByClosure(string $name, \Closure $replacement): void
     {
         $this->defineByMacro($name, ClosureFunctionLikeMacro::createFromClosure($replacement));
     }
 
+    /**
+     * @param non-empty-string $name
+     * @throws \Throwable in case of internal error occurs
+     */
     public function defineByMacro(string $name, MacroInterface $macro): void
     {
         $this->assertValidMacroName($name);
@@ -106,6 +123,8 @@ final class MacroRepository implements MacroRepositoryInterface
     /**
      * Undefines the macro of the name, nothing happens in case of it is not
      * defined.
+     *
+     * @param non-empty-string $name
      */
     public function remove(string $name): void
     {
