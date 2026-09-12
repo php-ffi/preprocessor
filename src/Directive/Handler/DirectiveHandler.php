@@ -21,7 +21,7 @@ abstract class DirectiveHandler implements DirectiveHandlerInterface
     /**
      * The blanks that may follow the body of a directive.
      */
-    private const BLANKS = " \t\f\x0B";
+    protected const BLANKS = " \t\f\x0B";
 
     /**
      * An identifier at the start of a body
