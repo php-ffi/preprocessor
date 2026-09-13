@@ -6,6 +6,7 @@ namespace FFI\Preprocessor\Tests\Directive;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\DirectiveContext\OutputStack;
+use FFI\Preprocessor\Directive\FileIncluderInterface;
 use FFI\Preprocessor\FileSystem\FileSystemInterface;
 use FFI\Preprocessor\FileSystem\VirtualFileSystem;
 use FFI\Preprocessor\Macro\MacroRepository;
@@ -35,12 +36,14 @@ abstract class DirectiveTestCase extends TestCase
         ?OutputStack $output = null,
         ?MacroRepository $macros = null,
         ?FileSystemInterface $files = null,
+        ?FileIncluderInterface $includer = null,
     ): DirectiveContext {
         return new DirectiveContext(
             $output ?? new OutputStack(),
             $listener,
             $macros ?? new MacroRepository(),
             $files ?? new VirtualFileSystem(),
+            $includer ?? new RecordingFileIncluder(),
         );
     }
 }

@@ -10,9 +10,10 @@ use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
 use FFI\Preprocessor\Directive\Handler\EmbedDirectiveHandler;
 use FFI\Preprocessor\Directive\Handler\IncludeDirectiveHandler;
 use FFI\Preprocessor\FileSystem\VirtualFileSystem;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\GeneratedChunk;
+use FFI\Preprocessor\Macro\MacroRepository;
 use FFI\Preprocessor\Tests\Directive\DirectiveTestCase;
 use FFI\Preprocessor\Tests\Directive\RecordingDiagnosticListener;
+use FFI\Preprocessor\Tests\Directive\RecordingFileIncluder;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Phplrt\Source\VirtualSource;
@@ -40,21 +41,57 @@ final class FileDirectivesTest extends DirectiveTestCase
     }
 
     #[DataProvider('foundNameDataProvider')]
-    public function testIncludeMarksThePlaceOfTheFoundFile(string $name): void
+    public function testIncludeGivesTheOutputOfTheFoundFile(string $name): void
     {
         $files = new VirtualFileSystem();
         $files->addFile('a.bin', VirtualSource::createFromString('a.bin', 'AB'));
         $listener = new RecordingDiagnosticListener();
+        $includer = new RecordingFileIncluder();
 
         $chunks = [...(new IncludeDirectiveHandler())->handle(
             self::readDirective("#include $name\n"),
-            self::createContext($listener, null, null, $files),
+            self::createContext($listener, null, null, $files, $includer),
         )];
 
         self::assertCount(1, $chunks);
-        self::assertInstanceOf(GeneratedChunk::class, $chunks[0]);
-        self::assertStringContainsString('a.bin', $chunks[0]->content);
+        self::assertSame('AB', $chunks[0]->content);
+        self::assertCount(1, $includer->files);
+        self::assertSame('/a.bin', $includer->files[0]->pathname);
         self::assertSame([], $listener->diagnostics);
+    }
+
+    #[DataProvider('handlerDataProvider')]
+    public function testNameFromMacroReplacementIsTheSameAsWrittenOne(
+        DirectiveHandlerInterface $handler,
+        string $name,
+    ): void {
+        $files = new VirtualFileSystem();
+        $files->addFile('a.h', VirtualSource::createFromString('a.h', 'AB'));
+        $macros = new MacroRepository();
+        $macros->defineByString('HEADER', '"a.h"');
+        $listener = new RecordingDiagnosticListener();
+
+        $chunks = [...$handler->handle(
+            self::readDirective("#$name HEADER\n"),
+            self::createContext($listener, null, $macros, $files),
+        )];
+
+        self::assertCount(1, $chunks);
+        self::assertSame([], $listener->diagnostics);
+    }
+
+    public function testMacroReplacementThatIsNotHeaderNameIsRejected(): void
+    {
+        $macros = new MacroRepository();
+        $macros->defineByString('HEADER', '"a.h" X');
+
+        $this->expectException(InvalidDirectiveBodyException::class);
+        $this->expectExceptionMessage('#include expects "FILENAME" or <FILENAME>');
+
+        [...(new IncludeDirectiveHandler())->handle(
+            self::readDirective("#include HEADER\n"),
+            self::createContext(new RecordingDiagnosticListener(), null, $macros),
+        )];
     }
 
     #[DataProvider('foundNameDataProvider')]

@@ -61,18 +61,39 @@ abstract class DirectiveHandler implements DirectiveHandlerInterface
     }
 
     /**
-     * Returns the header name the body of a directive starts with.
+     * Returns the header name the body of a directive starts with, or the one
+     * the body is replaced by in case of it does not start with a header name
+     * (6.10.3p4).
      *
-     * @throws InvalidDirectiveBodyException in case of the body does not start with a header name
+     * @throws InvalidDirectiveBodyException in case of the body is not a header name, nor is replaced by one
+     * @throws MacroInvocationException in case of an invocation of a macro in the body is malformed
      */
-    protected function getHeaderName(SourceDirective $directive): HeaderName
+    protected function getHeaderName(SourceDirective $directive, DirectiveContext $context): HeaderName
     {
-        if (\preg_match(self::HEADER_NAME_PATTERN, $directive->body, $matches) !== 1) {
+        $name = $this->findHeaderName($directive->body);
+
+        if ($name !== null) {
+            return $name;
+        }
+
+        $expanded = \trim((new MacroExpander($context->macros))->expand($directive->body), self::BLANKS);
+        $name = $this->findHeaderName($expanded);
+
+        if ($name === null || $name->length !== \strlen($expanded)) {
             throw InvalidDirectiveBodyException::becauseHeaderNameIsInvalid(
                 $directive->source,
                 $directive->getPhysicalOffset($directive->bodyOffset),
                 $directive->name,
             );
+        }
+
+        return new HeaderName($name->pathname, $name->isAngled, \strlen(\rtrim($directive->body, self::BLANKS)));
+    }
+
+    private function findHeaderName(string $text): ?HeaderName
+    {
+        if (\preg_match(self::HEADER_NAME_PATTERN, $text, $matches) !== 1) {
+            return null;
         }
 
         if (isset($matches[2])) {

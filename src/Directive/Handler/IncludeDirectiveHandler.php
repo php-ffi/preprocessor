@@ -6,7 +6,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\GeneratedChunk;
+use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 
 /**
@@ -17,11 +17,12 @@ use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 final class IncludeDirectiveHandler extends DirectiveHandler
 {
     /**
-     * @throws InvalidDirectiveBodyException in case of the body does not start with a header name
+     * @throws InvalidDirectiveBodyException in case of the body is not a header name, nor is replaced by one
+     * @throws MacroInvocationException in case of an invocation of a macro in the body is malformed
      */
     public function handle(SourceDirective $directive, DirectiveContext $context): iterable
     {
-        $name = $this->getHeaderName($directive);
+        $name = $this->getHeaderName($directive, $context);
         $this->reportExtraTokens($context, $directive, $name->length);
 
         $file = $this->findFile($context, $directive, $name);
@@ -32,9 +33,6 @@ final class IncludeDirectiveHandler extends DirectiveHandler
             return [];
         }
 
-        // TODO: the included file is executed by the stream executor, until it exists the place is marked
-        $text = \sprintf("/* the file \"%s\" must be included from the stream executor */\n", $file->pathname);
-
-        return [new GeneratedChunk($text, $directive->source, $directive->getPhysicalOffset(0))];
+        return $context->includer->includeFile($file);
     }
 }

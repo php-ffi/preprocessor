@@ -6,6 +6,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
+use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk\GeneratedChunk;
 use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 
@@ -17,11 +18,12 @@ use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
 final class EmbedDirectiveHandler extends DirectiveHandler
 {
     /**
-     * @throws InvalidDirectiveBodyException in case of the body does not start with a resource name
+     * @throws InvalidDirectiveBodyException in case of the body is not a resource name, nor is replaced by one
+     * @throws MacroInvocationException in case of an invocation of a macro in the body is malformed
      */
     public function handle(SourceDirective $directive, DirectiveContext $context): iterable
     {
-        $name = $this->getHeaderName($directive);
+        $name = $this->getHeaderName($directive, $context);
         $this->reportExtraTokens($context, $directive, $name->length);
 
         $file = $this->findFile($context, $directive, $name);

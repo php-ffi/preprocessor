@@ -31,5 +31,9 @@ final class DirectiveContext
          * The files `#include` and `#embed` search
          */
         public readonly FileSystemInterface $files,
+        /**
+         * Preprocesses the files `#include` includes
+         */
+        public readonly FileIncluderInterface $includer,
     ) {}
 }
