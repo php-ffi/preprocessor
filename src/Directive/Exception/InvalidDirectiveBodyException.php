@@ -34,6 +34,19 @@ final class InvalidDirectiveBodyException extends RuntimeException
      * @param string $directive name of the directive
      * @param int<0, max> $offset offset of the first byte of the body in the source
      */
+    public static function becauseDefinedOperatorIsInvalid(ReadableInterface $source, int $offset, string $directive): self
+    {
+        return new self(
+            \sprintf('#%s: "defined" expects an identifier, or an identifier in parentheses', $directive),
+            $source,
+            $offset,
+        );
+    }
+
+    /**
+     * @param string $directive name of the directive
+     * @param int<0, max> $offset offset of the first byte of the body in the source
+     */
     public static function becauseParameterListIsInvalid(ReadableInterface $source, int $offset, string $directive): self
     {
         return new self(

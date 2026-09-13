@@ -91,11 +91,12 @@ final class LibraryArchitectureTest
                 Selector::inNamespace('FFI\Preprocessor\FileSystem'),
                 Selector::inNamespace('FFI\Preprocessor\Diagnostic'),
                 Selector::inNamespace('FFI\Preprocessor\Exception'),
-                Selector::inNamespace('FFI\Preprocessor\Expression\Evaluator'),
+                Selector::inNamespace('FFI\Preprocessor\Expression'),
                 Selector::classname('FFI\Preprocessor\Stream\Chunk\TaggedChunk'),
                 Selector::classname('FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective'),
                 Selector::classname('FFI\Preprocessor\Stream\Chunk\TaggedChunk\GeneratedChunk'),
                 Selector::inNamespace('Phplrt\Contracts'),
+                Selector::inNamespace('Phplrt\Source'),
             )
             ->because('a directive handler uses nothing but its context, as a handler of a user does');
     }
