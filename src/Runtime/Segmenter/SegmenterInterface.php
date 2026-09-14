@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Segmenter;
+namespace FFI\Preprocessor\Runtime\Segmenter;
 
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk;
-use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
-use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
+use FFI\Preprocessor\Runtime\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Runtime\Exception\UnmatchedTextException;
 
 /**
  * Tells the source text from the preprocessing directives in the cleaned
@@ -16,7 +16,7 @@ use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 6.10.1 General
  *
  * @internal this is an internal library class, please do not use it in your code
- * @psalm-internal FFI\Preprocessor\Stream
+ * @psalm-internal FFI\Preprocessor\Runtime
  */
 interface SegmenterInterface
 {

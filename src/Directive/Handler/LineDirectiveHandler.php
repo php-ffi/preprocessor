@@ -6,7 +6,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\DirectiveHandlerInterface;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
 /**
  * `#line` changes the presumed line number and file name (6.10.6).
@@ -15,7 +15,7 @@ use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
  */
 final class LineDirectiveHandler implements DirectiveHandlerInterface
 {
-    public function handle(SourceDirective $directive, DirectiveContext $context): iterable
+    public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
         throw new \BadMethodCallException('The handler is not implemented yet');
     }

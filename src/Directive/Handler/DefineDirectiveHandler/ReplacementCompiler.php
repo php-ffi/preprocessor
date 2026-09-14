@@ -11,7 +11,7 @@ use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\ParamStri
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\Placeholder;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\PlaceholderKind;
 use FFI\Preprocessor\Macro\ObjectLikeMacro;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
 /**
  * Makes a macro of the replacement list of `#define`: finds the operands of `#` and `##` and the parameters
@@ -48,7 +48,7 @@ final class ReplacementCompiler
     /**
      * @throws InvalidDirectiveBodyException in case of the replacement list has `##` at either end
      */
-    public function compileObjectLike(SourceDirective $directive, string $replacement): ObjectLikeMacro
+    public function compileObjectLike(DirectiveChunk $directive, string $replacement): ObjectLikeMacro
     {
         [$template] = $this->readReplacement($directive, $replacement, [], false);
 
@@ -60,7 +60,7 @@ final class ReplacementCompiler
      *         a parameter or `##` at either end
      */
     public function compileFunctionLike(
-        SourceDirective $directive,
+        DirectiveChunk $directive,
         string $replacement,
         ParameterList $parameters,
     ): CompiledFunctionLikeMacro {
@@ -83,7 +83,7 @@ final class ReplacementCompiler
      *         a parameter or `##` at either end
      */
     private function readReplacement(
-        SourceDirective $directive,
+        DirectiveChunk $directive,
         string $replacement,
         array $parameters,
         bool $isFunctionLike,
@@ -217,7 +217,7 @@ final class ReplacementCompiler
         return [$template, $placeholders];
     }
 
-    private function createStringificationError(SourceDirective $directive): InvalidDirectiveBodyException
+    private function createStringificationError(DirectiveChunk $directive): InvalidDirectiveBodyException
     {
         return InvalidDirectiveBodyException::becauseStringificationHasNoParameter(
             $directive->source,
@@ -226,7 +226,7 @@ final class ReplacementCompiler
         );
     }
 
-    private function createConcatenationError(SourceDirective $directive): InvalidDirectiveBodyException
+    private function createConcatenationError(DirectiveChunk $directive): InvalidDirectiveBodyException
     {
         return InvalidDirectiveBodyException::becauseConcatenationHasNoOperand(
             $directive->source,

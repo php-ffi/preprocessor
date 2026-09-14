@@ -6,7 +6,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
 /**
  * `#undef` removes a macro (6.10.5.5).
@@ -18,7 +18,7 @@ final class UndefDirectiveHandler extends DirectiveHandler
     /**
      * @throws InvalidDirectiveBodyException in case of the macro name is not an identifier
      */
-    public function handle(SourceDirective $directive, DirectiveContext $context): iterable
+    public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
         $name = $this->getMacroName($directive);
         $this->reportExtraTokens($context, $directive, \strlen($name));

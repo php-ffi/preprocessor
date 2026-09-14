@@ -11,7 +11,7 @@ use FFI\Preprocessor\Directive\Handler\DefineDirectiveHandler\ReplacementCompile
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\ParamExpander;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\ParamStringifier;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
 /**
  * `#define` defines an object-like or a function-like macro (6.10.5).
@@ -44,7 +44,7 @@ final class DefineDirectiveHandler extends DirectiveHandler
     /**
      * @throws InvalidDirectiveBodyException in case of the body is not a macro definition
      */
-    public function handle(SourceDirective $directive, DirectiveContext $context): iterable
+    public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
         $name = $this->getMacroName($directive);
         $rest = \substr($directive->body, \strlen($name));
@@ -76,7 +76,7 @@ final class DefineDirectiveHandler extends DirectiveHandler
      * @throws InvalidDirectiveBodyException in case of a parameter is not an identifier or is repeated,
      *         or `...` is not the last one
      */
-    private function getParameterList(SourceDirective $directive, string $list): ParameterList
+    private function getParameterList(DirectiveChunk $directive, string $list): ParameterList
     {
         if (\trim($list, self::BLANKS) === '') {
             return new ParameterList([], false);
@@ -107,7 +107,7 @@ final class DefineDirectiveHandler extends DirectiveHandler
         return new ParameterList($names, $isVariadic);
     }
 
-    private function createParameterListError(SourceDirective $directive): InvalidDirectiveBodyException
+    private function createParameterListError(DirectiveChunk $directive): InvalidDirectiveBodyException
     {
         return InvalidDirectiveBodyException::becauseParameterListIsInvalid(
             $directive->source,

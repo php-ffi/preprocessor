@@ -8,17 +8,16 @@ use FFI\Preprocessor\Diagnostic\Diagnostic;
 use FFI\Preprocessor\Diagnostic\Diagnostic\Severity;
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\DirectiveHandlerInterface;
+use FFI\Preprocessor\Directive\Exception\InvalidConditionException;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
 use FFI\Preprocessor\Directive\Handler\DirectiveHandler\ConditionEvaluator;
 use FFI\Preprocessor\Directive\Handler\DirectiveHandler\HeaderName;
 use FFI\Preprocessor\Exception\InternalException;
-use FFI\Preprocessor\Expression\Evaluator\Exception\EvaluationException;
 use FFI\Preprocessor\Expression\Evaluator\ExpressionEvaluator;
-use FFI\Preprocessor\Expression\Parser\Exception\SyntaxErrorException;
 use FFI\Preprocessor\Expression\Parser\ExpressionParser;
 use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
@@ -47,7 +46,7 @@ abstract class DirectiveHandler implements DirectiveHandlerInterface
      * @return non-empty-string
      * @throws InvalidDirectiveBodyException in case of the body does not start with an identifier
      */
-    protected function getMacroName(SourceDirective $directive): string
+    protected function getMacroName(DirectiveChunk $directive): string
     {
         if (\preg_match(self::NAME_PATTERN, $directive->body, $matches) !== 1) {
             throw InvalidDirectiveBodyException::becauseMacroNameIsInvalid(
@@ -68,7 +67,7 @@ abstract class DirectiveHandler implements DirectiveHandlerInterface
      * @throws InvalidDirectiveBodyException in case of the body is not a header name, nor is replaced by one
      * @throws MacroInvocationException in case of an invocation of a macro in the body is malformed
      */
-    protected function getHeaderName(SourceDirective $directive, DirectiveContext $context): HeaderName
+    protected function getHeaderName(DirectiveChunk $directive, DirectiveContext $context): HeaderName
     {
         $name = $this->findHeaderName($directive->body);
 
@@ -87,7 +86,7 @@ abstract class DirectiveHandler implements DirectiveHandlerInterface
             );
         }
 
-        return new HeaderName($name->pathname, $name->isAngled, \strlen(\rtrim($directive->body, self::BLANKS)));
+        return new HeaderName($name->pathname, $name->isAngled, \max(1, \strlen(\rtrim($directive->body, self::BLANKS))));
     }
 
     private function findHeaderName(string $text): ?HeaderName
@@ -107,7 +106,7 @@ abstract class DirectiveHandler implements DirectiveHandlerInterface
      * Finds the file of a header name: a quoted name in the directory of the
      * including file first, then from the root (6.10.3p3).
      */
-    protected function findFile(DirectiveContext $context, SourceDirective $directive, HeaderName $name): ?FileInterface
+    protected function findFile(DirectiveContext $context, DirectiveChunk $directive, HeaderName $name): ?FileInterface
     {
         if ($name->isAngled) {
             return $context->files->find($name->pathname);
@@ -122,7 +121,7 @@ abstract class DirectiveHandler implements DirectiveHandlerInterface
      *
      * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
-    protected function reportMissingFile(DirectiveContext $context, SourceDirective $directive, HeaderName $name): void
+    protected function reportMissingFile(DirectiveContext $context, DirectiveChunk $directive, HeaderName $name): void
     {
         $context->diagnostic->notify(new Diagnostic(
             severity: Severity::Error,
@@ -138,11 +137,10 @@ abstract class DirectiveHandler implements DirectiveHandlerInterface
      *
      * @throws InvalidDirectiveBodyException in case of the `defined` operator has no identifier
      * @throws MacroInvocationException in case of an invocation of a macro in the expression is malformed
-     * @throws SyntaxErrorException in case of the expression is not valid
-     * @throws EvaluationException in case of the expression has no valid value
+     * @throws InvalidConditionException in case of the expression is not valid or has no valid value
      * @throws InternalException in case of the expression has a node of an unknown kind
      */
-    protected function evaluateCondition(DirectiveContext $context, SourceDirective $directive): bool
+    protected function evaluateCondition(DirectiveContext $context, DirectiveChunk $directive): bool
     {
         return (new ConditionEvaluator(
             $context->macros,
@@ -161,7 +159,7 @@ abstract class DirectiveHandler implements DirectiveHandlerInterface
      * @param int<0, max> $from
      * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
-    protected function reportExtraTokens(DirectiveContext $context, SourceDirective $directive, int $from = 0): void
+    protected function reportExtraTokens(DirectiveContext $context, DirectiveChunk $directive, int $from = 0): void
     {
         $rest = \substr($directive->body, $from);
         $start = \strspn($rest, self::BLANKS);

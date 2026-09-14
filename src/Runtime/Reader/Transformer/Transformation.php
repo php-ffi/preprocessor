@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Reader\Transformer;
+namespace FFI\Preprocessor\Runtime\Reader\Transformer;
 
-use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Runtime\Chunk\UntaggedChunk;
 
 /**
  * Result of {@see TransformerInterface::transform()}.
  *
  * @internal this is an internal library class, please do not use it in your code
- * @psalm-internal FFI\Preprocessor\Stream
+ * @psalm-internal FFI\Preprocessor\Runtime
  */
 final class Transformation
 {

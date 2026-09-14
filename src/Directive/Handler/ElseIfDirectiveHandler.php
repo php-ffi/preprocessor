@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
+use FFI\Preprocessor\Directive\Exception\InvalidConditionException;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
 use FFI\Preprocessor\Directive\Exception\MisplacedDirectiveException;
 use FFI\Preprocessor\Directive\OutputIndependentDirectiveHandlerInterface;
 use FFI\Preprocessor\Exception\InternalException;
-use FFI\Preprocessor\Expression\Evaluator\Exception\EvaluationException;
-use FFI\Preprocessor\Expression\Parser\Exception\SyntaxErrorException;
 use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
 /**
  * `#elif` starts the next branch of a conditional section by the value of an expression (6.10.2).
@@ -25,11 +24,10 @@ final class ElseIfDirectiveHandler extends DirectiveHandler implements OutputInd
      * @throws MisplacedDirectiveException in case of there is no open section or it has the `#else` already
      * @throws InvalidDirectiveBodyException in case of the `defined` operator has no identifier
      * @throws MacroInvocationException in case of an invocation of a macro in the expression is malformed
-     * @throws SyntaxErrorException in case of the expression is not valid
-     * @throws EvaluationException in case of the expression has no valid value
+     * @throws InvalidConditionException in case of the expression is not valid or has no valid value
      * @throws InternalException in case of the expression has a node of an unknown kind
      */
-    public function handle(SourceDirective $directive, DirectiveContext $context): iterable
+    public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
         \assert($directive->name !== '');
 

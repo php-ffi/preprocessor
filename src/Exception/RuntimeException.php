@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Exception;
 
-use Phplrt\Contracts\Source\Exception\SourceExceptionInterface;
 use Phplrt\Contracts\Source\FileInterface;
 use Phplrt\Contracts\Source\ReadableInterface;
 use Phplrt\Exception\ErrorPrinter;
@@ -19,7 +18,7 @@ abstract class RuntimeException extends PreprocessorException
     protected function __construct(
         string $message,
         /**
-         * The source the failure occurred in
+         * The source of the failure occurred in
          */
         public readonly ReadableInterface $source,
         /**
@@ -29,7 +28,7 @@ abstract class RuntimeException extends PreprocessorException
          */
         public readonly int $offset,
         /**
-         * Size of the failed fragment in bytes, `0` in case of it is not known
+         * The size of the failed fragment in bytes, `0` in case of it is not known
          *
          * @var int<0, max>
          */
@@ -46,15 +45,14 @@ abstract class RuntimeException extends PreprocessorException
     public function __toString(): string
     {
         try {
-            $contents = $this->source->content;
-            // @phpstan-ignore-next-line the contract of the property tells it throws in its text only
-        } catch (SourceExceptionInterface) {
+            $source = $this->createSnippetSource($this->source);
+        } catch (\Throwable) {
             return parent::__toString();
         }
 
         return (new ErrorPrinter())
             ->print($this)
-            ->withSource($this->createSnippetSource($contents))
+            ->withSource($source)
             ->withMessage($this->message)
             ->withClass(static::class)
             ->withInterval($this->offset, $this->length)
@@ -63,9 +61,13 @@ abstract class RuntimeException extends PreprocessorException
 
     /**
      * Creates the source of the snippet, with the pathname of a file.
+     *
+     * @throws \Throwable in case of internal error occurs
      */
-    private function createSnippetSource(string $contents): ReadableInterface
+    private function createSnippetSource(ReadableInterface $source): ReadableInterface
     {
+        $contents = $source->content;
+
         if ($this->source instanceof FileInterface) {
             return VirtualSource::createFromString($this->source->pathname, $contents);
         }

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Chunk\TaggedChunk;
+namespace FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
 
-use FFI\Preprocessor\Stream\Chunk\SourceMap\SourceMap;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk;
+use FFI\Preprocessor\Runtime\Chunk\SourceMap\SourceMap;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**

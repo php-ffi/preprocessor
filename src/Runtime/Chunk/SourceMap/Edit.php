@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Chunk\SourceMap;
+namespace FFI\Preprocessor\Runtime\Chunk\SourceMap;
 
 /**
  * Replacement of a range of a text, such as a line splice replaced by nothing
  * or a comment replaced by a space.
  *
  * @internal this is an internal library class, please do not use it in your code
- * @psalm-internal FFI\Preprocessor\Stream
+ * @psalm-internal FFI\Preprocessor\Runtime
  */
 final class Edit
 {

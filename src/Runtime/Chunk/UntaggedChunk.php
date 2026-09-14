@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Chunk;
+namespace FFI\Preprocessor\Runtime\Chunk;
 
-use FFI\Preprocessor\Stream\Chunk;
-use FFI\Preprocessor\Stream\Chunk\SourceMap\Edit;
-use FFI\Preprocessor\Stream\Chunk\SourceMap\SourceMap;
+use FFI\Preprocessor\Runtime\Chunk;
+use FFI\Preprocessor\Runtime\Chunk\SourceMap\Edit;
+use FFI\Preprocessor\Runtime\Chunk\SourceMap\SourceMap;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**

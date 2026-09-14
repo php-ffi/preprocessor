@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Reader;
+namespace FFI\Preprocessor\Runtime\Reader;
 
-use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
-use FFI\Preprocessor\Stream\Exception\UnclosedCommentException;
-use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
+use FFI\Preprocessor\Runtime\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Runtime\Exception\UnclosedCommentException;
+use FFI\Preprocessor\Runtime\Exception\UnmatchedTextException;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
@@ -14,7 +14,7 @@ use Phplrt\Contracts\Source\FileInterface;
  * means: the translation phases 1 to 3.
  *
  * @internal this is an internal library class, please do not use it in your code
- * @psalm-internal FFI\Preprocessor\Stream
+ * @psalm-internal FFI\Preprocessor\Runtime
  */
 interface ReaderInterface
 {

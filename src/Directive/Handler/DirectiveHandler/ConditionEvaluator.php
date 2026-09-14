@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Directive\Handler\DirectiveHandler;
 
+use FFI\Preprocessor\Directive\Exception\InvalidConditionException;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
 use FFI\Preprocessor\Exception\InternalException;
-use FFI\Preprocessor\Expression\Evaluator\Exception\EvaluationException;
 use FFI\Preprocessor\Expression\Evaluator\ExpressionEvaluatorInterface;
-use FFI\Preprocessor\Expression\Parser\Exception\SyntaxErrorException;
+use FFI\Preprocessor\Expression\Exception\ExpressionException;
 use FFI\Preprocessor\Expression\Parser\ExpressionParserInterface;
 use FFI\Preprocessor\FileSystem\FileSystemInterface;
 use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
 use FFI\Preprocessor\Macro\MacroRepositoryInterface;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 use Phplrt\Source\StringSource;
 
 /**
@@ -72,11 +72,10 @@ final class ConditionEvaluator
      *
      * @throws InvalidDirectiveBodyException in case of the `defined` operator has no identifier
      * @throws MacroInvocationException in case of an invocation of a macro in the expression is malformed
-     * @throws SyntaxErrorException in case of the expression is not valid
-     * @throws EvaluationException in case of the expression has no valid value
+     * @throws InvalidConditionException in case of the expression is not valid or has no valid value
      * @throws InternalException in case of the expression has a node of an unknown kind
      */
-    public function evaluate(SourceDirective $directive): bool
+    public function evaluate(DirectiveChunk $directive): bool
     {
         $text = $this->replaceDefined($directive->body);
         $text = $this->replaceHasInclude($text, $directive);
@@ -92,7 +91,11 @@ final class ConditionEvaluator
         $text = $this->replaceIdentifiers($this->expander->expand($text));
         $source = new StringSource($text);
 
-        return $this->evaluator->evaluate($this->parser->parse($source), $source)->isTrue;
+        try {
+            return $this->evaluator->evaluate($this->parser->parse($source), $source)->isTrue;
+        } catch (ExpressionException $e) {
+            throw InvalidConditionException::becauseExpressionIsInvalid($directive, $e);
+        }
     }
 
     private function replaceDefined(string $text): string
@@ -104,7 +107,7 @@ final class ConditionEvaluator
         );
     }
 
-    private function replaceHasInclude(string $text, SourceDirective $directive): string
+    private function replaceHasInclude(string $text, DirectiveChunk $directive): string
     {
         return (string) \preg_replace_callback(
             self::HAS_INCLUDE_PATTERN,
@@ -116,7 +119,7 @@ final class ConditionEvaluator
     /**
      * @param array<array-key, string> $match
      */
-    private function hasFile(array $match, SourceDirective $directive): bool
+    private function hasFile(array $match, DirectiveChunk $directive): bool
     {
         if (isset($match['angled']) && $match['angled'] !== '') {
             return $this->files->find($match['angled']) !== null;

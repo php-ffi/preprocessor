@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Chunk;
+namespace FFI\Preprocessor\Runtime\Chunk;
 
-use FFI\Preprocessor\Stream\Chunk;
+use FFI\Preprocessor\Runtime\Chunk;
 
 /**
  * Base of the chunks whose meaning is known: source text, a directive or the

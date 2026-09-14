@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Exception;
+namespace FFI\Preprocessor\Runtime\Exception;
 
 use FFI\Preprocessor\Exception\RuntimeException;
 use Phplrt\Contracts\Source\ReadableInterface;

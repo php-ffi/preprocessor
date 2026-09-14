@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Chunk\TaggedChunk;
+namespace FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
 
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
 
 /**
  * Source text between the directives, the new-lines included: one or more

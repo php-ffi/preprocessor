@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Chunk\SourceMap;
+namespace FFI\Preprocessor\Runtime\Chunk\SourceMap;
 
 /**
  * Bytes of a file the text read from it skips, such as the line splices

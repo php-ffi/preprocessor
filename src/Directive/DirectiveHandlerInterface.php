@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Directive;
 
 use FFI\Preprocessor\Exception\PreprocessorException;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
 /**
  * Executes the directives of a name, such as `#define`, `#include` or `#if`.
@@ -21,5 +21,5 @@ interface DirectiveHandlerInterface
      * @return iterable<int, TaggedChunk>
      * @throws PreprocessorException in case of the directive cannot be executed
      */
-    public function handle(SourceDirective $directive, DirectiveContext $context): iterable;
+    public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable;
 }

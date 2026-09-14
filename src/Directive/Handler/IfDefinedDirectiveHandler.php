@@ -7,7 +7,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
 use FFI\Preprocessor\Directive\OutputIndependentDirectiveHandlerInterface;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
 /**
  * `#ifdef` and `#ifndef` open a conditional section by whether a macro is defined (6.10.2).
@@ -21,7 +21,7 @@ final class IfDefinedDirectiveHandler extends DirectiveHandler implements Output
     /**
      * @throws InvalidDirectiveBodyException in case of the macro name is not an identifier
      */
-    public function handle(SourceDirective $directive, DirectiveContext $context): iterable
+    public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
         $output = $context->output;
 

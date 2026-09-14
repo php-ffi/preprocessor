@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Reader;
+namespace FFI\Preprocessor\Runtime\Reader;
 
-use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
-use FFI\Preprocessor\Stream\Exception\UnclosedCommentException;
-use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
-use FFI\Preprocessor\Stream\Reader\Transformer\CommentReplacer;
-use FFI\Preprocessor\Stream\Reader\Transformer\SpliceRemover;
-use FFI\Preprocessor\Stream\Reader\Transformer\TransformerInterface;
+use FFI\Preprocessor\Runtime\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Runtime\Exception\UnclosedCommentException;
+use FFI\Preprocessor\Runtime\Exception\UnmatchedTextException;
+use FFI\Preprocessor\Runtime\Reader\Transformer\CommentReplacer;
+use FFI\Preprocessor\Runtime\Reader\Transformer\SpliceRemover;
+use FFI\Preprocessor\Runtime\Reader\Transformer\TransformerInterface;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
@@ -21,7 +21,7 @@ use Phplrt\Contracts\Source\FileInterface;
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 5.1.1.2 Translation phases
  *
  * @internal this is an internal library class, please do not use it in your code
- * @psalm-internal FFI\Preprocessor\Stream
+ * @psalm-internal FFI\Preprocessor\Runtime
  */
 final class BlockReader implements ReaderInterface
 {

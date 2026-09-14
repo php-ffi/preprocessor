@@ -7,7 +7,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
 use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
 /**
  * `#include` includes a header or a source file (6.10.3).
@@ -20,7 +20,7 @@ final class IncludeDirectiveHandler extends DirectiveHandler
      * @throws InvalidDirectiveBodyException in case of the body is not a header name, nor is replaced by one
      * @throws MacroInvocationException in case of an invocation of a macro in the body is malformed
      */
-    public function handle(SourceDirective $directive, DirectiveContext $context): iterable
+    public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
         $name = $this->getHeaderName($directive, $context);
         $this->reportExtraTokens($context, $directive, $name->length);
@@ -33,6 +33,6 @@ final class IncludeDirectiveHandler extends DirectiveHandler
             return [];
         }
 
-        return $context->includer->includeFile($file);
+        return $context->executor->execute($file);
     }
 }

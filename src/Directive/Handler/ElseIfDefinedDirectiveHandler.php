@@ -8,7 +8,7 @@ use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
 use FFI\Preprocessor\Directive\Exception\MisplacedDirectiveException;
 use FFI\Preprocessor\Directive\OutputIndependentDirectiveHandlerInterface;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
 /**
  * `#elifdef` and `#elifndef` start the next branch of a conditional section by whether a macro is defined (6.10.2).
@@ -23,7 +23,7 @@ final class ElseIfDefinedDirectiveHandler extends DirectiveHandler implements Ou
      * @throws MisplacedDirectiveException in case of there is no open section or it has the `#else` already
      * @throws InvalidDirectiveBodyException in case of the macro name is not an identifier
      */
-    public function handle(SourceDirective $directive, DirectiveContext $context): iterable
+    public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
         \assert($directive->name !== '');
 

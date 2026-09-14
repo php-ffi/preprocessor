@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream;
+namespace FFI\Preprocessor\Runtime;
 
-use FFI\Preprocessor\Stream\Chunk\SourceMap\SourceMap;
+use FFI\Preprocessor\Runtime\Chunk\SourceMap\SourceMap;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**

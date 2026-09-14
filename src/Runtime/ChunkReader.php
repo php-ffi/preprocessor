@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream;
+namespace FFI\Preprocessor\Runtime;
 
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk;
-use FFI\Preprocessor\Stream\Exception\UnclosedCommentException;
-use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
-use FFI\Preprocessor\Stream\Reader\BlockReader;
-use FFI\Preprocessor\Stream\Reader\ReaderInterface;
-use FFI\Preprocessor\Stream\Segmenter\LineSegmenter;
-use FFI\Preprocessor\Stream\Segmenter\SegmenterInterface;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
+use FFI\Preprocessor\Runtime\Exception\UnclosedCommentException;
+use FFI\Preprocessor\Runtime\Exception\UnmatchedTextException;
+use FFI\Preprocessor\Runtime\Reader\BlockReader;
+use FFI\Preprocessor\Runtime\Reader\ReaderInterface;
+use FFI\Preprocessor\Runtime\Segmenter\LineSegmenter;
+use FFI\Preprocessor\Runtime\Segmenter\SegmenterInterface;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
@@ -20,7 +20,7 @@ use Phplrt\Contracts\Source\FileInterface;
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 6.10.1 General
  *
  * @internal this is an internal library class, please do not use it in your code
- * @psalm-internal FFI\Preprocessor\Stream
+ * @psalm-internal FFI\Preprocessor
  */
 final class ChunkReader
 {

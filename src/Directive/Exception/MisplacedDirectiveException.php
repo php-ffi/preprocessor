@@ -28,6 +28,20 @@ final class MisplacedDirectiveException extends RuntimeException
     }
 
     /**
+     * @param non-empty-string $directive name of the directive that is not closed
+     * @param non-empty-string $closing name of the directive that closes it
+     * @param int<0, max> $offset offset in the source of the end of the file
+     */
+    public static function becauseClosingIsMissing(
+        ReadableInterface $source,
+        int $offset,
+        string $directive,
+        string $closing,
+    ): self {
+        return new self(\sprintf('#%s without #%s', $directive, $closing), $source, $offset);
+    }
+
+    /**
      * @param non-empty-string $directive name of the directive
      * @param non-empty-string $ending name of the directive it cannot stand after
      * @param int<0, max> $offset offset of the first byte of the directive in the source

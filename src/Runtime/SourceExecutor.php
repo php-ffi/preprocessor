@@ -1,0 +1,157 @@
+<?php
+
+declare(strict_types=1);
+
+namespace FFI\Preprocessor\Runtime;
+
+use FFI\Preprocessor\Diagnostic\DiagnosticListenerInterface;
+use FFI\Preprocessor\Directive\DirectiveContext;
+use FFI\Preprocessor\Directive\DirectiveContext\OutputStack;
+use FFI\Preprocessor\Directive\DirectiveRepositoryInterface;
+use FFI\Preprocessor\Directive\Exception\IncludeDepthException;
+use FFI\Preprocessor\Directive\Exception\MisplacedDirectiveException;
+use FFI\Preprocessor\Directive\Exception\UnknownDirectiveException;
+use FFI\Preprocessor\Directive\OutputIndependentDirectiveHandlerInterface;
+use FFI\Preprocessor\FileSystem\FileSystemInterface;
+use FFI\Preprocessor\Macro\Executor\MacroExpander;
+use FFI\Preprocessor\Macro\MacroRepository;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\GeneratedChunk;
+use Phplrt\Contracts\Source\FileInterface;
+
+/**
+ * Preprocesses the files of one run (5.1.1.2, phase 4): executes the
+ * directives, drops the skipped groups and replaces the macros in the text.
+ * The state of the run, the macros and the open files, lives as long as the
+ * object does.
+ *
+ * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 5.1.1.2 Translation phases
+ *
+ * @internal this is an internal library class, please do not use it in your code
+ * @psalm-internal FFI\Preprocessor
+ */
+final class SourceExecutor implements SourceExecutorInterface
+{
+    private readonly MacroExpander $expander;
+
+    /**
+     * The directive being executed
+     */
+    private ?DirectiveChunk $current = null;
+
+    /**
+     * The number of the files open at the moment
+     *
+     * @var int<0, max>
+     */
+    private int $depth = 0;
+
+    public function __construct(
+        private readonly ChunkReader $reader,
+        private readonly DirectiveRepositoryInterface $directives,
+        private readonly MacroRepository $macros,
+        private readonly FileSystemInterface $files,
+        private readonly DiagnosticListenerInterface $diagnostic,
+        /**
+         * The number of the files that may be open at once, the first one included
+         *
+         * @var int<1, max>
+         */
+        private readonly int $maxDepth,
+    ) {
+        $this->expander = new MacroExpander($macros);
+    }
+
+    private function createContext(): DirectiveContext
+    {
+        return new DirectiveContext(
+            output: new OutputStack(),
+            diagnostic: $this->diagnostic,
+            macros: $this->macros,
+            files: $this->files,
+            executor: $this,
+        );
+    }
+
+    /**
+     * @return iterable<int, TaggedChunk>
+     * @throws IncludeDepthException in case of the files are nested deeper than the limit
+     * @throws UnknownDirectiveException in case of a directive of a selected group has no handler
+     * @throws MisplacedDirectiveException in case of a conditional section is not closed in the file
+     * @throws \Throwable in case of the file cannot be read or a directive cannot be executed
+     */
+    public function execute(FileInterface $file): iterable
+    {
+        $including = $this->current;
+
+        if (++$this->depth > $this->maxDepth) {
+            \assert($including !== null);
+
+            throw IncludeDepthException::becauseLimitIsExceeded($including, $this->maxDepth);
+        }
+
+        try {
+            $context = $this->createContext();
+            $end = 0;
+
+            foreach ($this->reader->read($file) as $chunk) {
+                $end = $chunk->offset;
+
+                if ($chunk instanceof DirectiveChunk) {
+                    yield from $this->executeDirectiveChunk($chunk, $context);
+
+                    continue;
+                }
+
+                if ($context->output->isEnabled()) {
+                    yield $this->expandSourceChunk($chunk);
+                }
+            }
+
+            if ($context->output->hasSection()) {
+                throw MisplacedDirectiveException::becauseClosingIsMissing($file, $end, 'if', 'endif');
+            }
+        } finally {
+            --$this->depth;
+            $this->current = $including;
+        }
+    }
+
+    /**
+     * @return iterable<int, TaggedChunk>
+     * @throws UnknownDirectiveException in case of the directive of a selected group has no handler
+     */
+    private function executeDirectiveChunk(DirectiveChunk $directive, DirectiveContext $context): iterable
+    {
+        if ($directive->name === '') {
+            return;
+        }
+
+        $handler = $this->directives->find($directive->name);
+        $isEnabled = $context->output->isEnabled();
+
+        if ($handler === null && $isEnabled) {
+            throw UnknownDirectiveException::becauseHandlerIsMissing($directive);
+        }
+
+        if ($handler === null || !($isEnabled || $handler instanceof OutputIndependentDirectiveHandlerInterface)) {
+            return;
+        }
+
+        $this->current = $directive;
+
+        yield from $handler->handle($directive, $context);
+    }
+
+    private function expandSourceChunk(TaggedChunk $chunk): TaggedChunk
+    {
+        $text = $this->expander->expand($chunk->content);
+
+        if ($text === $chunk->content) {
+            return $chunk;
+        }
+
+        return new GeneratedChunk($text, $chunk->source, $chunk->offset);
+    }
+}

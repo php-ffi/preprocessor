@@ -6,8 +6,8 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\DirectiveHandlerInterface;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\GeneratedChunk;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\GeneratedChunk;
 
 /**
  * `#pragma` passes an implementation-defined instruction (6.10.8).
@@ -16,7 +16,7 @@ use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
  */
 final class PragmaDirectiveHandler implements DirectiveHandlerInterface
 {
-    public function handle(SourceDirective $directive, DirectiveContext $context): iterable
+    public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
         $body = \trim($directive->body);
 

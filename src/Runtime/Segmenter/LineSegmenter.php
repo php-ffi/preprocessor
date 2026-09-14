@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FFI\Preprocessor\Stream\Segmenter;
+namespace FFI\Preprocessor\Runtime\Segmenter;
 
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceChunk;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
-use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
-use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\SourceChunk;
+use FFI\Preprocessor\Runtime\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Runtime\Exception\UnmatchedTextException;
 
 /**
  * Directive is a line whose first token is `#` or `%:`, any other line is
@@ -16,7 +16,7 @@ use FFI\Preprocessor\Stream\Exception\UnmatchedTextException;
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 6.10.1 General
  *
  * @internal this is an internal library class, please do not use it in your code
- * @psalm-internal FFI\Preprocessor\Stream
+ * @psalm-internal FFI\Preprocessor\Runtime
  */
 final class LineSegmenter implements SegmenterInterface
 {
@@ -37,7 +37,7 @@ final class LineSegmenter implements SegmenterInterface
     private const BLANKS = " \t\r\n\f\x0B";
 
     /**
-     * @return \Generator<int, SourceChunk|SourceDirective>
+     * @return \Generator<int, SourceChunk|DirectiveChunk>
      * @throws UnmatchedTextException in case of the text cannot be matched
      */
     public function segment(iterable $chunks): \Generator
@@ -69,7 +69,7 @@ final class LineSegmenter implements SegmenterInterface
     /**
      * Splits the complete lines.
      *
-     * @return \Generator<int, SourceChunk|SourceDirective>
+     * @return \Generator<int, SourceChunk|DirectiveChunk>
      * @throws UnmatchedTextException in case of the text cannot be matched
      */
     private function split(UntaggedChunk $lines): \Generator
@@ -153,13 +153,13 @@ final class LineSegmenter implements SegmenterInterface
      * @param string $marker the `#` or `%:` the line starts with
      * @throws UnmatchedTextException in case of the line cannot be matched
      */
-    private function createDirective(UntaggedChunk $line, string $marker): SourceDirective
+    private function createDirective(UntaggedChunk $line, string $marker): DirectiveChunk
     {
         if (\preg_match(self::NAME_PATTERN, $line->content, $matches, offset: \strlen($marker)) !== 1) {
             throw UnmatchedTextException::becauseTextIsNotMatched('directive');
         }
 
-        return new SourceDirective(
+        return new DirectiveChunk(
             name: $matches[1] ?? '',
             bodyOffset: \strlen($marker) + \strlen($matches[0]),
             content: $line->content,

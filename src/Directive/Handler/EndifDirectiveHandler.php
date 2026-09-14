@@ -7,7 +7,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\Exception\MisplacedDirectiveException;
 use FFI\Preprocessor\Directive\OutputIndependentDirectiveHandlerInterface;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
 /**
  * `#endif` closes a conditional section (6.10.2).
@@ -19,7 +19,7 @@ final class EndifDirectiveHandler extends DirectiveHandler implements OutputInde
     /**
      * @throws MisplacedDirectiveException in case of there is no open section
      */
-    public function handle(SourceDirective $directive, DirectiveContext $context): iterable
+    public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
         if (!$context->output->hasSection()) {
             throw MisplacedDirectiveException::becauseOpeningIsMissing(

@@ -8,6 +8,7 @@ use FFI\Preprocessor\Diagnostic\DiagnosticListenerInterface;
 use FFI\Preprocessor\Directive\DirectiveContext\OutputStack;
 use FFI\Preprocessor\FileSystem\FileSystemInterface;
 use FFI\Preprocessor\Macro\MacroRepository;
+use FFI\Preprocessor\Runtime\SourceExecutorInterface;
 
 /**
  * What a directive handler may do with the preprocessing.
@@ -34,6 +35,6 @@ final class DirectiveContext
         /**
          * Preprocesses the files `#include` includes
          */
-        public readonly FileIncluderInterface $includer,
+        public readonly SourceExecutorInterface $executor,
     ) {}
 }

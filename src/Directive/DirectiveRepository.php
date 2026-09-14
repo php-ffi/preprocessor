@@ -7,7 +7,10 @@ namespace FFI\Preprocessor\Directive;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveNameException;
 
 /**
- * Directive handlers of the configuration by the names of the directives.
+ * Directive handlers of the configuration by the names of the directives. A
+ * name with no handler here is looked up in the previous repository, if there
+ * is one, unless it has been removed here: removing a handler of the previous
+ * repository hides it without changing that repository.
  */
 final class DirectiveRepository implements MutableDirectiveRepositoryInterface
 {
@@ -21,14 +24,63 @@ final class DirectiveRepository implements MutableDirectiveRepositoryInterface
      */
     private array $handlers = [];
 
+    /**
+     * Names removed here, the handlers of the previous repository hidden by them
+     *
+     * @var array<string, true>
+     */
+    private array $removed = [];
+
+    public function __construct(
+        /**
+         * The repository searched for the names not added here
+         */
+        private readonly ?DirectiveRepositoryInterface $prev = null,
+    ) {}
+
+    /**
+     * Creates the repository of the directives of the standard, `#line`
+     * excepted.
+     */
+    public static function createDefault(): self
+    {
+        $repository = new self();
+
+        $repository->add('include', new Handler\IncludeDirectiveHandler());
+        $repository->add('embed', new Handler\EmbedDirectiveHandler());
+        $repository->add('define', new Handler\DefineDirectiveHandler());
+        $repository->add('undef', new Handler\UndefDirectiveHandler());
+        $repository->add('error', new Handler\ErrorDirectiveHandler());
+        $repository->add('warning', new Handler\WarningDirectiveHandler());
+        $repository->add('pragma', new Handler\PragmaDirectiveHandler());
+        $repository->add('if', new Handler\IfDirectiveHandler());
+        $repository->add('ifdef', $ifDefined = new Handler\IfDefinedDirectiveHandler());
+        $repository->add('ifndef', $ifDefined);
+        $repository->add('elif', new Handler\ElseIfDirectiveHandler());
+        $repository->add('elifdef', $elseIfDefined = new Handler\ElseIfDefinedDirectiveHandler());
+        $repository->add('elifndef', $elseIfDefined);
+        $repository->add('else', new Handler\ElseDirectiveHandler());
+        $repository->add('endif', new Handler\EndifDirectiveHandler());
+
+        return $repository;
+    }
+
     public function find(string $name): ?DirectiveHandlerInterface
     {
-        return $this->handlers[$name] ?? null;
+        if (isset($this->handlers[$name])) {
+            return $this->handlers[$name];
+        }
+
+        if (isset($this->removed[$name])) {
+            return null;
+        }
+
+        return $this->prev?->find($name);
     }
 
     public function add(string $name, DirectiveHandlerInterface $handler): void
     {
-        if (isset($this->handlers[$name])) {
+        if ($this->find($name) !== null) {
             throw InvalidDirectiveNameException::becauseNameIsTaken($name);
         }
 
@@ -42,10 +94,15 @@ final class DirectiveRepository implements MutableDirectiveRepositoryInterface
         }
 
         $this->handlers[$name] = $handler;
+        unset($this->removed[$name]);
     }
 
     public function remove(string $name): void
     {
         unset($this->handlers[$name]);
+
+        if ($this->prev?->find($name) !== null) {
+            $this->removed[$name] = true;
+        }
     }
 }
