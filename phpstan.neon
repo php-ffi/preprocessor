@@ -26,7 +26,7 @@ parameters:
     # A grammar without reducers generates no such method.
     -
       identifier: method.unusedParameter
-      path: src/Expression/CompiledExpressionParser.php
+      path: src/Expression/Parser/CompiledExpressionParser.php
       reportUnmatched: false
 services:
   -
