@@ -68,8 +68,6 @@ final class MacroRepository implements MacroRepositoryInterface
     }
 
     /**
-     * @phpstan-assert non-empty-string $name
-     *
      * @throws InvalidMacroException in case of the name is not an identifier
      */
     private function assertValidMacroName(string $name): void
@@ -85,7 +83,7 @@ final class MacroRepository implements MacroRepositoryInterface
      * @param non-empty-string $name
      * @throws \Throwable in case of internal error occurs
      */
-    public function define(string $name, mixed $replacement = '1'): void
+    public function define(string $name, string $replacement = '1'): void
     {
         $this->defineByString($name, $replacement);
     }

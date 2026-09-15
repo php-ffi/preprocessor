@@ -128,6 +128,7 @@ final class ExpressionEvaluator implements ExpressionEvaluatorInterface
     private function createMathDriver(?MathDriverInterface $math): MathDriverInterface
     {
         if ($math === null) {
+            // @phpstan-ignore-next-line the default driver fixes the number type, which TNumber of the caller stays open for
             return MathDriverFactory::createDefault();
         }
 
@@ -337,7 +338,7 @@ final class ExpressionEvaluator implements ExpressionEvaluatorInterface
                     return new Operand($this->zero, $isUnsigned);
                 }
 
-                $length = $node->right->offset - $node->left->offset;
+                $length = \max(0, $node->right->offset - $node->left->offset);
 
                 if ($math->isZero($b)) {
                     throw EvaluationException::becauseDivisionByZero($source, $node->offset, $length);
