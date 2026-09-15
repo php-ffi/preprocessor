@@ -11,9 +11,10 @@
 >
     <testsuites>
         <testsuite name="unit">
-            <directory>tests</directory>
-            <!-- The architecture rules are run by PHPStan, not by PHPUnit -->
-            <exclude>tests/Architecture</exclude>
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="functional">
+            <directory>tests/Functional</directory>
         </testsuite>
     </testsuites>
 

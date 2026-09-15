@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Tests;
 
-use FFI\Preprocessor\Stream\Chunk\SourceMap\SourceMap;
-use FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceChunk;
-use FFI\Preprocessor\Stream\Chunk\UntaggedChunk;
+use FFI\Preprocessor\Runtime\Chunk\SourceMap\SourceMap;
+use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\SourceChunk;
+use FFI\Preprocessor\Runtime\Chunk\UntaggedChunk;
 use Phplrt\Contracts\Source\FileInterface;
 use Phplrt\Source\VirtualSource;
 use PHPUnit\Framework\TestCase as BaseTestCase;

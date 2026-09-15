@@ -46,6 +46,7 @@ final class ExpressionArchitectureTest
                 Selector::inNamespace('FFI\Preprocessor\Expression\Node'),
                 Selector::inNamespace('FFI\Preprocessor\Expression\Exception'),
                 Selector::classname('FFI\Preprocessor\Exception\InternalException'),
+                Selector::classname('FFI\Preprocessor\Exception\PlatformException'),
                 Selector::classname('Phplrt\Contracts\Source\ReadableInterface'),
             )
             ->because('the evaluator computes the value of the nodes, the text is the place of a failure');
@@ -60,6 +61,7 @@ final class ExpressionArchitectureTest
             ->classes(
                 Selector::inNamespace('FFI\Preprocessor\Expression\Evaluator\Math'),
                 Selector::classname('FFI\Preprocessor\Exception\InternalException'),
+                Selector::classname('FFI\Preprocessor\Exception\PlatformException'),
             )
             ->because('the arithmetic only computes the integers of 64 bits');
     }

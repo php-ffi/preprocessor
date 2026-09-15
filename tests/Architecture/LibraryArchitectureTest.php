@@ -30,11 +30,12 @@ final class LibraryArchitectureTest
     public function testReaderKnowsNothingOfWhatTheDirectivesDo(): Rule
     {
         return PHPat::rule()
-            ->classes(Selector::inNamespace('FFI\Preprocessor\Stream'))
+            ->classes(Selector::inNamespace('FFI\Preprocessor\Runtime'))
+            ->excluding(Selector::classname('FFI\Preprocessor\Runtime\SourceExecutor'))
             ->canOnly()
             ->dependOn()
             ->classes(
-                Selector::inNamespace('FFI\Preprocessor\Stream'),
+                Selector::inNamespace('FFI\Preprocessor\Runtime'),
                 Selector::inNamespace('FFI\Preprocessor\Exception'),
                 Selector::inNamespace('Phplrt\Contracts'),
                 Selector::inNamespace('Phplrt\Source'),
@@ -53,6 +54,7 @@ final class LibraryArchitectureTest
             ->classes(
                 Selector::inNamespace('FFI\Preprocessor\Diagnostic'),
                 Selector::classname('FFI\Preprocessor\Exception\InvalidStreamException'),
+                Selector::classname('FFI\Preprocessor\Exception\RuntimeException'),
                 Selector::inNamespace('Phplrt\Contracts\Source'),
                 Selector::inNamespace('Phplrt\Contracts\Position'),
                 Selector::inNamespace('Phplrt\Position'),
@@ -69,7 +71,7 @@ final class LibraryArchitectureTest
             ->dependOn()
             ->classes(
                 Selector::inNamespace('FFI\Preprocessor\Macro'),
-                Selector::inNamespace('FFI\Preprocessor\Stream'),
+                Selector::inNamespace('FFI\Preprocessor\Runtime'),
                 Selector::inNamespace('FFI\Preprocessor\Diagnostic'),
                 Selector::inNamespace('FFI\Preprocessor\Exception'),
                 Selector::inNamespace('Phplrt\Contracts'),
@@ -92,9 +94,10 @@ final class LibraryArchitectureTest
                 Selector::inNamespace('FFI\Preprocessor\Diagnostic'),
                 Selector::inNamespace('FFI\Preprocessor\Exception'),
                 Selector::inNamespace('FFI\Preprocessor\Expression'),
-                Selector::classname('FFI\Preprocessor\Stream\Chunk\TaggedChunk'),
-                Selector::classname('FFI\Preprocessor\Stream\Chunk\TaggedChunk\SourceDirective'),
-                Selector::classname('FFI\Preprocessor\Stream\Chunk\TaggedChunk\GeneratedChunk'),
+                Selector::classname('FFI\Preprocessor\Runtime\SourceExecutorInterface'),
+                Selector::classname('FFI\Preprocessor\Runtime\Chunk\TaggedChunk'),
+                Selector::classname('FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk'),
+                Selector::classname('FFI\Preprocessor\Runtime\Chunk\TaggedChunk\GeneratedChunk'),
                 Selector::inNamespace('Phplrt\Contracts'),
                 Selector::inNamespace('Phplrt\Source'),
             )

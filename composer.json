@@ -48,7 +48,8 @@
         }
     },
     "scripts-aliases": {
-        "test:unit": ["test", "phpunit", "unit"],
+        "test:unit": ["phpunit", "unit"],
+        "test:functional": ["functional"],
         "linter:check": ["linter", "stan"],
         "phpcs:fix": ["phpcs", "cs", "psr", "per"],
         "grammar:check": ["grammar"],
@@ -63,7 +64,12 @@
             "@php bin/build-expression-parser",
             "@php bin/build-token-lexer"
         ],
-        "test:unit": "phpunit --testdox",
+        "test": [
+            "@test:unit",
+            "@test:functional"
+        ],
+        "test:unit": "phpunit --testsuite unit --testdox",
+        "test:functional": "phpunit --testsuite functional --testdox",
         "linter:check": "phpstan analyse --configuration phpstan.neon --memory-limit 256M",
         "linter:baseline": "@linter:check --generate-baseline",
         "phpcs:check": "@phpcs:fix --dry-run",
