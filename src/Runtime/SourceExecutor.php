@@ -23,8 +23,6 @@ use Phplrt\Contracts\Source\FileInterface;
 /**
  * Preprocesses the files of one run (5.1.1.2, phase 4): executes the
  * directives, drops the skipped groups and replaces the macros in the text.
- * The state of the run, the macros and the open files, lives as long as the
- * object does.
  *
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 5.1.1.2 Translation phases
  *
@@ -48,10 +46,25 @@ final class SourceExecutor implements SourceExecutorInterface
     private int $depth = 0;
 
     public function __construct(
+        /**
+         * Reads the files into the chunks
+         */
         private readonly ChunkReader $reader,
+        /**
+         * The handlers of the directives
+         */
         private readonly DirectiveRepositoryInterface $directives,
+        /**
+         * The macros defined at the moment, `#define` and `#undef` change them
+         */
         private readonly MacroRepository $macros,
+        /**
+         * The files `#include` and `#embed` search
+         */
         private readonly FileSystemInterface $files,
+        /**
+         * Receives the messages of `#error` and `#warning`
+         */
         private readonly DiagnosticListenerInterface $diagnostic,
         /**
          * The number of the files that may be open at once, the first one included

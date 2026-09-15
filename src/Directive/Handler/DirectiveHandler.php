@@ -125,7 +125,7 @@ abstract class DirectiveHandler implements DirectiveHandlerInterface
     {
         $context->diagnostic->notify(new Diagnostic(
             severity: Severity::Error,
-            message: \sprintf('#%s: file "%s" is not found', $directive->name, $name->pathname),
+            message: \sprintf('#%s: file "%s" is not found', $directive->name, \addcslashes($name->pathname, '"')),
             source: $directive->source,
             offset: $directive->getPhysicalOffset($directive->bodyOffset),
             length: $directive->getPhysicalLength($directive->bodyOffset, $name->length),

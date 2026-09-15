@@ -5,6 +5,19 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Directive;
 
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveNameException;
+use FFI\Preprocessor\Directive\Handler\DefineDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\ElseDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\ElseIfDefinedDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\ElseIfDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\EmbedDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\EndifDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\ErrorDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\IfDefinedDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\IfDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\IncludeDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\PragmaDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\UndefDirectiveHandler;
+use FFI\Preprocessor\Directive\Handler\WarningDirectiveHandler;
 
 /**
  * Directive handlers of the configuration by the names of the directives. A
@@ -46,21 +59,21 @@ final class DirectiveRepository implements MutableDirectiveRepositoryInterface
     {
         $repository = new self();
 
-        $repository->add('include', new Handler\IncludeDirectiveHandler());
-        $repository->add('embed', new Handler\EmbedDirectiveHandler());
-        $repository->add('define', new Handler\DefineDirectiveHandler());
-        $repository->add('undef', new Handler\UndefDirectiveHandler());
-        $repository->add('error', new Handler\ErrorDirectiveHandler());
-        $repository->add('warning', new Handler\WarningDirectiveHandler());
-        $repository->add('pragma', new Handler\PragmaDirectiveHandler());
-        $repository->add('if', new Handler\IfDirectiveHandler());
-        $repository->add('ifdef', $ifDefined = new Handler\IfDefinedDirectiveHandler());
+        $repository->add('include', new IncludeDirectiveHandler());
+        $repository->add('embed', new EmbedDirectiveHandler());
+        $repository->add('define', new DefineDirectiveHandler());
+        $repository->add('undef', new UndefDirectiveHandler());
+        $repository->add('error', new ErrorDirectiveHandler());
+        $repository->add('warning', new WarningDirectiveHandler());
+        $repository->add('pragma', new PragmaDirectiveHandler());
+        $repository->add('if', new IfDirectiveHandler());
+        $repository->add('ifdef', $ifDefined = new IfDefinedDirectiveHandler());
         $repository->add('ifndef', $ifDefined);
-        $repository->add('elif', new Handler\ElseIfDirectiveHandler());
-        $repository->add('elifdef', $elseIfDefined = new Handler\ElseIfDefinedDirectiveHandler());
+        $repository->add('elif', new ElseIfDirectiveHandler());
+        $repository->add('elifdef', $elseIfDefined = new ElseIfDefinedDirectiveHandler());
         $repository->add('elifndef', $elseIfDefined);
-        $repository->add('else', new Handler\ElseDirectiveHandler());
-        $repository->add('endif', new Handler\EndifDirectiveHandler());
+        $repository->add('else', new ElseDirectiveHandler());
+        $repository->add('endif', new EndifDirectiveHandler());
 
         return $repository;
     }

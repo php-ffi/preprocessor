@@ -17,8 +17,8 @@ use FFI\Preprocessor\Tests\TestCase;
 abstract class DirectiveTestCase extends TestCase
 {
     /**
-     * Reads the first directive of a file of the given content through the
-     * stream, so that it is the one the handlers get.
+     * Reads the first directive of a file of the given content the way the
+     * handlers get it.
      */
     protected static function readDirective(string $content): DirectiveChunk
     {

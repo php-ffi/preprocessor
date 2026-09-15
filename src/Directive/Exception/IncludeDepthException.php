@@ -19,7 +19,7 @@ final class IncludeDepthException extends RuntimeException
     public static function becauseLimitIsExceeded(DirectiveChunk $directive, int $limit): self
     {
         return new self(
-            \sprintf('#%s nests the files deeper than the limit of %d', $directive->name, $limit),
+            \sprintf('#%s nests the files deeper than the limit of %d', \addcslashes($directive->name, '"'), $limit),
             $directive->source,
             $directive->getPhysicalOffset(0),
             $directive->getPhysicalLength(0, \max(1, \strlen($directive->content))),

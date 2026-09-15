@@ -60,8 +60,6 @@ final class Preprocessor
 
     /**
      * Every argument is optional: the one that is not given is the default of the standard.
-     *
-     * @param int<1, max> $maxIncludeDepth the number of the files that may be open at once, the first one included
      */
     public function __construct(
         ?SourceFactoryInterface $sources = null,
@@ -70,6 +68,11 @@ final class Preprocessor
         ?FileSystemInterface $files = null,
         ?DiagnosticListenerInterface $diagnostic = null,
         ?ChunkReader $reader = null,
+        /**
+         * The number of the files that may be open at once, the first one included
+         *
+         * @var int<1, max>
+         */
         public readonly int $maxIncludeDepth = 200,
     ) {
         $this->sources = $this->createSourceFactory($sources);
@@ -130,14 +133,25 @@ final class Preprocessor
         return ChunkReader::createDefault();
     }
 
+    private function createExecutor(): SourceExecutor
+    {
+        return new SourceExecutor(
+            $this->reader,
+            $this->directives,
+            new MacroRepository($this->macros),
+            $this->files,
+            $this->diagnostic,
+            $this->maxIncludeDepth,
+        );
+    }
+
     /**
      * Preprocesses the source, the output is made while it is iterated.
      *
      * @param mixed $source whatever the source factory creates a source from
-     * @return iterable<int, TaggedChunk> the text of the source in the order of the source
      * @throws \Throwable in case of the source cannot be created, read or preprocessed
      */
-    public function process(mixed $source): iterable
+    public function process(mixed $source): Result
     {
         $readable = $this->sources->create($source);
 
@@ -145,13 +159,8 @@ final class Preprocessor
             $readable = new VirtualSource('{entrypoint}', $readable);
         }
 
-        return (new SourceExecutor(
-            $this->reader,
-            $this->directives,
-            new MacroRepository($this->macros),
-            $this->files,
-            $this->diagnostic,
-            $this->maxIncludeDepth,
-        ))->execute($readable);
+        $executor = $this->createExecutor();
+
+        return new Result($executor->execute($readable));
     }
 }

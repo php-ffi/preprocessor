@@ -43,7 +43,7 @@ final class InvalidConditionException extends RuntimeException
         $length = \max(1, \strlen(\rtrim($directive->body, self::BLANKS)));
 
         return new self(
-            \sprintf('Invalid controlling expression of #%s: %s', $directive->name, $expression->getMessage()),
+            \sprintf('Invalid controlling expression of #%s: %s', \addcslashes($directive->name, '"'), $expression->getMessage()),
             $directive->source,
             $directive->getPhysicalOffset($directive->bodyOffset),
             $directive->getPhysicalLength($directive->bodyOffset, $length),
