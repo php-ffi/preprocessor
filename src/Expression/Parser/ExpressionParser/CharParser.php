@@ -93,9 +93,6 @@ final class CharParser
         return new CharParserResult($prefix, self::decodeBody(\substr($raw, $quote + 1, -1), $prefix));
     }
 
-    /**
-     * Expands the escape sequences of the characters between the quotes.
-     */
     private static function decodeBody(string $body, CharPrefix $prefix): string
     {
         $result = \preg_replace_callback(
@@ -175,8 +172,7 @@ final class CharParser
             return self::REPLACEMENT;
         }
 
-        // The extension is not a dependency, the encoding below is the
-        // fallback without it
+        // UTF-8 encoding of the code point
         if (\function_exists('mb_chr')) {
             return \mb_chr($value, 'UTF-8');
         }

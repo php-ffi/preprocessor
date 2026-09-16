@@ -16,7 +16,7 @@ use FFI\Preprocessor\Macro\FunctionLikeMacro\ClosureFunctionLikeMacro;
 final class MacroRepository implements MacroRepositoryInterface
 {
     /**
-     * The name of a macro with an optional parameter list, as `-D` takes it
+     * The spelling of an identifier a macro can be named by (6.4.3)
      */
     private const NAME_PATTERN = '/\A[A-Za-z_\x80-\xFF][0-9A-Za-z_\x80-\xFF]*+\z/';
 
@@ -80,8 +80,10 @@ final class MacroRepository implements MacroRepositoryInterface
     }
 
     /**
+     * Defines an object-like macro, `1` by default as `-DNAME` does.
+     *
      * @param non-empty-string $name
-     * @throws \Throwable in case of internal error occurs
+     * @throws InvalidMacroException in case of the name is not an identifier
      */
     public function define(string $name, string $replacement = '1'): void
     {
@@ -90,7 +92,7 @@ final class MacroRepository implements MacroRepositoryInterface
 
     /**
      * @param non-empty-string $name
-     * @throws \Throwable in case of internal error occurs
+     * @throws InvalidMacroException in case of the name is not an identifier
      */
     public function defineByString(string $name, string $replacement): void
     {
@@ -100,7 +102,7 @@ final class MacroRepository implements MacroRepositoryInterface
     /**
      * @param non-empty-string $name
      * @param \Closure(string ...): string $replacement
-     * @throws \Throwable in case of internal error occurs
+     * @throws InvalidMacroException in case of the name is not an identifier
      */
     public function defineByClosure(string $name, \Closure $replacement): void
     {
@@ -109,7 +111,7 @@ final class MacroRepository implements MacroRepositoryInterface
 
     /**
      * @param non-empty-string $name
-     * @throws \Throwable in case of internal error occurs
+     * @throws InvalidMacroException in case of the name is not an identifier
      */
     public function defineByMacro(string $name, MacroInterface $macro): void
     {

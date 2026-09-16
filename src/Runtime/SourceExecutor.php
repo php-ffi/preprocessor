@@ -12,12 +12,17 @@ use FFI\Preprocessor\Directive\Exception\IncludeDepthException;
 use FFI\Preprocessor\Directive\Exception\MisplacedDirectiveException;
 use FFI\Preprocessor\Directive\Exception\UnknownDirectiveException;
 use FFI\Preprocessor\Directive\OutputIndependentDirectiveHandlerInterface;
+use FFI\Preprocessor\Exception\PreprocessorException;
 use FFI\Preprocessor\FileSystem\FileSystemInterface;
+use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
 use FFI\Preprocessor\Macro\MacroRepository;
 use FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
 use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\GeneratedChunk;
+use FFI\Preprocessor\Runtime\Exception\UnclosedCommentException;
+use FFI\Preprocessor\Runtime\Exception\UnmatchedTextException;
+use Phplrt\Contracts\Source\Exception\SourceExceptionInterface;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
@@ -92,7 +97,12 @@ final class SourceExecutor implements SourceExecutorInterface
      * @throws IncludeDepthException in case of the files are nested deeper than the limit
      * @throws UnknownDirectiveException in case of a directive of a selected group has no handler
      * @throws MisplacedDirectiveException in case of a conditional section is not closed in the file
-     * @throws \Throwable in case of the file cannot be read or a directive cannot be executed
+     * @throws UnclosedCommentException in case of the file ends in a block comment that is not closed
+     * @throws UnmatchedTextException in case of the text of the file cannot be matched
+     * @throws MacroInvocationException in case of a macro invocation in the text is malformed
+     * @throws PreprocessorException in case of a directive cannot be executed
+     * @throws SourceExceptionInterface in case of the file cannot be read
+     * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
     public function execute(FileInterface $file): iterable
     {
@@ -134,6 +144,8 @@ final class SourceExecutor implements SourceExecutorInterface
     /**
      * @return iterable<int, TaggedChunk>
      * @throws UnknownDirectiveException in case of the directive of a selected group has no handler
+     * @throws PreprocessorException in case of the directive cannot be executed
+     * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
     private function executeDirectiveChunk(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
@@ -157,6 +169,9 @@ final class SourceExecutor implements SourceExecutorInterface
         yield from $handler->handle($directive, $context);
     }
 
+    /**
+     * @throws MacroInvocationException in case of a macro invocation in the text is malformed
+     */
     private function expandSourceChunk(TaggedChunk $chunk): TaggedChunk
     {
         $text = $this->expander->expand($chunk->content);

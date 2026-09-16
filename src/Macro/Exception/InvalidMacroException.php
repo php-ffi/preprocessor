@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Macro\Exception;
 
 /**
- * Occurs when a macro cannot be defined as asked: the name is not a macro
- * name with an optional parameter list, or the replacement is not a single
- * line.
+ * Occurs when a macro cannot be defined as asked: the name is not an
+ * identifier.
  */
 final class InvalidMacroException extends MacroException
 {

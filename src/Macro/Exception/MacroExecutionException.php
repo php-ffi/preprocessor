@@ -6,7 +6,4 @@ namespace FFI\Preprocessor\Macro\Exception;
 
 use FFI\Preprocessor\Exception\RuntimeException;
 
-/**
- * TODO
- */
 abstract class MacroExecutionException extends RuntimeException {}

@@ -18,6 +18,7 @@ final class EndifDirectiveHandler extends DirectiveHandler implements OutputInde
 {
     /**
      * @throws MisplacedDirectiveException in case of there is no open section
+     * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
     public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {

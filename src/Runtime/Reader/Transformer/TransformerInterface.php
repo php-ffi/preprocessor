@@ -26,7 +26,7 @@ interface TransformerInterface
      * chunk is final.
      *
      * @param bool $isFinal whether the chunk ends the file
-     * @throws UnclosedCommentException in case of the text breaks the rules of the step
+     * @throws UnclosedCommentException in case of the file ends in a block comment that is not closed
      * @throws UnmatchedTextException in case of the text cannot be matched
      */
     public function transform(UntaggedChunk $input, bool $isFinal): Transformation;

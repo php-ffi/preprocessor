@@ -17,6 +17,9 @@ use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
  */
 final class ErrorDirectiveHandler implements DirectiveHandlerInterface
 {
+    /**
+     * @throws \Throwable in case of the diagnostic listener stops the preprocessing
+     */
     public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
         $context->diagnostic->notify(new Diagnostic(

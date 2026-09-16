@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Expression\Evaluator;
 
-use FFI\Preprocessor\Exception\InternalException;
+use FFI\Preprocessor\Exception\PlatformException;
 use FFI\Preprocessor\Expression\Evaluator\Exception\EvaluationException;
 use FFI\Preprocessor\Expression\Evaluator\ExpressionEvaluator\CharConverter;
 use FFI\Preprocessor\Expression\Evaluator\ExpressionEvaluator\Operand;
@@ -108,6 +108,7 @@ final class ExpressionEvaluator implements ExpressionEvaluatorInterface
 
     /**
      * @param MathDriverInterface<TNumber>|null $math
+     * @throws PlatformException in case of the platform has no 64-bit arithmetic
      */
     public function __construct(
         ?MathDriverInterface $math = null,
@@ -317,7 +318,6 @@ final class ExpressionEvaluator implements ExpressionEvaluatorInterface
      * @param TNumber $b
      * @return Operand<TNumber>
      * @throws EvaluationException in case of the evaluated operation has no valid value
-     * @throws InternalException in case of the expression has a node of an unknown kind
      */
     private function evaluateArithmetic(
         BinaryExpression $node,

@@ -32,7 +32,6 @@ final class ClosureFunctionLikeMacro extends FunctionLikeMacro
      * Creates the macro with the parameters of the closure.
      *
      * @param \Closure(string ...): (scalar|\Stringable|null) $closure
-     * @throws \Throwable in case of internal error occurs
      */
     public static function createFromClosure(\Closure $closure): self
     {

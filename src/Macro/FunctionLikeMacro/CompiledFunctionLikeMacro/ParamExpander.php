@@ -17,7 +17,8 @@ final class ParamExpander
     ) {}
 
     /**
-     * @throws MacroInvocationException
+     * @throws MacroInvocationException in case of an invocation in the argument is malformed
+     * @throws \Throwable in case of a macro or the tokenizer fails
      */
     public function expand(string $argument): string
     {

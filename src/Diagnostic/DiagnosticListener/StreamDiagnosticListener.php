@@ -14,14 +14,8 @@ use FFI\Preprocessor\Exception\InvalidStreamException;
  */
 final class StreamDiagnosticListener implements DiagnosticListenerInterface
 {
-    /**
-     * Stream of the standard error output
-     */
     private const STDERR = 'php://stderr';
 
-    /**
-     * Stream of the standard output
-     */
     private const STDOUT = 'php://stdout';
 
     /**
@@ -30,8 +24,6 @@ final class StreamDiagnosticListener implements DiagnosticListenerInterface
     private const WRITABLE_MODE_PATTERN = '/[waxc+]/';
 
     /**
-     * The stream the diagnostics are written to
-     *
      * @var resource
      */
     private readonly mixed $stream;

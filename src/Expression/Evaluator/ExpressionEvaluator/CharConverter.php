@@ -134,14 +134,12 @@ final class CharConverter
             return \ord($character);
         }
 
-        // The extension is not a dependency, the decoding below is the
-        // fallback without it
         if (\function_exists('mb_ord')) {
             /** @var int<0, max> */
             return \mb_ord($character, 'UTF-8');
         }
 
-        // The bits of the first byte that belong to the code point
+        // Decoding without the mbstring extension: the payload bits of the first byte, then of the continuation bytes
         $codePoint = \ord($character[0]) & (0xFF >> ($size + 1));
 
         for ($i = 1; $i < $size; ++$i) {

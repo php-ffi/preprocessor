@@ -16,6 +16,9 @@ final class CompoundListener implements DiagnosticListenerInterface
         private readonly array $listeners,
     ) {}
 
+    /**
+     * @throws \Throwable in case of any of the listeners stops the preprocessing
+     */
     public function notify(Diagnostic $diagnostic): void
     {
         foreach ($this->listeners as $listener) {

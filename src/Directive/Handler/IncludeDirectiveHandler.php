@@ -6,6 +6,7 @@ namespace FFI\Preprocessor\Directive\Handler;
 
 use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
+use FFI\Preprocessor\Exception\PreprocessorException;
 use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
@@ -19,6 +20,8 @@ final class IncludeDirectiveHandler extends DirectiveHandler
     /**
      * @throws InvalidDirectiveBodyException in case of the body is not a header name, nor is replaced by one
      * @throws MacroInvocationException in case of an invocation of a macro in the body is malformed
+     * @throws PreprocessorException in case of the file cannot be included
+     * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
     public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {

@@ -7,6 +7,7 @@ namespace FFI\Preprocessor\Runtime\Reader;
 use FFI\Preprocessor\Runtime\Chunk\UntaggedChunk;
 use FFI\Preprocessor\Runtime\Exception\UnclosedCommentException;
 use FFI\Preprocessor\Runtime\Exception\UnmatchedTextException;
+use Phplrt\Contracts\Source\Exception\SourceExceptionInterface;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
@@ -25,7 +26,7 @@ interface ReaderInterface
      * @return iterable<int, UntaggedChunk>
      * @throws UnclosedCommentException in case of the file ends in a comment
      * @throws UnmatchedTextException in case of the text cannot be matched
-     * @throws \Throwable in case of internal error occurs
+     * @throws SourceExceptionInterface in case of the file cannot be read
      */
     public function read(FileInterface $file): iterable;
 }

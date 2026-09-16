@@ -64,7 +64,7 @@ final class NativeX64Driver implements MathDriverInterface
     public function compare(mixed $left, mixed $right, bool $isUnsigned): int
     {
         if ($isUnsigned) {
-            // The order of the unsigned numbers is that of the signed ones with the highest bit flipped
+            // Unsigned comparison
             return ($left ^ \PHP_INT_MIN) <=> ($right ^ \PHP_INT_MIN);
         }
 
@@ -86,7 +86,7 @@ final class NativeX64Driver implements MathDriverInterface
 
     public function multiply(mixed $left, mixed $right): int
     {
-        // The product of the parts of 16 bits, the parts beyond 64 bits dropped
+        // Multiplication modulo 2^64 by the parts of 16 bits
         $a = [$left & self::LOW_16, ($left >> 16) & self::LOW_16, ($left >> 32) & self::LOW_16, ($left >> 48) & self::LOW_16];
         $b = [$right & self::LOW_16, ($right >> 16) & self::LOW_16, ($right >> 32) & self::LOW_16, ($right >> 48) & self::LOW_16];
         $result = 0;
@@ -126,12 +126,12 @@ final class NativeX64Driver implements MathDriverInterface
      */
     private function divideUnsigned(int $left, int $right): array
     {
-        // A divisor of 2^63 or more fits in the dividend at most once
+        // Unsigned division by a divisor with the highest bit set
         if ($right < 0) {
             return $this->compare($left, $right, true) >= 0 ? [1, $this->subtract($left, $right)] : [0, $left];
         }
 
-        // Half of the dividend is a non-negative integer, the quotient is off by one at most
+        // Unsigned division of a dividend with the highest bit set
         $quotient = \intdiv(($left >> 1) & \PHP_INT_MAX, $right) << 1;
         $rest = $this->subtract($left, $this->multiply($quotient, $right));
 

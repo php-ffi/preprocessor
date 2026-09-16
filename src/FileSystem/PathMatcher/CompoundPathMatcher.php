@@ -15,6 +15,8 @@ final class CompoundPathMatcher implements PathMatcherInterface
 {
     public function __construct(
         /**
+         * The matchers asked in turn
+         *
          * @var non-empty-list<PathMatcherInterface>
          */
         private readonly array $matchers,

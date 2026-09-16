@@ -91,6 +91,9 @@ final class DirectiveRepository implements MutableDirectiveRepositoryInterface
         return $this->prev?->find($name);
     }
 
+    /**
+     * @throws InvalidDirectiveNameException in case of the name is not an identifier or has a handler
+     */
     public function add(string $name, DirectiveHandlerInterface $handler): void
     {
         if ($this->find($name) !== null) {
@@ -100,6 +103,9 @@ final class DirectiveRepository implements MutableDirectiveRepositoryInterface
         $this->replace($name, $handler);
     }
 
+    /**
+     * @throws InvalidDirectiveNameException in case of the name is not an identifier
+     */
     public function replace(string $name, DirectiveHandlerInterface $handler): void
     {
         if (\preg_match(self::NAME_PATTERN, $name) !== 1) {

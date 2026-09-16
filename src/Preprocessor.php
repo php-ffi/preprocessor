@@ -13,7 +13,6 @@ use FFI\Preprocessor\FileSystem\FileSystemInterface;
 use FFI\Preprocessor\FileSystem\RealFileSystem;
 use FFI\Preprocessor\Macro\MacroRepository;
 use FFI\Preprocessor\Macro\MacroRepositoryInterface;
-use FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
 use FFI\Preprocessor\Runtime\ChunkReader;
 use FFI\Preprocessor\Runtime\SourceExecutor;
 use Phplrt\Contracts\Source\FileInterface;
@@ -146,10 +145,10 @@ final class Preprocessor
     }
 
     /**
-     * Preprocesses the source, the output is made while it is iterated.
+     * Preprocesses the source. The failures of the preprocessing itself are thrown while the result is iterated.
      *
      * @param mixed $source whatever the source factory creates a source from
-     * @throws \Throwable in case of the source cannot be created, read or preprocessed
+     * @throws \Throwable in case of the source cannot be created from the given value
      */
     public function process(mixed $source): Result
     {

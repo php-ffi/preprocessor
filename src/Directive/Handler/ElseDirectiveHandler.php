@@ -18,6 +18,7 @@ final class ElseDirectiveHandler extends DirectiveHandler implements OutputIndep
 {
     /**
      * @throws MisplacedDirectiveException in case of there is no open section or it has the `#else` already
+     * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
     public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {

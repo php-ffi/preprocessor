@@ -8,6 +8,7 @@ use FFI\Preprocessor\Directive\DirectiveContext;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
 use FFI\Preprocessor\Directive\Handler\DefineDirectiveHandler\ParameterList;
 use FFI\Preprocessor\Directive\Handler\DefineDirectiveHandler\ReplacementCompiler;
+use FFI\Preprocessor\Macro\Exception\InvalidMacroException;
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\ParamExpander;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\ParamStringifier;
@@ -21,7 +22,7 @@ use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 final class DefineDirectiveHandler extends DirectiveHandler
 {
     /**
-     * A parameter list that starts the rest of a body after the macro name, the parameters are the group
+     * The parameter list of a function-like macro right after its name: the parameters are the group
      */
     private const PARAMETERS_PATTERN = '/\A\(([^)]*+)\)/';
 
@@ -43,6 +44,7 @@ final class DefineDirectiveHandler extends DirectiveHandler
 
     /**
      * @throws InvalidDirectiveBodyException in case of the body is not a macro definition
+     * @throws InvalidMacroException in case of the macro name is not accepted by the macro repository
      */
     public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {

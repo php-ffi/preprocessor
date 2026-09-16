@@ -42,6 +42,7 @@ final class MacroExpander
      * Returns the text with every macro invocation replaced.
      *
      * @throws MacroInvocationException in case of an invocation is malformed
+     * @throws \Throwable in case of a macro or the tokenizer fails
      */
     public function expand(string $text): string
     {
@@ -50,6 +51,7 @@ final class MacroExpander
 
     /**
      * @throws MacroInvocationException in case of an invocation is malformed
+     * @throws \Throwable in case of a macro or the tokenizer fails
      */
     private function expandTokens(Expansion $expansion): string
     {
@@ -200,6 +202,7 @@ final class MacroExpander
 
     /**
      * @return list<TokenInterface>
+     * @throws \Throwable in case of the tokenizer fails
      */
     private function readTokens(string $text): array
     {

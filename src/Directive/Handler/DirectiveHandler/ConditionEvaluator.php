@@ -18,8 +18,8 @@ use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 use Phplrt\Source\StringSource;
 
 /**
- * Evaluates the controlling expression of `#if` and `#elif`: the `defined` and `__has_include` operators are
- * replaced, then the macros, then the identifiers that are left (6.10.2p5, 6.10.2p9, 6.10.2p13).
+ * Evaluates the controlling expression of `#if` and `#elif` to a truth value, with the `defined` and
+ * `__has_include` operators (6.10.2p5, 6.10.2p9, 6.10.2p13).
  *
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 6.10.2 Conditional inclusion
  *
@@ -48,8 +48,8 @@ final class ConditionEvaluator
         . '\(\s*+(?:"(?<quoted>[^"]++)"|<(?<angled>[^>]++)>)\s*+\)~';
 
     /**
-     * A token of the expression that is left after the replacement of the macros: a literal and a number
-     * keep the letters inside them from being identifiers
+     * A token of the expression that is left after the replacement of the macros: a character constant,
+     * a number or an identifier
      */
     private const TOKEN_PATTERN = '~'
         . '(?<literal>(?:u8|[uUL])?\'(?:[^\'\\\\\n]|\\\\.)*+\'?)'
@@ -57,6 +57,9 @@ final class ConditionEvaluator
         . '|(?<identifier>' . self::IDENTIFIER . ')'
         . '~s';
 
+    /**
+     * The identifier that is `1` in a controlling expression, the other ones are `0`
+     */
     private const TRUE_NAME = 'true';
 
     public function __construct(

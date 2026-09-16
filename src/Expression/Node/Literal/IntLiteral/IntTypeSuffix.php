@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Expression\Node\Literal\IntLiteral;
 
 /**
- * Suffix of an integer constant (6.4.4.2), in its lowercase spelling. In a
- * conditional directive every integer constant is `intmax_t` or `uintmax_t`
- * (6.10.2p13), so only the unsignedness matters there.
+ * Suffix of an integer constant (6.4.4.2), in its lowercase spelling.
  *
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 6.4.4.2 Integer constants
  * @link https://learn.microsoft.com/en-us/cpp/c-language/c-integer-constants MSVC, integer constants

@@ -141,7 +141,7 @@ final class BcMathDriver implements MathDriverInterface
             return \bcdiv($number, $divisor, 0);
         }
 
-        // The floor of the division of a negative number: the truncated quotient less one, unless exact
+        // Arithmetic shift of a negative number
         $signed = $this->toSigned($number);
         $quotient = \bcdiv($signed, $divisor, 0);
 

@@ -22,6 +22,7 @@ final class ElseIfDefinedDirectiveHandler extends DirectiveHandler implements Ou
     /**
      * @throws MisplacedDirectiveException in case of there is no open section or it has the `#else` already
      * @throws InvalidDirectiveBodyException in case of the macro name is not an identifier
+     * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
     public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {

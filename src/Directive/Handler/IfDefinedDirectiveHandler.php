@@ -20,6 +20,7 @@ final class IfDefinedDirectiveHandler extends DirectiveHandler implements Output
 
     /**
      * @throws InvalidDirectiveBodyException in case of the macro name is not an identifier
+     * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
     public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {

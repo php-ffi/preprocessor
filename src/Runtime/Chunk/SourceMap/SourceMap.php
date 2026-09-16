@@ -184,9 +184,7 @@ final class SourceMap
         $totals = [];
         $count = \count($this->offsets);
         $i = 0;
-        // Number of the bytes the edits applied so far take away from the text
         $removed = 0;
-        // Total size of the skipped bytes at the last passed offset
         $current = 0;
 
         foreach ($edits as $edit) {

@@ -43,6 +43,7 @@ final class CompiledFunctionLikeMacro extends FunctionLikeMacro
 
     /**
      * @throws MacroInvocationException in case of an invocation in an argument is malformed
+     * @throws \Throwable in case of a macro or the tokenizer fails
      */
     public function replace(array $arguments): string
     {
@@ -57,6 +58,7 @@ final class CompiledFunctionLikeMacro extends FunctionLikeMacro
 
     /**
      * @throws MacroInvocationException in case of an invocation in the argument is malformed
+     * @throws \Throwable in case of a macro or the tokenizer fails
      */
     private function processArgument(PlaceholderKind $kind, string $argument): string
     {

@@ -10,13 +10,13 @@ use FFI\Preprocessor\Runtime\Exception\UnmatchedTextException;
 use FFI\Preprocessor\Runtime\Reader\Transformer\CommentReplacer;
 use FFI\Preprocessor\Runtime\Reader\Transformer\SpliceRemover;
 use FFI\Preprocessor\Runtime\Reader\Transformer\TransformerInterface;
+use Phplrt\Contracts\Source\Exception\SourceExceptionInterface;
 use Phplrt\Contracts\Source\FileInterface;
 
 /**
- * Streaming reader: keeps no more of a file in memory than a block and what
- * the transformers hold back until the file continues. Reads the files in any
- * ASCII-compatible encoding, an UTF-8 byte order mark at the start of a file
- * is not a part of its text.
+ * Reads a file as the translation phases 1 to 3 require. Accepts the files in
+ * any ASCII-compatible encoding, an UTF-8 byte order mark at the start of a
+ * file is not a part of its text.
  *
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 5.1.1.2 Translation phases
  *
@@ -65,11 +65,10 @@ final class BlockReader implements ReaderInterface
      * @return \Generator<int, UntaggedChunk>
      * @throws UnclosedCommentException in case of the file ends in a comment
      * @throws UnmatchedTextException in case of the text cannot be matched
-     * @throws \Throwable in case of internal error occurs
+     * @throws SourceExceptionInterface in case of the file cannot be read
      */
     public function read(FileInterface $file): \Generator
     {
-        // The byte order mark is read whole whatever the size of a block is
         $block = $file->read(0, \max($this->blockSize, \strlen(self::BYTE_ORDER_MARK)));
 
         $position = \strlen($block);

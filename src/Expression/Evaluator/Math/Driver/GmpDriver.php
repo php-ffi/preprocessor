@@ -128,7 +128,7 @@ final class GmpDriver implements MathDriverInterface
             return \gmp_div_q($number, \gmp_pow(2, $bits));
         }
 
-        // The floor of the signed division is the arithmetic shift
+        // Arithmetic shift of a signed number
         return $this->wrap(\gmp_div_q($this->toSigned($number), \gmp_pow(2, $bits), \GMP_ROUND_MINUSINF));
     }
 

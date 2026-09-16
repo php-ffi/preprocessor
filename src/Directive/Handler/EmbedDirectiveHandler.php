@@ -20,6 +20,7 @@ final class EmbedDirectiveHandler extends DirectiveHandler
     /**
      * @throws InvalidDirectiveBodyException in case of the body is not a resource name, nor is replaced by one
      * @throws MacroInvocationException in case of an invocation of a macro in the body is malformed
+     * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
     public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
