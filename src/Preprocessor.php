@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor;
 
+use FFI\Preprocessor\Diagnostic\DiagnosticListener\RecordingDiagnosticListener;
 use FFI\Preprocessor\Diagnostic\DiagnosticListener\ThrowingDiagnosticListener;
 use FFI\Preprocessor\Diagnostic\DiagnosticListenerInterface;
 use FFI\Preprocessor\Directive\DirectiveRepository;
@@ -132,20 +133,21 @@ final class Preprocessor
         return ChunkReader::createDefault();
     }
 
-    private function createExecutor(): SourceExecutor
+    private function createExecutor(MacroRepository $macros, DiagnosticListenerInterface $diagnostic): SourceExecutor
     {
         return new SourceExecutor(
             $this->reader,
             $this->directives,
-            new MacroRepository($this->macros),
+            $macros,
             $this->files,
-            $this->diagnostic,
+            $diagnostic,
             $this->maxIncludeDepth,
         );
     }
 
     /**
-     * Preprocesses the source. The failures of the preprocessing itself are thrown while the result is iterated.
+     * Preprocesses the source. The run goes on while the result is read, the failures of the preprocessing itself
+     * are thrown there.
      *
      * @param mixed $source whatever the source factory creates a source from
      * @throws \Throwable in case of the source cannot be created from the given value
@@ -158,8 +160,15 @@ final class Preprocessor
             $readable = new VirtualSource('{entrypoint}', $readable);
         }
 
-        $executor = $this->createExecutor();
+        $macros = new MacroRepository($this->macros);
+        $diagnostics = new RecordingDiagnosticListener($this->diagnostic);
+        $executor = $this->createExecutor($macros, $diagnostics);
 
-        return new Result($executor->execute($readable));
+        return new Result(
+            stream: $executor->execute($readable),
+            macros: $macros,
+            executor: $executor,
+            diagnostics: $diagnostics,
+        );
     }
 }

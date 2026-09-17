@@ -50,6 +50,13 @@ final class SourceExecutor implements SourceExecutorInterface
      */
     private int $depth = 0;
 
+    /**
+     * The files read so far by their pathnames
+     *
+     * @var array<non-empty-string, FileInterface>
+     */
+    private array $read = [];
+
     public function __construct(
         /**
          * Reads the files into the chunks
@@ -81,6 +88,16 @@ final class SourceExecutor implements SourceExecutorInterface
         $this->expander = new MacroExpander($macros);
     }
 
+    /**
+     * Returns the files read so far, the first one and the included ones, each once.
+     *
+     * @return list<FileInterface>
+     */
+    public function getFiles(): array
+    {
+        return \array_values($this->read);
+    }
+
     private function createContext(): DirectiveContext
     {
         return new DirectiveContext(
@@ -93,7 +110,7 @@ final class SourceExecutor implements SourceExecutorInterface
     }
 
     /**
-     * @return iterable<int, TaggedChunk>
+     * @return \Generator<int, TaggedChunk>
      * @throws IncludeDepthException in case of the files are nested deeper than the limit
      * @throws UnknownDirectiveException in case of a directive of a selected group has no handler
      * @throws MisplacedDirectiveException in case of a conditional section is not closed in the file
@@ -104,7 +121,7 @@ final class SourceExecutor implements SourceExecutorInterface
      * @throws SourceExceptionInterface in case of the file cannot be read
      * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
-    public function execute(FileInterface $file): iterable
+    public function execute(FileInterface $file): \Generator
     {
         $including = $this->current;
 
@@ -113,6 +130,8 @@ final class SourceExecutor implements SourceExecutorInterface
 
             throw IncludeDepthException::becauseLimitIsExceeded($including, $this->maxDepth);
         }
+
+        $this->read[$file->pathname] ??= $file;
 
         try {
             $context = $this->createContext();
