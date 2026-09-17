@@ -6,6 +6,7 @@ namespace FFI\Preprocessor;
 
 use FFI\Preprocessor\Diagnostic\Diagnostic;
 use FFI\Preprocessor\Diagnostic\DiagnosticListener\RecordingDiagnosticListener;
+use FFI\Preprocessor\Macro\MacroInterface;
 use FFI\Preprocessor\Macro\MacroRepositoryInterface;
 use FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
 use FFI\Preprocessor\Runtime\SourceExecutor;
@@ -30,10 +31,15 @@ final class Result implements
     private array $chunks = [];
 
     /**
+     * The output of the run, the part not read yet included
+     *
      * @var \Iterator<array-key, TaggedChunk>
      */
     private readonly \Iterator $stream;
 
+    /**
+     * Whether the output has been read to the end
+     */
     private bool $isFinished = false;
 
     /**
@@ -62,16 +68,38 @@ final class Result implements
     }
 
     /**
-     * Returns the macros defined when the run ended, those of the
-     * configuration included.
+     * Returns the macros defined when the run ended, those of the configuration included.
      *
+     * @return iterable<non-empty-string, MacroInterface>
      * @throws \Throwable in case of the run fails
      */
-    public function getMacros(): MacroRepositoryInterface
+    public function getMacros(): iterable
     {
         $this->finish();
 
-        return $this->macros;
+        return $this->macros->getAll();
+    }
+
+    /**
+     * Finds the macro defined when the run ended, {@see null} in case of the name is not defined.
+     *
+     * @throws \Throwable in case of the run fails
+     */
+    public function findMacro(string $name): ?MacroInterface
+    {
+        $this->finish();
+
+        return $this->macros->find($name);
+    }
+
+    /**
+     * @throws \Throwable in case of the run fails
+     */
+    public function hasMacro(string $name): bool
+    {
+        $this->finish();
+
+        return $this->macros->find($name) !== null;
     }
 
     /**
@@ -158,11 +186,12 @@ final class Result implements
     }
 
     /**
+     * Reads the output to the end.
+     *
      * @throws \Throwable in case of the run fails
      */
     private function finish(): void
     {
-        // reads the output to the end
         foreach ($this as $_);
     }
 }

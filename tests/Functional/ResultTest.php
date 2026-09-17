@@ -30,8 +30,17 @@ final class ResultTest extends TestCase
     {
         $result = self::process("#include \"a.h\"\n#undef CONFIG\n");
 
-        self::assertNotNull($result->getMacros()->find('A'));
-        self::assertNull($result->getMacros()->find('CONFIG'));
+        self::assertTrue($result->hasMacro('A'));
+        self::assertNotNull($result->findMacro('A'));
+        self::assertFalse($result->hasMacro('CONFIG'));
+        self::assertNull($result->findMacro('CONFIG'));
+    }
+
+    public function testMacrosListsTheDefinedMacrosByTheirNames(): void
+    {
+        $names = \array_keys(\iterator_to_array(self::process("#define A 1\n#define B 2\n")->getMacros()));
+
+        self::assertSame(['CONFIG', 'A', 'B'], $names);
     }
 
     public function testFilesListsTheEntrypointAndTheIncludedFilesOnce(): void
