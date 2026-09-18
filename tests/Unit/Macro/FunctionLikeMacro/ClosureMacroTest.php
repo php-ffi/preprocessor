@@ -15,7 +15,7 @@ final class ClosureMacroTest extends TestCase
     {
         $macro = ClosureFunctionLikeMacro::createFromClosure(static fn(string $foo, string $bar): string => $foo . $bar);
 
-        self::assertSame(2, $macro->args);
+        self::assertSame(2, $macro->params);
         self::assertFalse($macro->isVariadic);
         self::assertSame('ab', $macro->replace(['a', 'b']));
     }
@@ -24,7 +24,7 @@ final class ClosureMacroTest extends TestCase
     {
         $macro = ClosureFunctionLikeMacro::createFromClosure(static fn(string $format, string ...$rest): string => $format . \implode('', $rest));
 
-        self::assertSame(2, $macro->args);
+        self::assertSame(2, $macro->params);
         self::assertTrue($macro->isVariadic);
         self::assertSame('f123', $macro->replace(['f', '1', '2', '3']));
     }
@@ -33,7 +33,7 @@ final class ClosureMacroTest extends TestCase
     {
         $macro = ClosureFunctionLikeMacro::createFromClosure(static fn(): int => 42);
 
-        self::assertSame(0, $macro->args);
+        self::assertSame(0, $macro->params);
         self::assertSame('42', $macro->replace([]));
     }
 }

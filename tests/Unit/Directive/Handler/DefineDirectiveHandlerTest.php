@@ -9,7 +9,7 @@ use FFI\Preprocessor\Directive\Handler\DefineDirectiveHandler;
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro;
 use FFI\Preprocessor\Macro\MacroRepository;
-use FFI\Preprocessor\Macro\ObjectLikeMacro;
+use FFI\Preprocessor\Macro\ObjectLikeMacro\StringObjectLikeMacro;
 use FFI\Preprocessor\Tests\Support\DirectiveTestCase;
 use FFI\Preprocessor\Tests\Support\RecordingDiagnosticListener;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -100,7 +100,7 @@ final class DefineDirectiveHandlerTest extends DirectiveTestCase
             self::createContext(new RecordingDiagnosticListener(), null, $macros),
         );
 
-        self::assertInstanceOf(ObjectLikeMacro::class, $macros->find('X'));
+        self::assertInstanceOf(StringObjectLikeMacro::class, $macros->find('X'));
     }
 
     public function testMacroWithParametersIsFunctionLike(): void
@@ -115,7 +115,7 @@ final class DefineDirectiveHandlerTest extends DirectiveTestCase
         $macro = $macros->find('F');
 
         self::assertInstanceOf(CompiledFunctionLikeMacro::class, $macro);
-        self::assertSame(2, $macro->args);
+        self::assertSame(2, $macro->params);
         self::assertTrue($macro->isVariadic);
     }
 

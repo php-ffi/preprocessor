@@ -32,7 +32,7 @@ final class FormattedMacroTest extends TestCase
     {
         $macro = new TemplateFunctionLikeMacro('f(%s, %s)', 2, isVariadic: true);
 
-        self::assertSame(2, $macro->args);
+        self::assertSame(2, $macro->params);
         self::assertTrue($macro->isVariadic);
         self::assertSame('f(x, 1, 2)', $macro->replace(['x', '1, 2']));
     }
