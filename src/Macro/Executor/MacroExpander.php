@@ -171,7 +171,7 @@ final class MacroExpander
      */
     private function normalizeArguments(string $name, FunctionLikeMacro $macro, array $arguments): array
     {
-        $named = $macro->args;
+        $named = $macro->params;
 
         if ($macro->isVariadic && $named > 0) {
             --$named;

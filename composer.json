@@ -21,7 +21,8 @@
         "php": "^8.1",
         "phplrt/exception": "^4.2",
         "phplrt/position": "^4.2",
-        "phplrt/runtime": "^4.2"
+        "phplrt/runtime": "^4.2",
+        "psr/clock": "^1.0"
     },
     "suggest": {
         "psr/log": "To pass the diagnostics to a PSR-3 logger (^1.1|^2.0|^3.0)"

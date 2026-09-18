@@ -41,6 +41,7 @@ final class LibraryArchitectureTest
                 Selector::inNamespace('Phplrt\Source'),
                 Selector::inNamespace('Phplrt\Lexer'),
                 Selector::inNamespace('Phplrt\Parser'),
+                Selector::inNamespace('Psr\Clock'),
             )
             ->because('the reader only splits a file into the source text and the directives');
     }
@@ -77,6 +78,7 @@ final class LibraryArchitectureTest
                 Selector::inNamespace('Phplrt\Contracts'),
                 Selector::inNamespace('Phplrt\Lexer'),
                 Selector::inNamespace('Phplrt\Source'),
+                Selector::inNamespace('Psr\Clock'),
             )
             ->because('the macros are defined and replaced the same way whatever directive uses them');
     }

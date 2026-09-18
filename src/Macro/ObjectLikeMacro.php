@@ -10,17 +10,4 @@ namespace FFI\Preprocessor\Macro;
  *
  * @link https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf C23 (N3220), 6.10.5 Macro replacement
  */
-final class ObjectLikeMacro implements MacroInterface
-{
-    public function __construct(
-        /**
-         * The text the name is replaced by
-         */
-        public readonly string $replacement = '',
-    ) {}
-
-    public function replace(array $arguments): string
-    {
-        return $this->replacement;
-    }
-}
+abstract class ObjectLikeMacro implements MacroInterface {}

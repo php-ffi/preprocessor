@@ -20,7 +20,7 @@ use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\Placehold
 final class CompiledFunctionLikeMacro extends FunctionLikeMacro
 {
     /**
-     * @param int<0, max> $args
+     * @param int<0, max> $params
      */
     public function __construct(
         /**
@@ -35,10 +35,10 @@ final class CompiledFunctionLikeMacro extends FunctionLikeMacro
          * @var list<Placeholder>
          */
         public readonly array $placeholders,
-        int $args,
+        int $params,
         bool $isVariadic = false,
     ) {
-        parent::__construct($args, $isVariadic);
+        parent::__construct($params, $isVariadic);
     }
 
     /**

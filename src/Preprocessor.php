@@ -20,6 +20,7 @@ use Phplrt\Contracts\Source\FileInterface;
 use Phplrt\Contracts\Source\SourceFactoryInterface;
 use Phplrt\Source\SourceFactory;
 use Phplrt\Source\VirtualSource;
+use Psr\Clock\ClockInterface;
 
 /**
  * Preprocesses C sources (5.1.1.2, translation phases 1 to 4).
@@ -68,6 +69,7 @@ final class Preprocessor
         ?FileSystemInterface $files = null,
         ?DiagnosticListenerInterface $diagnostic = null,
         ?ChunkReader $reader = null,
+        ?ClockInterface $clock = null,
         /**
          * The number of the files that may be open at once, the first one included
          *
@@ -76,7 +78,7 @@ final class Preprocessor
         public readonly int $maxIncludeDepth = 200,
     ) {
         $this->sources = $this->createSourceFactory($sources);
-        $this->macros = $this->createMacroRepository($macros);
+        $this->macros = $this->createMacroRepository($macros, $clock);
         $this->directives = $this->createDirectiveRepository($directives);
         $this->files = $this->createFileSystem($files);
         $this->diagnostic = $this->createDiagnosticListener($diagnostic);
@@ -92,9 +94,13 @@ final class Preprocessor
         return SourceFactory::createDefault();
     }
 
-    private function createMacroRepository(?MacroRepositoryInterface $macros): MacroRepository
+    private function createMacroRepository(?MacroRepositoryInterface $macros, ?ClockInterface $clock): MacroRepository
     {
-        return new MacroRepository($macros);
+        if ($macros === null) {
+            return MacroRepository::createDefault($clock);
+        }
+
+        return MacroRepository::createWithDefault($macros, $clock);
     }
 
     private function createDirectiveRepository(?DirectiveRepositoryInterface $directives): MutableDirectiveRepositoryInterface

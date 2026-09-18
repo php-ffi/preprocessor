@@ -11,6 +11,7 @@ use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\ParamStri
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\Placeholder;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\PlaceholderKind;
 use FFI\Preprocessor\Macro\ObjectLikeMacro;
+use FFI\Preprocessor\Macro\ObjectLikeMacro\StringObjectLikeMacro;
 use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 
 /**
@@ -52,7 +53,7 @@ final class ReplacementCompiler
     {
         [$template] = $this->readReplacement($directive, $replacement, [], false);
 
-        return new ObjectLikeMacro(\vsprintf($template, []));
+        return new StringObjectLikeMacro(\vsprintf($template, []));
     }
 
     /**

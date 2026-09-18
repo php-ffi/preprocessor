@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Tests\Unit\Macro;
 
 use FFI\Preprocessor\Macro\Exception\InvalidMacroException;
+use FFI\Preprocessor\Macro\FunctionLikeMacro;
 use FFI\Preprocessor\Macro\MacroRepository;
-use FFI\Preprocessor\Macro\ObjectLikeMacro;
+use FFI\Preprocessor\Macro\ObjectLikeMacro\ClosureObjectLikeMacro;
+use FFI\Preprocessor\Macro\ObjectLikeMacro\StringObjectLikeMacro;
 use FFI\Preprocessor\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Psr\Clock\ClockInterface;
 
 #[CoversClass(MacroRepository::class)]
 final class MacroRepositoryTest extends TestCase
@@ -17,7 +20,7 @@ final class MacroRepositoryTest extends TestCase
     {
         $macros = new MacroRepository();
         $macros->define('DEBUG');
-        $macros->defineByClosure('NOW', static fn(): string => 'now');
+        $macros->defineFunctionLikeByClosure('NOW', static fn(): string => 'now');
 
         self::assertSame('1', $macros->find('DEBUG')?->replace([]));
         self::assertSame('now', $macros->find('NOW')?->replace([]));
@@ -66,7 +69,7 @@ final class MacroRepositoryTest extends TestCase
         $prev->define('A');
         $macros = new MacroRepository($prev);
         $macros->remove('A');
-        $macros->defineByMacro('A', new ObjectLikeMacro('5'));
+        $macros->defineByMacro('A', new StringObjectLikeMacro('5'));
 
         self::assertSame('5', $macros->find('A')?->replace([]));
     }
@@ -76,5 +79,104 @@ final class MacroRepositoryTest extends TestCase
         $this->expectException(InvalidMacroException::class);
 
         (new MacroRepository())->define('F(x)');
+    }
+
+    public function testDefaultRepositoryDefinesTheMandatoryMacros(): void
+    {
+        $macros = MacroRepository::createDefault();
+
+        self::assertSame('1', $macros->find('__STDC__')?->replace([]));
+        self::assertSame('202311L', $macros->find('__STDC_VERSION__')?->replace([]));
+        self::assertSame('1', $macros->find('__STDC_HOSTED__')?->replace([]));
+        self::assertSame('2', $macros->find('__STDC_EMBED_EMPTY__')?->replace([]));
+    }
+
+    public function testDefaultDateAndTimeHaveTheFormOfTheStandard(): void
+    {
+        $macros = MacroRepository::createDefault();
+
+        self::assertMatchesRegularExpression('/\A"[A-Z][a-z]{2} [ \d]\d \d{4}"\z/', $macros->find('__DATE__')?->replace([]) ?? '');
+        self::assertMatchesRegularExpression('/\A"\d{2}:\d{2}:\d{2}"\z/', $macros->find('__TIME__')?->replace([]) ?? '');
+    }
+
+    public function testDefaultDateAndTimeAreTakenFromTheClock(): void
+    {
+        $clock = new class implements ClockInterface {
+            public function now(): \DateTimeImmutable
+            {
+                return new \DateTimeImmutable('2024-02-03 04:05:06');
+            }
+        };
+
+        $macros = MacroRepository::createDefault($clock);
+
+        self::assertSame('"Feb  3 2024"', $macros->find('__DATE__')?->replace([]));
+        self::assertSame('"04:05:06"', $macros->find('__TIME__')?->replace([]));
+    }
+
+    public function testClosureWithoutParametersDefinesAnObjectLikeMacroEvaluatedEachTime(): void
+    {
+        $count = 0;
+
+        $macros = new MacroRepository();
+        $macros->define('COUNTER', static function () use (&$count): int {
+            return $count++;
+        });
+
+        self::assertInstanceOf(ClosureObjectLikeMacro::class, $macros->find('COUNTER'));
+        self::assertSame('0', $macros->find('COUNTER')->replace([]));
+        self::assertSame('1', $macros->find('COUNTER')->replace([]));
+    }
+
+    public function testClosureWithParametersIsNotAnObjectLikeMacro(): void
+    {
+        $this->expectException(InvalidMacroException::class);
+
+        (new MacroRepository())->define('F', static fn(string $x): string => $x);
+    }
+
+    public function testReplacementOfAnotherTypeIsRejected(): void
+    {
+        $this->expectException(InvalidMacroException::class);
+        $this->expectExceptionMessage('Macro replacement of type "int" is not supported');
+
+        (new MacroRepository())->define('X', 42);
+    }
+
+    public function testClosureDefinedByDefineByClosureIsFunctionLike(): void
+    {
+        $macros = new MacroRepository();
+        $macros->defineFunctionLikeByClosure('F', static fn(): string => 'x');
+
+        self::assertInstanceOf(FunctionLikeMacro::class, $macros->find('F'));
+    }
+
+    public function testDefaultDateAndTimeAreEvaluatedEachTimeTheyAreReplaced(): void
+    {
+        $clock = new class implements ClockInterface {
+            private int $seconds = 0;
+
+            public function now(): \DateTimeImmutable
+            {
+                return (new \DateTimeImmutable('2024-02-03 04:05:00'))->modify('+' . $this->seconds++ . ' seconds');
+            }
+        };
+
+        $macros = MacroRepository::createDefault($clock);
+
+        self::assertSame('"04:05:00"', $macros->find('__TIME__')?->replace([]));
+        self::assertSame('"04:05:01"', $macros->find('__TIME__')?->replace([]));
+    }
+
+    public function testDefaultMacrosDoNotOverrideThePreviousRepository(): void
+    {
+        $prev = new MacroRepository();
+        $prev->defineByString('__STDC_VERSION__', '199901L');
+
+        $macros = MacroRepository::createWithDefault($prev);
+
+        self::assertSame('199901L', $macros->find('__STDC_VERSION__')?->replace([]));
+        self::assertSame('1', $macros->find('__STDC__')?->replace([]));
+        self::assertNull($prev->find('__STDC__'));
     }
 }

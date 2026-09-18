@@ -13,7 +13,7 @@ use FFI\Preprocessor\Macro\FunctionLikeMacro;
 final class ClosureFunctionLikeMacro extends FunctionLikeMacro
 {
     /**
-     * @param int<0, max> $args
+     * @param int<0, max> $params
      */
     public function __construct(
         /**
@@ -22,10 +22,10 @@ final class ClosureFunctionLikeMacro extends FunctionLikeMacro
          * @var \Closure(string ...): (scalar|\Stringable|null)
          */
         private readonly \Closure $body,
-        int $args,
+        int $params,
         bool $isVariadic = false,
     ) {
-        parent::__construct($args, $isVariadic);
+        parent::__construct($params, $isVariadic);
     }
 
     /**
@@ -35,12 +35,17 @@ final class ClosureFunctionLikeMacro extends FunctionLikeMacro
      */
     public static function createFromClosure(\Closure $closure): self
     {
-        $reflection = new \ReflectionFunction($closure);
+        try {
+            $reflection = new \ReflectionFunction($closure);
 
-        $args = $reflection->getNumberOfParameters();
-        \assert($args >= 0);
+            $params = $reflection->getNumberOfParameters();
+            $isVariadic = $reflection->isVariadic();
+        } catch (\Throwable) {
+            $params = 0;
+            $isVariadic = false;
+        }
 
-        return new self($closure, $args, $reflection->isVariadic());
+        return new self($closure, $params, $isVariadic);
     }
 
     public function replace(array $arguments): string

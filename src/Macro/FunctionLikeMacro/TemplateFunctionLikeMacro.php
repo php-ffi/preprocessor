@@ -13,21 +13,21 @@ use FFI\Preprocessor\Macro\FunctionLikeMacro;
 final class TemplateFunctionLikeMacro extends FunctionLikeMacro
 {
     /**
-     * @param int<0, max> $args
+     * @param int<0, max> $params
      */
     public function __construct(
         /**
          * The text of the replacement, a `%` that is not a parameter, is written `%%`
          */
         public readonly string $format,
-        int $args,
+        int $params,
         bool $isVariadic = false,
     ) {
-        parent::__construct($args, $isVariadic);
+        parent::__construct($params, $isVariadic);
     }
 
     public function replace(array $arguments): string
     {
-        return \vsprintf($this->format, $arguments + \array_fill(0, $this->args, ''));
+        return \vsprintf($this->format, $arguments + \array_fill(0, $this->params, ''));
     }
 }

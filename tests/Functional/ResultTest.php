@@ -40,7 +40,8 @@ final class ResultTest extends TestCase
     {
         $names = \array_keys(\iterator_to_array(self::process("#define A 1\n#define B 2\n")->getMacros()));
 
-        self::assertSame(['CONFIG', 'A', 'B'], $names);
+        self::assertContains('__STDC_VERSION__', $names);
+        self::assertSame(['CONFIG', 'A', 'B'], \array_slice($names, -3));
     }
 
     public function testFilesListsTheEntrypointAndTheIncludedFilesOnce(): void

@@ -19,7 +19,7 @@ abstract class FunctionLikeMacro implements MacroInterface
          *
          * @var int<0, max>
          */
-        public readonly int $args,
+        public readonly int $params,
         /**
          * Whether the last parameter is `...` and takes the rest of the arguments
          */

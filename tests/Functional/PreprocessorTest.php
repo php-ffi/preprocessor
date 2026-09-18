@@ -13,6 +13,7 @@ use FFI\Preprocessor\Runtime\SourceExecutor;
 use FFI\Preprocessor\Tests\TestCase;
 use Phplrt\Source\VirtualSource;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Psr\Clock\ClockInterface;
 
 #[CoversClass(Preprocessor::class)]
 #[CoversClass(SourceExecutor::class)]
@@ -100,5 +101,19 @@ final class PreprocessorTest extends TestCase
     public function testNullDirectiveIsIgnored(): void
     {
         self::assertSame("a\nb\n", self::process("a\n#\nb\n"));
+    }
+
+    public function testTranslationDateAndTimeAreTakenFromTheClock(): void
+    {
+        $clock = new class implements ClockInterface {
+            public function now(): \DateTimeImmutable
+            {
+                return new \DateTimeImmutable('2024-02-03 04:05:06');
+            }
+        };
+
+        $result = (new Preprocessor(clock: $clock))->process("__DATE__ __TIME__\n");
+
+        self::assertSame("\"Feb  3 2024\" \"04:05:06\"\n", (string) $result);
     }
 }
