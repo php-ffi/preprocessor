@@ -65,7 +65,7 @@ final class DirectiveRepository implements MutableDirectiveRepositoryInterface
         $repository->add('undef', new UndefDirectiveHandler());
         $repository->add('error', new ErrorDirectiveHandler());
         $repository->add('warning', new WarningDirectiveHandler());
-        $repository->add('pragma', new PragmaDirectiveHandler());
+        $repository->add('pragma', PragmaDirectiveHandler::createDefault());
         $repository->add('if', new IfDirectiveHandler());
         $repository->add('ifdef', $ifDefined = new IfDefinedDirectiveHandler());
         $repository->add('ifndef', $ifDefined);

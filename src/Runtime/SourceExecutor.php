@@ -57,6 +57,13 @@ final class SourceExecutor implements SourceExecutorInterface
      */
     private array $read = [];
 
+    /**
+     * The pathnames of the files that output nothing
+     *
+     * @var array<non-empty-string, true>
+     */
+    private array $skipped = [];
+
     public function __construct(
         /**
          * Reads the files into the chunks
@@ -98,6 +105,11 @@ final class SourceExecutor implements SourceExecutorInterface
         return \array_values($this->read);
     }
 
+    public function skip(FileInterface $file): void
+    {
+        $this->skipped[$file->pathname] = true;
+    }
+
     private function createContext(): DirectiveContext
     {
         return new DirectiveContext(
@@ -123,6 +135,10 @@ final class SourceExecutor implements SourceExecutorInterface
      */
     public function execute(FileInterface $file): \Generator
     {
+        if (isset($this->skipped[$file->pathname])) {
+            return;
+        }
+
         $including = $this->current;
 
         if (++$this->depth > $this->maxDepth) {

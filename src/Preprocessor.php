@@ -139,8 +139,10 @@ final class Preprocessor
         return ChunkReader::createDefault();
     }
 
-    private function createExecutor(MacroRepository $macros, DiagnosticListenerInterface $diagnostic): SourceExecutor
-    {
+    private function createExecutor(
+        MacroRepository $macros,
+        DiagnosticListenerInterface $diagnostic,
+    ): SourceExecutor {
         return new SourceExecutor(
             $this->reader,
             $this->directives,

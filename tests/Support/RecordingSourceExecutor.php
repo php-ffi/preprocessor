@@ -15,6 +15,16 @@ final class RecordingSourceExecutor implements SourceExecutorInterface
      */
     public array $files = [];
 
+    /**
+     * @var list<FileInterface>
+     */
+    public array $skipped = [];
+
+    public function skip(FileInterface $file): void
+    {
+        $this->skipped[] = $file;
+    }
+
     public function execute(FileInterface $file): iterable
     {
         $this->files[] = $file;

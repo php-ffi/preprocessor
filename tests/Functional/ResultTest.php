@@ -73,4 +73,14 @@ final class ResultTest extends TestCase
         self::assertSame("1\n", (string) $result);
         self::assertSame("1\n", (string) $result);
     }
+
+    public function testPragmaOnceFileIsIncludedOnce(): void
+    {
+        $system = new VirtualFileSystem();
+        $system->addFile('once.h', VirtualSource::createFromString('once.h', "#pragma once\nint a;\n"));
+
+        $result = (new Preprocessor(files: $system))->process("#include \"once.h\"\n#include \"once.h\"\n");
+
+        self::assertSame("int a;\n", (string) $result);
+    }
 }

@@ -20,4 +20,9 @@ interface SourceExecutorInterface
      * @throws \Throwable in case of the diagnostic listener stops the preprocessing
      */
     public function execute(FileInterface $file): iterable;
+
+    /**
+     * Makes the executor output nothing for the file from now on, the way `#pragma once` does.
+     */
+    public function skip(FileInterface $file): void;
 }
