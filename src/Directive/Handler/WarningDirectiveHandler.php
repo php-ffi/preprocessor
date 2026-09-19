@@ -27,6 +27,7 @@ final class WarningDirectiveHandler implements DirectiveHandlerInterface
             message: \rtrim('#warning ' . $directive->body),
             source: $directive->source,
             offset: $directive->getPhysicalOffset(0),
+            length: $directive->getPhysicalLength(0, \strlen($directive->content))
         ));
 
         return [];

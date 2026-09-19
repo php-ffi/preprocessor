@@ -27,6 +27,7 @@ final class ErrorDirectiveHandler implements DirectiveHandlerInterface
             message: \rtrim('#error ' . $directive->body),
             source: $directive->source,
             offset: $directive->getPhysicalOffset(0),
+            length: $directive->getPhysicalLength(0, \strlen($directive->content)),
         ));
 
         return [];
