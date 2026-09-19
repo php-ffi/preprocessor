@@ -15,11 +15,9 @@ use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
  */
 final class LineDirectiveHandler implements DirectiveHandlerInterface
 {
-    /**
-     * @throws \BadMethodCallException in case of the directive is executed, the handler has no behavior
-     */
     public function handle(DirectiveChunk $directive, DirectiveContext $context): iterable
     {
-        throw new \BadMethodCallException('The handler is not implemented yet');
+        // TODO NOt implemented yet
+        return [];
     }
 }
