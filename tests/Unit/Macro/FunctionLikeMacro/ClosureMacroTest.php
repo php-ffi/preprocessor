@@ -17,7 +17,7 @@ final class ClosureMacroTest extends TestCase
 
         self::assertSame(2, $macro->params);
         self::assertFalse($macro->isVariadic);
-        self::assertSame('ab', $macro->replace(['a', 'b']));
+        self::assertSame('ab', $macro->replace(['a', 'b'], self::createMacroContext()));
     }
 
     public function testVariadicClosureMakesVariadicMacro(): void
@@ -26,7 +26,7 @@ final class ClosureMacroTest extends TestCase
 
         self::assertSame(2, $macro->params);
         self::assertTrue($macro->isVariadic);
-        self::assertSame('f123', $macro->replace(['f', '1', '2', '3']));
+        self::assertSame('f123', $macro->replace(['f', '1', '2', '3'], self::createMacroContext()));
     }
 
     public function testClosureWithoutParameters(): void
@@ -34,6 +34,6 @@ final class ClosureMacroTest extends TestCase
         $macro = ClosureFunctionLikeMacro::createFromClosure(static fn(): int => 42);
 
         self::assertSame(0, $macro->params);
-        self::assertSame('42', $macro->replace([]));
+        self::assertSame('42', $macro->replace([], self::createMacroContext()));
     }
 }

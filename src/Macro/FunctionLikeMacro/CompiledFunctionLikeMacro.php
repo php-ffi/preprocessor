@@ -10,6 +10,7 @@ use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\ParamExpa
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\ParamStringifier;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\Placeholder;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro\PlaceholderKind;
+use FFI\Preprocessor\Macro\MacroContext;
 
 /**
  * Function-like macro compiled from a `#define`: the text of the replacement with a `sprintf` format
@@ -45,12 +46,12 @@ final class CompiledFunctionLikeMacro extends FunctionLikeMacro
      * @throws MacroInvocationException in case of an invocation in an argument is malformed
      * @throws \Throwable in case of a macro or the tokenizer fails
      */
-    public function replace(array $arguments): string
+    public function replace(array $arguments, MacroContext $context): string
     {
         $values = [];
 
         foreach ($this->placeholders as $placeholder) {
-            $values[] = $this->processArgument($placeholder->kind, $arguments[$placeholder->index] ?? '');
+            $values[] = $this->processArgument($placeholder->kind, $arguments[$placeholder->index] ?? '', $context);
         }
 
         return \vsprintf($this->template, $values);
@@ -60,11 +61,11 @@ final class CompiledFunctionLikeMacro extends FunctionLikeMacro
      * @throws MacroInvocationException in case of an invocation in the argument is malformed
      * @throws \Throwable in case of a macro or the tokenizer fails
      */
-    private function processArgument(PlaceholderKind $kind, string $argument): string
+    private function processArgument(PlaceholderKind $kind, string $argument, MacroContext $context): string
     {
         return match ($kind) {
             PlaceholderKind::Raw => $argument,
-            PlaceholderKind::Expanded => $this->expander->expand($argument),
+            PlaceholderKind::Expanded => $this->expander->expand($argument, $context),
             PlaceholderKind::Stringified => $this->stringifier->stringify($argument),
         };
     }

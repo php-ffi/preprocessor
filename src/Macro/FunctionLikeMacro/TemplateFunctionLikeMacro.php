@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Macro\FunctionLikeMacro;
 
 use FFI\Preprocessor\Macro\FunctionLikeMacro;
+use FFI\Preprocessor\Macro\MacroContext;
 
 /**
  * Function-like macro compiled to a `sprintf` format: the Nth `%s` is
@@ -26,7 +27,7 @@ final class TemplateFunctionLikeMacro extends FunctionLikeMacro
         parent::__construct($params, $isVariadic);
     }
 
-    public function replace(array $arguments): string
+    public function replace(array $arguments, MacroContext $context): string
     {
         return \vsprintf($this->format, $arguments + \array_fill(0, $this->params, ''));
     }

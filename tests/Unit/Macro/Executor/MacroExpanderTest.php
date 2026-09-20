@@ -91,7 +91,7 @@ final class MacroExpanderTest extends TestCase
     #[DataProvider('expansionDataProvider')]
     public function testTextIsExpanded(string $text, string $expected): void
     {
-        self::assertSame($expected, self::createExpander()->expand($text));
+        self::assertSame($expected, self::createExpander()->expand($text, self::createMacroContext()));
     }
 
     public function testUnclosedArgumentListIsRejected(): void
@@ -99,7 +99,7 @@ final class MacroExpanderTest extends TestCase
         $this->expectException(MacroInvocationException::class);
         $this->expectExceptionMessage('Argument list of macro "ADD" is not closed');
 
-        self::createExpander()->expand('ADD(1, 2');
+        self::createExpander()->expand('ADD(1, 2', self::createMacroContext());
     }
 
     public function testTooManyArgumentsAreRejected(): void
@@ -107,7 +107,7 @@ final class MacroExpanderTest extends TestCase
         $this->expectException(MacroInvocationException::class);
         $this->expectExceptionMessage('Macro "ID" takes 1 arguments, 2 given');
 
-        self::createExpander()->expand('ID(1, 2)');
+        self::createExpander()->expand('ID(1, 2)', self::createMacroContext());
     }
 
     public function testTooFewArgumentsAreRejected(): void
@@ -115,7 +115,7 @@ final class MacroExpanderTest extends TestCase
         $this->expectException(MacroInvocationException::class);
         $this->expectExceptionMessage('Macro "ADD" takes 2 arguments, 1 given');
 
-        self::createExpander()->expand('ADD(1)');
+        self::createExpander()->expand('ADD(1)', self::createMacroContext());
     }
 
     public function testTooFewArgumentsOfVariadicAreRejected(): void
@@ -123,6 +123,6 @@ final class MacroExpanderTest extends TestCase
         $this->expectException(MacroInvocationException::class);
         $this->expectExceptionMessage('Macro "V3" takes at least 2 arguments, 1 given');
 
-        self::createExpander()->expand('V3(a)');
+        self::createExpander()->expand('V3(a)', self::createMacroContext());
     }
 }

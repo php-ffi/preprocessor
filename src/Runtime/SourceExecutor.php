@@ -16,6 +16,7 @@ use FFI\Preprocessor\Exception\PreprocessorException;
 use FFI\Preprocessor\FileSystem\FileSystemInterface;
 use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
+use FFI\Preprocessor\Macro\MacroContext;
 use FFI\Preprocessor\Macro\MacroRepository;
 use FFI\Preprocessor\Runtime\Chunk\TaggedChunk;
 use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
@@ -209,7 +210,10 @@ final class SourceExecutor implements SourceExecutorInterface
      */
     private function expandSourceChunk(TaggedChunk $chunk): TaggedChunk
     {
-        $text = $this->expander->expand($chunk->content);
+        $text = $this->expander->expand(
+            $chunk->content,
+            static fn(int $offset): MacroContext => new MacroContext($chunk->source, $chunk->getPhysicalOffset($offset)),
+        );
 
         if ($text === $chunk->content) {
             return $chunk;

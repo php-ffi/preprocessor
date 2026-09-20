@@ -13,6 +13,7 @@ use FFI\Preprocessor\Expression\Parser\ExpressionParserInterface;
 use FFI\Preprocessor\FileSystem\FileSystemInterface;
 use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
+use FFI\Preprocessor\Macro\MacroContext;
 use FFI\Preprocessor\Macro\MacroRepositoryInterface;
 use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 use Phplrt\Source\StringSource;
@@ -91,7 +92,10 @@ final class ConditionEvaluator
             );
         }
 
-        $text = $this->replaceIdentifiers($this->expander->expand($text));
+        $text = $this->replaceIdentifiers($this->expander->expand(
+            $text,
+            new MacroContext($directive->source, $directive->getPhysicalOffset($directive->bodyOffset)),
+        ));
         $source = new StringSource($text);
 
         try {

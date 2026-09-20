@@ -7,6 +7,7 @@ namespace FFI\Preprocessor\Tests\Unit\Directive\Handler;
 use FFI\Preprocessor\Directive\Exception\InvalidDirectiveBodyException;
 use FFI\Preprocessor\Directive\Handler\DefineDirectiveHandler;
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
+use FFI\Preprocessor\Macro\MacroContext;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro;
 use FFI\Preprocessor\Macro\MacroRepository;
 use FFI\Preprocessor\Macro\ObjectLikeMacro\StringObjectLikeMacro;
@@ -35,7 +36,7 @@ final class DefineDirectiveHandlerTest extends DirectiveTestCase
             self::assertSame([], [...$result]);
         }
 
-        return (new MacroExpander($macros))->expand($text);
+        return (new MacroExpander($macros))->expand($text, new MacroContext(self::createFile($text), 0));
     }
 
     /**

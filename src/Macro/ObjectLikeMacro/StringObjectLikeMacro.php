@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Macro\ObjectLikeMacro;
 
+use FFI\Preprocessor\Macro\MacroContext;
 use FFI\Preprocessor\Macro\ObjectLikeMacro;
 
 /**
@@ -18,7 +19,7 @@ final class StringObjectLikeMacro extends ObjectLikeMacro
         public readonly string $replacement = '',
     ) {}
 
-    public function replace(array $arguments): string
+    public function replace(array $arguments, MacroContext $context): string
     {
         return $this->replacement;
     }

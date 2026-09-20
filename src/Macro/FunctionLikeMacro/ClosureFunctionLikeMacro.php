@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Macro\FunctionLikeMacro;
 
 use FFI\Preprocessor\Macro\FunctionLikeMacro;
+use FFI\Preprocessor\Macro\MacroContext;
 
 /**
  * Function-like macro implemented by PHP code: the closure gets the arguments
@@ -48,7 +49,7 @@ final class ClosureFunctionLikeMacro extends FunctionLikeMacro
         return new self($closure, $params, $isVariadic);
     }
 
-    public function replace(array $arguments): string
+    public function replace(array $arguments, MacroContext $context): string
     {
         return (string) ($this->body)(...$arguments);
     }

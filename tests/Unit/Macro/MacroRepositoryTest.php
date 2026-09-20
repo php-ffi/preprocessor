@@ -22,8 +22,8 @@ final class MacroRepositoryTest extends TestCase
         $macros->define('DEBUG');
         $macros->defineFunctionLikeByClosure('NOW', static fn(): string => 'now');
 
-        self::assertSame('1', $macros->find('DEBUG')?->replace([]));
-        self::assertSame('now', $macros->find('NOW')?->replace([]));
+        self::assertSame('1', $macros->find('DEBUG')?->replace([], self::createMacroContext()));
+        self::assertSame('now', $macros->find('NOW')?->replace([], self::createMacroContext()));
         self::assertNull($macros->find('MISSING'));
     }
 
@@ -33,7 +33,7 @@ final class MacroRepositoryTest extends TestCase
         $macros->defineByString('X', '1');
         $macros->defineByString('X', '2');
 
-        self::assertSame('2', $macros->find('X')?->replace([]));
+        self::assertSame('2', $macros->find('X')?->replace([], self::createMacroContext()));
     }
 
     public function testRemovedMacroIsNotFound(): void
@@ -58,8 +58,8 @@ final class MacroRepositoryTest extends TestCase
         $macros->defineByString('C', '4');
 
         self::assertNull($macros->find('A'));
-        self::assertSame('3', $macros->find('B')?->replace([]));
-        self::assertSame('1', $prev->find('A')?->replace([]));
+        self::assertSame('3', $macros->find('B')?->replace([], self::createMacroContext()));
+        self::assertSame('1', $prev->find('A')?->replace([], self::createMacroContext()));
         self::assertSame(['B', 'C'], \array_keys([...$macros->getAll()]));
     }
 
@@ -71,7 +71,7 @@ final class MacroRepositoryTest extends TestCase
         $macros->remove('A');
         $macros->defineByMacro('A', new StringObjectLikeMacro('5'));
 
-        self::assertSame('5', $macros->find('A')?->replace([]));
+        self::assertSame('5', $macros->find('A')?->replace([], self::createMacroContext()));
     }
 
     public function testNameThatIsNotIdentifierIsRejected(): void
@@ -85,18 +85,18 @@ final class MacroRepositoryTest extends TestCase
     {
         $macros = MacroRepository::createDefault();
 
-        self::assertSame('1', $macros->find('__STDC__')?->replace([]));
-        self::assertSame('202311L', $macros->find('__STDC_VERSION__')?->replace([]));
-        self::assertSame('1', $macros->find('__STDC_HOSTED__')?->replace([]));
-        self::assertSame('2', $macros->find('__STDC_EMBED_EMPTY__')?->replace([]));
+        self::assertSame('1', $macros->find('__STDC__')?->replace([], self::createMacroContext()));
+        self::assertSame('202311L', $macros->find('__STDC_VERSION__')?->replace([], self::createMacroContext()));
+        self::assertSame('1', $macros->find('__STDC_HOSTED__')?->replace([], self::createMacroContext()));
+        self::assertSame('2', $macros->find('__STDC_EMBED_EMPTY__')?->replace([], self::createMacroContext()));
     }
 
     public function testDefaultDateAndTimeHaveTheFormOfTheStandard(): void
     {
         $macros = MacroRepository::createDefault();
 
-        self::assertMatchesRegularExpression('/\A"[A-Z][a-z]{2} [ \d]\d \d{4}"\z/', $macros->find('__DATE__')?->replace([]) ?? '');
-        self::assertMatchesRegularExpression('/\A"\d{2}:\d{2}:\d{2}"\z/', $macros->find('__TIME__')?->replace([]) ?? '');
+        self::assertMatchesRegularExpression('/\A"[A-Z][a-z]{2} [ \d]\d \d{4}"\z/', $macros->find('__DATE__')?->replace([], self::createMacroContext()) ?? '');
+        self::assertMatchesRegularExpression('/\A"\d{2}:\d{2}:\d{2}"\z/', $macros->find('__TIME__')?->replace([], self::createMacroContext()) ?? '');
     }
 
     public function testDefaultDateAndTimeAreTakenFromTheClock(): void
@@ -110,8 +110,8 @@ final class MacroRepositoryTest extends TestCase
 
         $macros = MacroRepository::createDefault($clock);
 
-        self::assertSame('"Feb  3 2024"', $macros->find('__DATE__')?->replace([]));
-        self::assertSame('"04:05:06"', $macros->find('__TIME__')?->replace([]));
+        self::assertSame('"Feb  3 2024"', $macros->find('__DATE__')?->replace([], self::createMacroContext()));
+        self::assertSame('"04:05:06"', $macros->find('__TIME__')?->replace([], self::createMacroContext()));
     }
 
     public function testClosureWithoutParametersDefinesAnObjectLikeMacroEvaluatedEachTime(): void
@@ -124,8 +124,8 @@ final class MacroRepositoryTest extends TestCase
         });
 
         self::assertInstanceOf(ClosureObjectLikeMacro::class, $macros->find('COUNTER'));
-        self::assertSame('0', $macros->find('COUNTER')->replace([]));
-        self::assertSame('1', $macros->find('COUNTER')->replace([]));
+        self::assertSame('0', $macros->find('COUNTER')->replace([], self::createMacroContext()));
+        self::assertSame('1', $macros->find('COUNTER')->replace([], self::createMacroContext()));
     }
 
     public function testClosureWithParametersIsNotAnObjectLikeMacro(): void
@@ -164,8 +164,8 @@ final class MacroRepositoryTest extends TestCase
 
         $macros = MacroRepository::createDefault($clock);
 
-        self::assertSame('"04:05:00"', $macros->find('__TIME__')?->replace([]));
-        self::assertSame('"04:05:01"', $macros->find('__TIME__')?->replace([]));
+        self::assertSame('"04:05:00"', $macros->find('__TIME__')?->replace([], self::createMacroContext()));
+        self::assertSame('"04:05:01"', $macros->find('__TIME__')?->replace([], self::createMacroContext()));
     }
 
     public function testDefaultMacrosDoNotOverrideThePreviousRepository(): void
@@ -175,8 +175,8 @@ final class MacroRepositoryTest extends TestCase
 
         $macros = MacroRepository::createWithDefault($prev);
 
-        self::assertSame('199901L', $macros->find('__STDC_VERSION__')?->replace([]));
-        self::assertSame('1', $macros->find('__STDC__')?->replace([]));
+        self::assertSame('199901L', $macros->find('__STDC_VERSION__')?->replace([], self::createMacroContext()));
+        self::assertSame('1', $macros->find('__STDC__')?->replace([], self::createMacroContext()));
         self::assertNull($prev->find('__STDC__'));
     }
 }

@@ -6,6 +6,7 @@ namespace FFI\Preprocessor\Macro\FunctionLikeMacro\CompiledFunctionLikeMacro;
 
 use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
+use FFI\Preprocessor\Macro\MacroContext;
 
 final class ParamExpander
 {
@@ -20,8 +21,8 @@ final class ParamExpander
      * @throws MacroInvocationException in case of an invocation in the argument is malformed
      * @throws \Throwable in case of a macro or the tokenizer fails
      */
-    public function expand(string $argument): string
+    public function expand(string $argument, MacroContext $context): string
     {
-        return $this->expander->expand($argument);
+        return $this->expander->expand($argument, $context);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FFI\Preprocessor\Tests;
 
+use FFI\Preprocessor\Macro\MacroContext;
 use FFI\Preprocessor\Runtime\Chunk\SourceMap\SourceMap;
 use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\SourceChunk;
 use FFI\Preprocessor\Runtime\Chunk\UntaggedChunk;
@@ -28,6 +29,16 @@ abstract class TestCase extends BaseTestCase
     protected static function createFile(string $content, string $pathname = 'test.h'): FileInterface
     {
         return VirtualSource::createFromString($pathname, $content);
+    }
+
+    /**
+     * Creates the place a macro is replaced at: the given offset of a file of the given content.
+     *
+     * @param int<0, max> $offset
+     */
+    protected static function createMacroContext(string $content = '', int $offset = 0): MacroContext
+    {
+        return new MacroContext(self::createFile($content), $offset);
     }
 
     /**

@@ -7,6 +7,7 @@ namespace FFI\Preprocessor\Macro;
 use FFI\Preprocessor\Macro\Exception\InvalidMacroException;
 use FFI\Preprocessor\Macro\FunctionLikeMacro\ClosureFunctionLikeMacro;
 use FFI\Preprocessor\Macro\ObjectLikeMacro\ClosureObjectLikeMacro;
+use FFI\Preprocessor\Macro\ObjectLikeMacro\ContextObjectLikeMacro;
 use FFI\Preprocessor\Macro\ObjectLikeMacro\StringObjectLikeMacro;
 use FFI\Preprocessor\Runtime\SystemClock;
 use Psr\Clock\ClockInterface;
@@ -92,6 +93,12 @@ final class MacroRepository implements MacroRepositoryInterface
             }),
             '__TIME__' => new ClosureObjectLikeMacro(
                 static fn(): string => \sprintf('"%s"', $clock->now()->format('H:i:s')),
+            ),
+            '__FILE__' => new ContextObjectLikeMacro(
+                static fn(MacroContext $context): string => '"' . \addcslashes($context->file->pathname, '"\\') . '"',
+            ),
+            '__LINE__' => new ContextObjectLikeMacro(
+                static fn(MacroContext $context): string => (string) $context->getLine(),
             ),
             '__STDC__' => new StringObjectLikeMacro('1'),
             '__STDC_VERSION__' => new StringObjectLikeMacro('202311L'),

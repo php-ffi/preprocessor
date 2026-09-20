@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FFI\Preprocessor\Macro\ObjectLikeMacro;
 
 use FFI\Preprocessor\Macro\Exception\InvalidMacroException;
+use FFI\Preprocessor\Macro\MacroContext;
 use FFI\Preprocessor\Macro\ObjectLikeMacro;
 
 /**
@@ -49,7 +50,7 @@ final class ClosureObjectLikeMacro extends ObjectLikeMacro
         return new self($closure);
     }
 
-    public function replace(array $arguments): string
+    public function replace(array $arguments, MacroContext $context): string
     {
         return (string) ($this->body)();
     }

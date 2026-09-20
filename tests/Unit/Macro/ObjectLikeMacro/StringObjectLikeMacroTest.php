@@ -13,6 +13,6 @@ final class StringObjectLikeMacroTest extends TestCase
 {
     public function testNameIsReplacedByTheText(): void
     {
-        self::assertSame('4096', (new StringObjectLikeMacro('4096'))->replace([]));
+        self::assertSame('4096', (new StringObjectLikeMacro('4096'))->replace([], self::createMacroContext()));
     }
 }

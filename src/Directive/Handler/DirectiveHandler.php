@@ -17,6 +17,7 @@ use FFI\Preprocessor\Expression\Evaluator\ExpressionEvaluator;
 use FFI\Preprocessor\Expression\Parser\ExpressionParser;
 use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Macro\Executor\MacroExpander;
+use FFI\Preprocessor\Macro\MacroContext;
 use FFI\Preprocessor\Runtime\Chunk\TaggedChunk\DirectiveChunk;
 use Phplrt\Contracts\Source\FileInterface;
 
@@ -75,7 +76,10 @@ abstract class DirectiveHandler implements DirectiveHandlerInterface
             return $name;
         }
 
-        $expanded = \trim((new MacroExpander($context->macros))->expand($directive->body), self::BLANKS);
+        $expanded = \trim((new MacroExpander($context->macros))->expand(
+            $directive->body,
+            new MacroContext($directive->source, $directive->getPhysicalOffset($directive->bodyOffset)),
+        ), self::BLANKS);
         $name = $this->findHeaderName($expanded);
 
         if ($name === null || $name->length !== \strlen($expanded)) {

@@ -8,6 +8,7 @@ use FFI\Preprocessor\Macro\Exception\MacroInvocationException;
 use FFI\Preprocessor\Macro\Executor\MacroExpander\CompiledTokenLexer;
 use FFI\Preprocessor\Macro\Executor\MacroExpander\Expansion;
 use FFI\Preprocessor\Macro\FunctionLikeMacro;
+use FFI\Preprocessor\Macro\MacroContext;
 use FFI\Preprocessor\Macro\MacroInterface;
 use FFI\Preprocessor\Macro\MacroRepositoryInterface;
 use Phplrt\Contracts\Lexer\TokenInterface;
@@ -41,21 +42,24 @@ final class MacroExpander
     /**
      * Returns the text with every macro invocation replaced.
      *
+     * @param MacroContext|\Closure(int<0, max>): MacroContext $location the place the text is at, or the place of
+     *        the text at an offset of it when the text spans several lines
      * @throws MacroInvocationException in case of an invocation is malformed
      * @throws \Throwable in case of a macro or the tokenizer fails
      */
-    public function expand(string $text): string
+    public function expand(string $text, MacroContext|\Closure $location): string
     {
-        return $this->expandTokens(new Expansion($this->readTokens($text)));
+        return $this->expandTokens(new Expansion($this->readTokens($text)), $location);
     }
 
     /**
      * @throws MacroInvocationException in case of an invocation is malformed
      * @throws \Throwable in case of a macro or the tokenizer fails
      */
-    private function expandTokens(Expansion $expansion): string
+    private function expandTokens(Expansion $expansion, MacroContext|\Closure $location): string
     {
         $output = '';
+        $context = null;
 
         while (($token = $expansion->pop()) !== null) {
             $macro = $this->findMacro($token, $expansion);
@@ -66,8 +70,12 @@ final class MacroExpander
                 continue;
             }
 
+            if ($context === null || $expansion->getDisabled() === []) {
+                $context = $this->locate($location, $token);
+            }
+
             if (!$macro instanceof FunctionLikeMacro) {
-                $expansion->enter($token->value, $this->readTokens($macro->replace([])));
+                $expansion->enter($token->value, $this->readTokens($macro->replace([], $context)));
 
                 continue;
             }
@@ -80,10 +88,22 @@ final class MacroExpander
                 continue;
             }
 
-            $expansion->enter($token->value, $this->readTokens($macro->replace($arguments)));
+            $expansion->enter($token->value, $this->readTokens($macro->replace($arguments, $context)));
         }
 
         return $output;
+    }
+
+    /**
+     * @param MacroContext|\Closure(int<0, max>): MacroContext $location
+     */
+    private function locate(MacroContext|\Closure $location, TokenInterface $token): MacroContext
+    {
+        if ($location instanceof MacroContext) {
+            return $location;
+        }
+
+        return $location($token->offset);
     }
 
     private function findMacro(TokenInterface $token, Expansion $expansion): ?MacroInterface

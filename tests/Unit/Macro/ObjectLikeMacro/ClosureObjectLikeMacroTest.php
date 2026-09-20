@@ -20,8 +20,8 @@ final class ClosureObjectLikeMacroTest extends TestCase
             return ++$count;
         });
 
-        self::assertSame('1', $macro->replace([]));
-        self::assertSame('2', $macro->replace([]));
+        self::assertSame('1', $macro->replace([], self::createMacroContext()));
+        self::assertSame('2', $macro->replace([], self::createMacroContext()));
     }
 
     public function testClosureWithParametersIsRejected(): void
