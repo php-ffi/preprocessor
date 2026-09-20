@@ -110,7 +110,7 @@ final class LineSegmenter implements SegmenterInterface
             throw UnmatchedTextException::becauseTextIsNotMatched('lines');
         }
 
-        /** @var list<array{array{string, int<0, max>}, array{string, int<0, max>}, array{string, int<0, max>}}> */
+        /** @var list<array{array{string, int<0, max>}, array{string, int<0, max>}, array{string, int<0, max>}}> $matches */
         return $matches;
     }
 

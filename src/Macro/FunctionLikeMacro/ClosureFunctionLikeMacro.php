@@ -39,6 +39,7 @@ final class ClosureFunctionLikeMacro extends FunctionLikeMacro
         try {
             $reflection = new \ReflectionFunction($closure);
 
+            /** @var int<0, max> $params */
             $params = $reflection->getNumberOfParameters();
             $isVariadic = $reflection->isVariadic();
         } catch (\Throwable) {

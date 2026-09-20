@@ -7,6 +7,7 @@ namespace FFI\Preprocessor\Tests\Unit\Macro;
 use FFI\Preprocessor\Macro\Exception\InvalidMacroException;
 use FFI\Preprocessor\Macro\FunctionLikeMacro;
 use FFI\Preprocessor\Macro\MacroRepository;
+use FFI\Preprocessor\Macro\ObjectLikeMacro;
 use FFI\Preprocessor\Macro\ObjectLikeMacro\ClosureObjectLikeMacro;
 use FFI\Preprocessor\Macro\ObjectLikeMacro\StringObjectLikeMacro;
 use FFI\Preprocessor\Tests\TestCase;
@@ -20,7 +21,7 @@ final class MacroRepositoryTest extends TestCase
     {
         $macros = new MacroRepository();
         $macros->define('DEBUG');
-        $macros->defineFunctionLikeByClosure('NOW', static fn(): string => 'now');
+        $macros->defineByClosure('NOW', static fn(): string => 'now');
 
         self::assertSame('1', $macros->find('DEBUG')?->replace([], self::createMacroContext()));
         self::assertSame('now', $macros->find('NOW')?->replace([], self::createMacroContext()));
@@ -128,11 +129,12 @@ final class MacroRepositoryTest extends TestCase
         self::assertSame('1', $macros->find('COUNTER')->replace([], self::createMacroContext()));
     }
 
-    public function testClosureWithParametersIsNotAnObjectLikeMacro(): void
+    public function testClosureWithParametersIsFunctionLike(): void
     {
-        $this->expectException(InvalidMacroException::class);
+        $macros = new MacroRepository();
+        $macros->define('F', static fn(string $x): string => $x);
 
-        (new MacroRepository())->define('F', static fn(string $x): string => $x);
+        self::assertInstanceOf(FunctionLikeMacro::class, $macros->find('F'));
     }
 
     public function testReplacementOfAnotherTypeIsRejected(): void
@@ -143,12 +145,12 @@ final class MacroRepositoryTest extends TestCase
         (new MacroRepository())->define('X', 42);
     }
 
-    public function testClosureDefinedByDefineByClosureIsFunctionLike(): void
+    public function testClosureWithoutParametersIsObjectLike(): void
     {
         $macros = new MacroRepository();
-        $macros->defineFunctionLikeByClosure('F', static fn(): string => 'x');
+        $macros->defineByClosure('F', static fn(): string => 'x');
 
-        self::assertInstanceOf(FunctionLikeMacro::class, $macros->find('F'));
+        self::assertInstanceOf(ObjectLikeMacro::class, $macros->find('F'));
     }
 
     public function testDefaultDateAndTimeAreEvaluatedEachTimeTheyAreReplaced(): void

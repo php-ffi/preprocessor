@@ -81,7 +81,7 @@ final class IntSuffixParser
         \preg_match(self::SUFFIX_PATTERN, $literal, $match, \PREG_OFFSET_CAPTURE);
 
         $letters = $match[0][0] ?? '';
-        /** @var int<0, max> */
+        /** @var int<0, max> $offset */
         $offset = $match[0][1] ?? \strlen($literal);
         $offset += \strspn($letters, self::HEX_DIGITS);
         $spelling = \substr($literal, $offset);

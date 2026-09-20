@@ -143,7 +143,7 @@ final class UntaggedChunk extends Chunk
             $start = $carriageReturn + 1;
         }
 
-        /** @var int<0, max> */
+        /** @var int<0, max> $start */
         return $start;
     }
 

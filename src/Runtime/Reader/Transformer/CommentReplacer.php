@@ -196,7 +196,7 @@ final class CommentReplacer implements TransformerInterface
             throw UnmatchedTextException::becauseTextIsNotMatched('comments');
         }
 
-        /** @var list<array{0: array{string, int<0, max>}, lead?: array{string, int}, unclosed?: array{string, int}}> */
+        /** @var list<array{0: array{string, int<0, max>}, lead?: array{string, int}, unclosed?: array{string, int}}> $matches */
         return $matches;
     }
 }
