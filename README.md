@@ -14,6 +14,9 @@
 This implementation of a C-preprocessor based on
 [ISO/IEC 9899:2024 - N3220](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf).
 
+You can also use a [PHP C parser](https://github.com/php-ffi/c-parser) to subsequently
+parse the source code into an AST after preprocessing.
+
 ## Requirements
 
 - PHP ^8.1
