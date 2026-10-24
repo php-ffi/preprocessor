@@ -1,7 +1,7 @@
 {
     "name": "ffi/preprocessor",
     "type": "library",
-    "description": "PHP C23 preprocessor",
+    "description": "PHP FFI-compatible ISO/IEC 9899:2024 (С23) preprocessor implementation",
     "license": "MIT",
     "keywords": ["ffi", "parser", "compiler", "c", "headers", "preprocessor"],
     "support": {
@@ -24,9 +24,6 @@
         "phplrt/runtime": "^4.2",
         "psr/clock": "^1.0",
         "psr/log": "^3.0"
-    },
-    "suggest": {
-        "psr/log": "To pass the diagnostics to a PSR-3 logger (^1.1|^2.0|^3.0)"
     },
     "autoload": {
         "psr-4": {
