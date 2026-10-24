@@ -1,4 +1,4 @@
-# C23 Preprocessor
+# C23 Preprocessor for PHP
 
 <p align="center">
     <a href="https://packagist.org/packages/ffi/preprocessor"><img src="https://poser.pugx.org/ffi/preprocessor/require/php?style=for-the-badge" alt="PHP 8.1+"></a>
