@@ -18,7 +18,7 @@ final class ResultTest extends TestCase
     private static function process(string $content): Result
     {
         $system = new VirtualFileSystem();
-        $system->addFile('a.h', VirtualSource::createFromString('a.h', "#define A 1\n#warning hi\n"));
+        $system->add('a.h', VirtualSource::createFromString('a.h', "#define A 1\n#warning hi\n"));
 
         $preprocessor = new Preprocessor(files: $system, diagnostic: new NullDiagnosticListener());
         $preprocessor->macros->define('CONFIG');
@@ -77,7 +77,7 @@ final class ResultTest extends TestCase
     public function testPragmaOnceFileIsIncludedOnce(): void
     {
         $system = new VirtualFileSystem();
-        $system->addFile('once.h', VirtualSource::createFromString('once.h', "#pragma once\nint a;\n"));
+        $system->add('once.h', VirtualSource::createFromString('once.h', "#pragma once\nint a;\n"));
 
         $result = (new Preprocessor(files: $system))->process("#include \"once.h\"\n#include \"once.h\"\n");
 

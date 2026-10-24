@@ -28,7 +28,7 @@ final class PreprocessorTest extends TestCase
         $system = new VirtualFileSystem();
 
         foreach ($files as $pathname => $text) {
-            $system->addFile($pathname, VirtualSource::createFromString($pathname, $text));
+            $system->add($pathname, VirtualSource::createFromString($pathname, $text));
         }
 
         $preprocessor = new Preprocessor(files: $system, maxIncludeDepth: $maxIncludeDepth ?? 200);

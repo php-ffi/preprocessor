@@ -44,7 +44,7 @@ final class FileDirectivesTest extends DirectiveTestCase
     public function testIncludeGivesTheOutputOfTheFoundFile(string $name): void
     {
         $files = new VirtualFileSystem();
-        $files->addFile('a.bin', VirtualSource::createFromString('a.bin', 'AB'));
+        $files->add('a.bin', VirtualSource::createFromString('a.bin', 'AB'));
         $listener = new RecordingDiagnosticListener();
         $includer = new RecordingSourceExecutor();
 
@@ -66,7 +66,7 @@ final class FileDirectivesTest extends DirectiveTestCase
         string $name,
     ): void {
         $files = new VirtualFileSystem();
-        $files->addFile('a.h', VirtualSource::createFromString('a.h', 'AB'));
+        $files->add('a.h', VirtualSource::createFromString('a.h', 'AB'));
         $macros = new MacroRepository();
         $macros->defineByString('HEADER', '"a.h"');
         $listener = new RecordingDiagnosticListener();
@@ -98,7 +98,7 @@ final class FileDirectivesTest extends DirectiveTestCase
     public function testEmbedGivesTheBytesOfTheFoundFile(string $name): void
     {
         $files = new VirtualFileSystem();
-        $files->addFile('a.bin', VirtualSource::createFromString('a.bin', 'AB'));
+        $files->add('a.bin', VirtualSource::createFromString('a.bin', 'AB'));
 
         $chunks = [...(new EmbedDirectiveHandler())->handle(
             self::readDirective("#embed $name\n"),
@@ -112,7 +112,7 @@ final class FileDirectivesTest extends DirectiveTestCase
     public function testEmbedOfEmptyFileGivesNothing(): void
     {
         $files = new VirtualFileSystem();
-        $files->addFile('a.bin', VirtualSource::createFromString('a.bin', ''));
+        $files->add('a.bin', VirtualSource::createFromString('a.bin', ''));
 
         $chunks = [...(new EmbedDirectiveHandler())->handle(
             self::readDirective("#embed \"a.bin\"\n"),
@@ -142,7 +142,7 @@ final class FileDirectivesTest extends DirectiveTestCase
     public function testExtraTokensAfterTheNameAreWarnedAbout(DirectiveHandlerInterface $handler, string $name): void
     {
         $files = new VirtualFileSystem();
-        $files->addFile('a.h', VirtualSource::createFromString('a.h', ''));
+        $files->add('a.h', VirtualSource::createFromString('a.h', ''));
         $listener = new RecordingDiagnosticListener();
 
         [...$handler->handle(

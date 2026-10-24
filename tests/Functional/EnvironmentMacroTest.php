@@ -16,7 +16,7 @@ final class EnvironmentMacroTest extends TestCase
     private static function process(string $content): string
     {
         $system = new VirtualFileSystem();
-        $system->addFile('inc.h', VirtualSource::createFromString('inc.h', "x\n  __FILE__ __LINE__\n"));
+        $system->add('inc.h', VirtualSource::createFromString('inc.h', "x\n  __FILE__ __LINE__\n"));
 
         return (string) (new Preprocessor(files: $system))->process($content);
     }

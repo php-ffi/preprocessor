@@ -80,8 +80,8 @@ final class RealFileSystemTest extends TestCase
         $directory = $this->createDirectory(['a.h' => 'real']);
 
         $parent = new VirtualFileSystem();
-        $parent->addFile('a.h', new StringSource('parent'));
-        $parent->addFile('b.h', new StringSource('parent'));
+        $parent->add('a.h', new StringSource('parent'));
+        $parent->add('b.h', new StringSource('parent'));
 
         $files = new RealFileSystem($parent);
         $from = new FileSource($directory . '/a.h');

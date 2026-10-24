@@ -39,7 +39,7 @@ final class ExpressionConditionsTest extends DirectiveTestCase
     private static function createFiles(): VirtualFileSystem
     {
         $files = new VirtualFileSystem();
-        $files->addFile('a.h', VirtualSource::createFromString('a.h', ''));
+        $files->add('a.h', VirtualSource::createFromString('a.h', ''));
 
         return $files;
     }

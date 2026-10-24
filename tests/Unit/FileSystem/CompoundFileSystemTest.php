@@ -18,11 +18,11 @@ final class CompoundFileSystemTest extends TestCase
     public function testFileSystemsAreSearchedInTheirOrder(): void
     {
         $first = new VirtualFileSystem();
-        $first->addFile('a.h', new StringSource('first'));
+        $first->add('a.h', new StringSource('first'));
 
         $second = new VirtualFileSystem();
-        $second->addFile('a.h', new StringSource('second'));
-        $second->addFile('b.h', new StringSource('second'));
+        $second->add('a.h', new StringSource('second'));
+        $second->add('b.h', new StringSource('second'));
 
         $files = new CompoundFileSystem([$first, $second]);
 
@@ -36,7 +36,7 @@ final class CompoundFileSystemTest extends TestCase
         $directory = $this->createDirectory(['main.h' => '', 'near.h' => 'near']);
 
         $virtual = new VirtualFileSystem();
-        $virtual->addFile('sys/a.h', new StringSource('virtual'));
+        $virtual->add('sys/a.h', new StringSource('virtual'));
 
         $files = new CompoundFileSystem([$virtual, new RealFileSystem()]);
 
@@ -49,7 +49,7 @@ final class CompoundFileSystemTest extends TestCase
         $virtual = new VirtualFileSystem();
         $files = new CompoundFileSystem([$virtual]);
 
-        $virtual->addFile('a.h', new StringSource('a'));
+        $virtual->add('a.h', new StringSource('a'));
 
         self::assertSame('a', $files->find('a.h')?->read(0, 10));
     }
