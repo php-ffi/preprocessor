@@ -12,6 +12,7 @@ use FFI\Preprocessor\Directive\DirectiveRepositoryInterface;
 use FFI\Preprocessor\Directive\MutableDirectiveRepositoryInterface;
 use FFI\Preprocessor\FileSystem\FileSystemInterface;
 use FFI\Preprocessor\FileSystem\RealFileSystem;
+use FFI\Preprocessor\FileSystem\VirtualFileSystem;
 use FFI\Preprocessor\Macro\MacroRepository;
 use FFI\Preprocessor\Macro\MacroRepositoryInterface;
 use FFI\Preprocessor\Runtime\ChunkReader;
@@ -47,7 +48,7 @@ final class Preprocessor
     /**
      * The files `#include` and `#embed` search
      */
-    public readonly FileSystemInterface $files;
+    public readonly VirtualFileSystem $files;
 
     /**
      * Receives the messages of `#error` and `#warning`
@@ -80,7 +81,7 @@ final class Preprocessor
         $this->sources = $this->createSourceFactory($sources);
         $this->macros = $this->createMacroRepository($macros, $clock);
         $this->directives = $this->createDirectiveRepository($directives);
-        $this->files = $this->createFileSystem($files);
+        $this->files = $this->createFileSystem($files, $this->sources);
         $this->diagnostic = $this->createDiagnosticListener($diagnostic);
         $this->reader = $this->createChunkReader($reader);
     }
@@ -112,13 +113,12 @@ final class Preprocessor
         return new DirectiveRepository(DirectiveRepository::createDefault());
     }
 
-    private function createFileSystem(?FileSystemInterface $files): FileSystemInterface
+    private function createFileSystem(?FileSystemInterface $files, SourceFactoryInterface $sources): VirtualFileSystem
     {
-        if ($files !== null) {
-            return $files;
-        }
-
-        return new RealFileSystem();
+        return new VirtualFileSystem(
+            parent: new RealFileSystem($files),
+            sources: $sources,
+        );
     }
 
     private function createDiagnosticListener(?DiagnosticListenerInterface $diagnostic): DiagnosticListenerInterface
@@ -139,10 +139,8 @@ final class Preprocessor
         return ChunkReader::createDefault();
     }
 
-    private function createExecutor(
-        MacroRepository $macros,
-        DiagnosticListenerInterface $diagnostic,
-    ): SourceExecutor {
+    private function createExecutor(MacroRepository $macros, DiagnosticListenerInterface $diagnostic): SourceExecutor
+    {
         return new SourceExecutor(
             $this->reader,
             $this->directives,
