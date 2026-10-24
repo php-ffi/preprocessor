@@ -33,9 +33,7 @@ $ composer require ffi/preprocessor
 the result is a stringable `Result`.
 
 ```php
-use FFI\Preprocessor\Preprocessor;
-
-$pre = new Preprocessor();
+$pre = new FFI\Preprocessor\Preprocessor();
 
 echo $pre->process(<<<'C'
     #define SQUARE(x) ((x) * (x))
@@ -72,9 +70,6 @@ $result->getDiagnostics();     // the messages of #error and #warning
 echo $result;                  // preprocessed result
 ```
 
-The preprocessor itself is not changed by a run: `#define` and `#undef` of the
-source affect the result only.
-
 
 ### Macros
 
@@ -97,7 +92,7 @@ $pre->macros->define('MAX', fn(string $a, string $b): string
 
 > The `__DATE__` and `__TIME__` are taken from a [PSR-20](https://www.php-fig.org/psr/psr-20/)
 > clock, the system one by default.
-> 
+>
 > ```php
 > $pre = new Preprocessor(clock: $myClock);
 > ```
@@ -105,18 +100,25 @@ $pre->macros->define('MAX', fn(string $a, string $b): string
 
 ### File System
 
-`#include` and `#embed` search for files in the file system of the preprocessor.
+Any `#include` and `#embed` search for files in the file system of the preprocessor,
+`$pre->files`.
 
 ```php
-use Phplrt\Source\VirtualSource;
+$pre = new FFI\Preprocessor\Preprocessor();
 
-$pre = new Preprocessor();
+// Define a file by its contents
+$pre->files->add('config.h', '#define VERSION 2');
+$pre->files->add('example.h', new SplFileInfo('/path/to/file.h'));
+$pre->files->add('some.h', fopen('/path/to/stream.h'));
 
-// Mount a real directory, `#include <vendor/header.h>` is searched in it
-$pre->files->addDirectory('/usr/include', '/');
+// Make a real file visible under a virtual name
+$pre->files->link('gl.h', '/usr/include/GL/gl.h');
 
-// Or define a file
-$pre->files->addFile('/config.h', VirtualSource::createFromString('config.h', '#define VERSION 2'));
+// Mount a real directory, `#include <sys/types.h>` is searched in it
+$pre->files->mount('/usr/include');
+
+// Mount it under a virtual directory, `#include <sdk/a.h>`
+$pre->files->mount('/opt/sdk/include', 'sdk');
 ```
 
 
